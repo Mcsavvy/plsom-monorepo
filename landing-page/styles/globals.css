@@ -1,0 +1,242 @@
+/* Import Google Fonts for PLSOM typography */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;600;700&family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  font-family: 'Poppins', 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    /* PLSOM Light Mode Colors */
+    --background: #ebebeb;
+    --foreground: #333333;
+    --card: #ffffff;
+    --card-foreground: #333333;
+    --popover: #ffffff;
+    --popover-foreground: #333333;
+    --primary: #005B99;
+    --primary-foreground: #ffffff;
+    --secondary: #ebebeb;
+    --secondary-foreground: #333333;
+    --muted: #ebebeb;
+    --muted-foreground: #5c5c5c;
+    --accent: #FFD700;
+    --accent-foreground: #333333;
+    --destructive: #FF0000;
+    --destructive-foreground: #ffffff;
+    --border: #c2c2c2;
+    --input: #5c5c5c;
+    --ring: #005B99;
+    --chart-1: #4e88ca;
+    --chart-2: #b7e9ff;
+    --chart-3: #e9aa2b;
+    --chart-4: #FFD700;
+    --chart-5: #005B99;
+    --radius: 0.25rem;
+    --sidebar-background: #ffffff;
+    --sidebar-foreground: #333333;
+    --sidebar-primary: #005B99;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #b7e9ff;
+    --sidebar-accent-foreground: #005B99;
+    --sidebar-border: #c2c2c2;
+    --sidebar-ring: #005B99;
+    
+    /* PLSOM Typography Scale */
+    --font-heading: 'Roboto Slab', 'Poppins', serif;
+    --font-body: 'Poppins', 'Open Sans', sans-serif;
+    --font-button: 'Poppins', sans-serif;
+    
+    /* Typography Sizes */
+    --text-h1: 2rem; /* 32px */
+    --text-h2: 1.75rem; /* 28px */
+    --text-h3: 1.5rem; /* 24px */
+    --text-subheading: 1.25rem; /* 20px */
+    --text-body: 1rem; /* 16px */
+    --text-small: 0.875rem; /* 14px */
+    --text-caption: 0.75rem; /* 12px */
+    
+    /* Shadows */
+    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-modal: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .dark {
+    /* PLSOM Dark Mode Colors */
+    --background: #1e2436;
+    --foreground: #FFFFFF;
+    --card: #363c4e;
+    --card-foreground: #FFFFFF;
+    --popover: #1e2436;
+    --popover-foreground: #FFFFFF;
+    --primary: #005B99;
+    --primary-foreground: #FFFFFF;
+    --secondary: #1e2436;
+    --secondary-foreground: #e0e0e0;
+    --muted: #1e2436;
+    --muted-foreground: #9b9b9b;
+    --accent: #FFD700;
+    --accent-foreground: #1e2436;
+    --destructive: #FF0000;
+    --destructive-foreground: #FFFFFF;
+    --border: #9b9b9b;
+    --input: #9b9b9b;
+    --ring: #FFD700;
+    --chart-1: #FFD700;
+    --chart-2: #917800;
+    --chart-3: #e0e0e0;
+    --chart-4: #9b9b9b;
+    --chart-5: #FFFFFF;
+    --sidebar-background: #0F1626;
+    --sidebar-foreground: #e0e0e0;
+    --sidebar-primary: #FFD700;
+    --sidebar-primary-foreground: #1e2436;
+    --sidebar-accent: #1e2436;
+    --sidebar-accent-foreground: #FFFFFF;
+    --sidebar-border: #363c4e;
+    --sidebar-ring: #FFD700;
+    
+    /* Dark mode shadows */
+    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-modal: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    line-height: 1.6;
+  }
+  
+  /* PLSOM Typography Classes */
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--foreground);
+  }
+  
+  h1 {
+    font-size: var(--text-h1);
+  }
+  
+  h2 {
+    font-size: var(--text-h2);
+  }
+  
+  h3 {
+    font-size: var(--text-h3);
+  }
+  
+  .subheading {
+    font-family: var(--font-body);
+    font-size: var(--text-subheading);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  
+  .body-text {
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  
+  .small-text {
+    font-family: var(--font-body);
+    font-size: var(--text-small);
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  
+  .caption-text {
+    font-family: var(--font-body);
+    font-size: var(--text-caption);
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  
+  /* Button Typography */
+  button, .btn {
+    font-family: var(--font-button);
+    font-weight: 600;
+    line-height: 1;
+  }
+  
+  /* Card Styling */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
+  
+  /* Modal Styling */
+  .modal {
+    background: var(--card);
+    border-radius: calc(var(--radius) * 1.5);
+    box-shadow: var(--shadow-modal);
+  }
+  
+  /* Input Styling */
+  input, textarea, select {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    font-family: var(--font-body);
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px var(--ring) / 0.2;
+  }
+  
+  /* Primary Button */
+  .btn-primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary) / 0.9;
+    transform: translateY(-1px);
+  }
+  
+  /* Secondary Button */
+  .btn-secondary {
+    background: var(--accent);
+    color: var(--accent-foreground);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-secondary:hover {
+    background: var(--accent) / 0.9;
+    transform: translateY(-1px);
+  }
+}
