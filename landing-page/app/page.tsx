@@ -13,6 +13,7 @@ import CoursesSection from "@/components/CoursesSection"
 import EnrollmentSection from "@/components/EnrollmentSection"
 import ContactSection from "@/components/ContactSection"
 import Footer from "@/components/Footer"
+import WhatsAppFAB from "@/components/WhatsAppFAB"
 
 export default function Home() {
   return (
@@ -30,6 +31,7 @@ export default function Home() {
       <EnrollmentSection />
       <ContactSection />
       <Footer />
+      <WhatsAppFAB />
     </div>
   )
 }

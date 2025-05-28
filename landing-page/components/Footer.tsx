@@ -40,13 +40,23 @@ export default function Footer() {
               {companyInfo.description}
             </p>
             <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-5 h-5 text-[#FFD700] flex-shrink-0" />
-                <span className="text-white/80 text-sm">{companyInfo.address}</span>
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-[#FFD700] flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-white/90 text-sm font-medium block">Nigeria Office:</span>
+                  <span className="text-white/80 text-sm">{companyInfo.address}</span>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-[#FFD700] flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-white/90 text-sm font-medium block">UK Office:</span>
+                  <span className="text-white/80 text-sm">{companyInfo.addressUK}</span>
+                </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-[#FFD700] flex-shrink-0" />
-                <span className="text-white/80 text-sm">{companyInfo.phone}</span>
+                <span className="text-white/80 text-sm">{companyInfo.phoneUK} (UK) | {companyInfo.phone} (Nigeria)</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-[#FFD700] flex-shrink-0" />

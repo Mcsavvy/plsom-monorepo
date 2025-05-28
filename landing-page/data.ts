@@ -18,6 +18,7 @@ import {
   Twitter,
   Instagram,
   Youtube,
+  MessageCircle,
 } from "lucide-react"
 
 // Navigation items
@@ -548,10 +549,13 @@ export const companyInfo = {
   description:
     "Perfect Love School of Ministry is devoted to training and guiding the next generation of Ministry leaders, empowering them to shape society for the glory of Jesus Christ.",
   address: "51a, Marwa Road, Ijegun Satellite Town, Lagos, Nigeria",
-  phone: "+44 1234 567890",
+  addressUK: "Suite 2, bright house bright road. Eccles. m30 0wg",
+  phone: "+2348147827057",
+  phoneUK: "+447881765201",
+  phoneWhatsApp: "+2348147827057",
   email: "contact@perfectloveschoolofministry.com",
   copyright: `© ${new Date().getFullYear()} Perfect Love School of Ministry. All rights reserved.`,
-}
+};
 
 // Contact information
 export const contactInfo = [
@@ -562,16 +566,42 @@ export const contactInfo = [
     link: `mailto:${companyInfo.email}`,
   },
   {
+    icon: MessageCircle,
+    title: "WhatsApp Us",
+    content: companyInfo.phoneWhatsApp,
+    link: `https://wa.me/${companyInfo.phoneWhatsApp
+      .replace(/\s+/g, "")
+      .replace(/\+/g, "")}?text=${encodeURIComponent(
+      "Hello! I'm interested in learning more about PLSOM programs."
+    )}`,
+  },
+  {
     icon: Phone,
-    title: "Call Us",
+    title: "Call Us (UK)",
+    content: companyInfo.phoneUK,
+    link: `tel:${companyInfo.phoneUK.replace(/\s+/g, "")}`,
+  },
+  {
+    icon: Phone,
+    title: "Call Us (Nigeria)",
     content: companyInfo.phone,
     link: `tel:${companyInfo.phone.replace(/\s+/g, "")}`,
   },
   {
     icon: MapPin,
-    title: "Visit Us",
+    title: "Visit Us (Nigeria)",
     content: companyInfo.address,
-    link: `https://maps.google.com/?q=C7V6+98H, BUBA MARWA ROAD ALIMOSHO, Satellite Town, Lagos`,
+    link: `https://maps.google.com/?q=${encodeURIComponent(
+      "C7V6+98H, BUBA MARWA ROAD ALIMOSHO, Satellite Town, Lagos"
+    )}`,
+  },
+  {
+    icon: MapPin,
+    title: "Visit Us (UK)",
+    content: companyInfo.addressUK,
+    link: `https://maps.google.com/?q=${encodeURIComponent(
+      "Suite 2, Bright House, Business Centre, Bright Rd, Eccles, Manchester M30 0WG, United Kingdom"
+    )}`,
   },
 ];
 
