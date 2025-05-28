@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { toast } from "@/hooks/use-toast"
 
 // Zod schema for form validation - simplified to match actual PLSOM form
 const enrollmentSchema = z.object({
@@ -87,24 +88,64 @@ export default function EnrollmentForm() {
   }, [watchedValues, isSubmitted])
 
   const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true)
-    
+    setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
+      const response = await fetch('https://live.plsom.com/api/submit-application/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: data.fullName,
+          father_name: data.fatherName,
+          mother_name: data.motherName,
+          gender: data.gender,
+          phone: data.phone,
+          email: data.email,
+          full_residential_address: data.address,
+          nationality: data.nationality,
+          employment_status: data.employmentStatus,
+          program_type: data.programType,
+          program_interest: data.programInterest,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast({
+            title: "Rate Limit Exceeded",
+            description: "Too many submissions. Please try again later.",
+            variant: "destructive",
+          });
+        } else {
+          throw new Error(result.message || 'Something went wrong');
+        }
+        return;
+      }
+
       // Mark as submitted
       localStorage.setItem(SUBMISSION_KEY, "true")
       localStorage.removeItem(STORAGE_KEY) // Clear form data
       setIsSubmitted(true)
-      
-      console.log("Form submitted:", data)
+      toast({
+        title: "Application Submitted",
+        description: "Your application has been submitted successfully.",
+      });
+
+      form.reset();
+
     } catch (error) {
-      console.error("Submission error:", error)
+      toast({
+        title: "Error",
+        description: (error as Error).message || "An error occurred while submitting your application.",
+        variant: "destructive",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isSubmitted) {
     return (
@@ -309,9 +350,9 @@ export default function EnrollmentForm() {
                       <SelectValue placeholder="Select employment status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Employed">Employed</SelectItem>
-                      <SelectItem value="Unemployed">Unemployed</SelectItem>
-                      <SelectItem value="Student">Student</SelectItem>
+                      <SelectItem value="EMPLOYED">Employed</SelectItem>
+                      <SelectItem value="UNEMPLOYED">Unemployed</SelectItem>
+                      <SelectItem value="STUDENT">Student</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -331,8 +372,8 @@ export default function EnrollmentForm() {
                       <SelectValue placeholder="Select program type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Certificate">Certificate (7 months)</SelectItem>
-                      <SelectItem value="Diploma">Diploma (14 months)</SelectItem>
+                      <SelectItem value="CERTIFICATE">Certificate (7 months)</SelectItem>
+                      <SelectItem value="DIPLOMA">Diploma (14 months)</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
