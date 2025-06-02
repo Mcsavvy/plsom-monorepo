@@ -44,13 +44,13 @@ UNFOLD = {
                         "title": "Users", 
                         "icon": "user", 
                         "link": "/admin/users/user/",
-                        "badge": "users.User|length"
+                        # "badge": "users.User|length"
                     },
                     {
                         "title": "Invitations", 
                         "icon": "mail", 
                         "link": "/admin/invitations/invitation/",
-                        "badge": "invitations.Invitation|length:unused"
+                        # "badge": "invitations.Invitation|length:unused"
                     },
                 ]
             },
