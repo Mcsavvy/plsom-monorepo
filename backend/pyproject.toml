@@ -24,6 +24,7 @@ drf-spectacular = "^0.28.0"
 dj-database-url = "^2.3.0"
 whitenoise = "^6.9.0"
 mypy = "^1.16.0"
+python-ms = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.31.0"

@@ -1348,6 +1348,17 @@ files = [
 ]
 
 [[package]]
+name = "python-ms"
+version = "1.1.1"
+description = "A Python equivalent to the JavaScript ms package."
+optional = false
+python-versions = "<4.0,>=3.10"
+files = [
+    {file = "python_ms-1.1.1-py3-none-any.whl", hash = "sha256:bb25fd90dd5ed38d674fcfc455ed8e3141db835fb915d2f01c584e4ce1a0fbb4"},
+    {file = "python_ms-1.1.1.tar.gz", hash = "sha256:70ab0087c89d33da08c3e95f72faac965968a6ef4189fe4f158f1df5c0d8400d"},
+]
+
+[[package]]
 name = "pywin32"
 version = "310"
 description = "Python for Window Extensions"
@@ -1972,4 +1983,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.4"
-content-hash = "47e28d09b2714657c73f3f991c5c3d45d347749778a8b2627a5c75f42557a0bb"
+content-hash = "8202428c4ca2e37f745e6ec14f44408baa4927f59320b79277088e905dd311fd"
