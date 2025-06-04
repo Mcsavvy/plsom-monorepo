@@ -5,17 +5,30 @@ services:
     build: .
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4
     volumes:
-      - .:/app
+      - logs:/app/logs
+      - staticfiles:/app/staticfiles
     ports:
-      - "8000:8000"
+      # dynamic port set using environment variable
+      - ${PORT}:8000
     environment:
-      - DJANGO_ENV=development
+      - DJANGO_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   celery:
     build: .
     command: celery -A config worker --loglevel=info
+    exclude_from_hc: true
     volumes:
-      - .:/app
+      - logs:/app/logs
+      - staticfiles:/app/staticfiles
     environment:
-      - DJANGO_ENV=development
+      - DJANGO_ENV=production
+
+volumes:
+  logs:
+  staticfiles:
 
