@@ -1,3 +1,4 @@
+# ruff: noqa: F403, F405
 import sentry_sdk
 from decouple import config
 
@@ -57,77 +58,3 @@ EMAIL_HOST = config("EMAIL_HOST")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-
-# Production logging
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'plsom.log',
-            'formatter': 'verbose',
-        },
-        "console": {
-            "level": "INFO",
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        },
-    },
-    "root": {
-        "handlers": ["file", "console"],
-        "level": "INFO",
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console", "file"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        "django.request": {
-            "handlers": ["console", "file"],
-            "level": "ERROR",
-            "propagate": False,
-        },
-        "django.db.backends": {
-            "handlers": ["console", "file"],
-            "level": "ERROR",
-            "propagate": False,
-        },
-        "faker": {
-            "handlers": ["console", "file"],
-            "level": "ERROR",
-        },
-        "asyncio": {
-            "handlers": ["console", "file"],
-            "level": "ERROR",
-        },
-        "django-backblaze-b2": {
-            "handlers": ["console", "file"],
-            "level": "INFO",
-        },
-        "django_backblaze_b2": {
-            "handlers": ["console", "file"],
-            "level": "INFO",
-        },
-        "b2sdk": {
-            "handlers": ["console", "file"],
-            "level": "INFO",
-        },
-        "urllib3": {
-            "handlers": ["console", "file"],
-            "level": "INFO",
-        },
-        "": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
-        },
-    },
-}
