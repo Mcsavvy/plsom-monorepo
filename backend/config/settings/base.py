@@ -212,4 +212,9 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+ADMIN_EMAIL = config("ADMIN_EMAIL", default="")
+ADMIN_PASSWORD = config("ADMIN_PASSWORD", default="")
+ADMIN_FIRST_NAME = config("ADMIN_FIRST_NAME", default="")
+ADMIN_LAST_NAME = config("ADMIN_LAST_NAME", default="")
+
 from .unfold import *  # noqa: E402, F403

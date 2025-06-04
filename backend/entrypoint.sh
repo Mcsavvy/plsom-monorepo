@@ -4,6 +4,9 @@ set -e
 echo "Running database migrations..."
 python manage.py migrate
 
+# Create default admin if needed
+python manage.py createdefaultadmin
+
 # Start the application
 echo "Starting application..."
 exec "$@"
