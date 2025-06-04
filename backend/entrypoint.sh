@@ -2,7 +2,7 @@
 set -e
 # Run migrations
 echo "Running database migrations..."
-python manage.py migrate
+python manage.py migrate --noinput
 
 # Create default admin if needed
 python manage.py createdefaultadmin
