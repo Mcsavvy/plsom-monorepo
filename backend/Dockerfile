@@ -29,11 +29,6 @@ COPY entrypoint.sh /entrypoint.sh
 # Ensure entrypoint.sh is executable
 RUN chmod +x /entrypoint.sh
 
-# Create non-root user
-RUN adduser --disabled-password --gecos '' appuser
-RUN chown -R appuser:appuser /app
-USER appuser
-
 EXPOSE 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
