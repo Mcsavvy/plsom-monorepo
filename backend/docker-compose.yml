@@ -8,8 +8,7 @@ services:
       - logs:/app/logs
       - staticfiles:/app/staticfiles
     ports:
-      # dynamic port set using environment variable
-      - ${PORT}:8000
+      - 8020:8000
     environment:
       - DJANGO_ENV=production
     healthcheck:
