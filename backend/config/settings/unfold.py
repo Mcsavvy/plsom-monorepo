@@ -42,7 +42,7 @@ UNFOLD = {
                 "items": [
                     {
                         "title": "Users", 
-                        "icon": "user", 
+                        "icon": "person", 
                         "link": "/admin/users/user/",
                         # "badge": "users.User|length"
                     },
@@ -61,17 +61,17 @@ UNFOLD = {
                 "items": [
                     {
                         "title": "Cohorts", 
-                        "icon": "users", 
+                        "icon": "group", 
                         "link": "/admin/cohorts/cohort/"
                     },
                     {
                         "title": "Courses", 
-                        "icon": "book-open", 
+                        "icon": "book_ribbon", 
                         "link": "/admin/courses/course/"
                     },
                     {
                         "title": "Course Assignments", 
-                        "icon": "user-plus", 
+                        "icon": "person_add", 
                         "link": "/admin/courses/courseassignment/"
                     },
                 ]
@@ -83,12 +83,12 @@ UNFOLD = {
                 "items": [
                     {
                         "title": "Classes", 
-                        "icon": "calendar", 
+                        "icon": "event", 
                         "link": "/admin/classes/class/"
                     },
                     {
                         "title": "Attendance", 
-                        "icon": "check-circle", 
+                        "icon": "person_check", 
                         "link": "/admin/classes/attendance/"
                     },
                 ]
@@ -100,12 +100,12 @@ UNFOLD = {
                 "items": [
                     {
                         "title": "Tests", 
-                        "icon": "clipboard-check", 
+                        "icon": "assignment", 
                         "link": "/admin/assessments/test/"
                     },
                     {
                         "title": "Submissions", 
-                        "icon": "file-text", 
+                        "icon": "assignment_returned", 
                         "link": "/admin/assessments/submission/"
                     },
                 ]
@@ -122,7 +122,7 @@ UNFOLD = {
                     },
                     {
                         "title": "System Logs", 
-                        "icon": "activity", 
+                        "icon": "browse_activity", 
                         "link": "/admin/logs/"
                     },
                 ]
