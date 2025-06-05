@@ -1,5 +1,5 @@
 from django.templatetags.static import static
-
+from decouple import config
 
 def get_environment_display(request):
     """Return environment badge for admin header"""
@@ -17,9 +17,23 @@ UNFOLD = {
     "SITE_SUBHEADER": "Perfect Love School Of Ministry",
     "SITE_ICON": lambda request: static("favicon.ico"),
     "SITE_LOGO": lambda request: static("logo.png"),
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "type": "image/x-icon",
+            "href": lambda request: static("favicon.ico"),
+        },
+    ],
     "SITE_URL": "/",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
+    "SITE_DROPDOWN": [
+        {
+            "icon": "diamond",
+            "title": "APP",
+            "link": config("FRONTEND_URL", default="https://plsom.com"),
+        },
+    ],
     # Sidebar Configuration
     "SIDEBAR": {
         "show_search": True,
@@ -29,7 +43,7 @@ UNFOLD = {
                 "title": "Dashboard",
                 "separator": True,
                 "items": [
-                    {"title": "Overview", "icon": "home", "link": "/admin/"},
+                    {"title": "Overview", "icon": "home", "link": "/"},
                 ],
             },
             {
@@ -40,14 +54,12 @@ UNFOLD = {
                     {
                         "title": "Users",
                         "icon": "person",
-                        "link": "/admin/users/user/",
-                        # "badge": "users.User|length"
+                        "link": "/users/user/",
                     },
                     {
                         "title": "Invitations",
                         "icon": "mail",
-                        "link": "/admin/invitations/invitation/",
-                        # "badge": "invitations.Invitation|length:unused"
+                        "link": "/invitations/invitation/",
                     },
                 ],
             },
@@ -59,17 +71,17 @@ UNFOLD = {
                     {
                         "title": "Cohorts",
                         "icon": "group",
-                        "link": "/admin/cohorts/cohort/",
+                        "link": "/cohorts/cohort/",
                     },
                     {
                         "title": "Courses",
                         "icon": "book_ribbon",
-                        "link": "/admin/courses/course/",
+                        "link": "/courses/course/",
                     },
                     {
                         "title": "Course Assignments",
                         "icon": "person_add",
-                        "link": "/admin/courses/courseassignment/",
+                        "link": "/courses/courseassignment/",
                     },
                 ],
             },
@@ -81,12 +93,12 @@ UNFOLD = {
                     {
                         "title": "Classes",
                         "icon": "event",
-                        "link": "/admin/classes/class/",
+                        "link": "/classes/class/",
                     },
                     {
                         "title": "Attendance",
                         "icon": "person_check",
-                        "link": "/admin/classes/attendance/",
+                        "link": "/classes/attendance/",
                     },
                 ],
             },
@@ -98,12 +110,12 @@ UNFOLD = {
                     {
                         "title": "Tests",
                         "icon": "assignment",
-                        "link": "/admin/assessments/test/",
+                        "link": "/assessments/test/",
                     },
                     {
                         "title": "Submissions",
                         "icon": "assignment_returned",
-                        "link": "/admin/assessments/submission/",
+                        "link": "/assessments/submission/",
                     },
                 ],
             },
@@ -115,12 +127,12 @@ UNFOLD = {
                     {
                         "title": "Email Templates",
                         "icon": "mail",
-                        "link": "/admin/communications/emailtemplate/",
+                        "link": "/communications/emailtemplate/",
                     },
                     {
                         "title": "System Logs",
                         "icon": "browse_activity",
-                        "link": "/admin/logs/",
+                        "link": "/logs/",
                     },
                 ],
             },
@@ -145,7 +157,7 @@ UNFOLD = {
                 {
                     "title": "Enrollments",
                     "icon": "book",
-                    "link": "/admin/cohorts/enrollment/?student__id__exact={id}",
+                    "link": "/cohorts/enrollment/?student__id__exact={id}",
                 },
             ],
         },
@@ -162,12 +174,12 @@ UNFOLD = {
                 {
                     "title": "Classes",
                     "icon": "calendar",
-                    "link": "/admin/classes/class/?course__id__exact={id}",
+                    "link": "/classes/class/?course__id__exact={id}",
                 },
                 {
                     "title": "Tests",
                     "icon": "clipboard-check",
-                    "link": "/admin/assessments/test/?course__id__exact={id}",
+                    "link": "/assessments/test/?course__id__exact={id}",
                 },
             ],
         },
