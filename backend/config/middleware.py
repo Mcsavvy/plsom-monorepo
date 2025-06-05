@@ -27,7 +27,7 @@ class SentryMiddleware:
                 {
                     "id": user.pk,
                     "email": user.email,
-                    "username": user.get_name(),
+                    "username": user.get_full_name(),
                 }
             )
         return self.get_response(request)
