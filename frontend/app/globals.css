@@ -1,0 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;600;700&family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap');
+@import "tailwindcss";
+
+
+/* PLSOM Brand Theme Variables */
+:root {
+  /* Light Theme - PLSOM Brand Colors */
+  --background: #ebebeb; /* plsom-bg-200 */
+  --foreground: #333333; /* plsom-text-100 */
+  --card: #ffffff;
+  --card-foreground: #333333;
+  --popover: #ffffff;
+  --popover-foreground: #333333;
+  --primary: #005B99; /* PLSOM Primary Blue */
+  --primary-foreground: #ffffff;
+  --secondary: #F5F5F5; /* plsom-bg-100 */
+  --secondary-foreground: #333333;
+  --muted: #F5F5F5;
+  --muted-foreground: #5c5c5c; /* plsom-text-200 */
+  --accent: #FFD700; /* PLSOM Accent Gold */
+  --accent-foreground: #333333;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #c2c2c2; /* plsom-bg-300 */
+  --input: #c2c2c2;
+  --ring: #005B99;
+}
+
+/* Dark Theme - PLSOM Brand Colors */
+[data-theme='dark'] {
+  --background: #1e2436; /* PLSOM Dark Background */
+  --foreground: #ffffff; /* plsom-dark-text-100 */
+  --card: #363c4e; /* plsom-dark-bg-300 */
+  --card-foreground: #ffffff;
+  --popover: #1e2436;
+  --popover-foreground: #ffffff;
+  --primary: #005B99; /* Keep PLSOM Blue consistent */
+  --primary-foreground: #ffffff;
+  --secondary: #0F1626; /* plsom-dark-bg-200 */
+  --secondary-foreground: #e0e0e0; /* plsom-dark-primary-200 */
+  --muted: #0F1626;
+  --muted-foreground: #9b9b9b; /* plsom-dark-primary-300 */
+  --accent: #FFD700; /* PLSOM Gold remains consistent */
+  --accent-foreground: #1e2436;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #9b9b9b;
+  --input: #363c4e;
+  --ring: #FFD700; /* Gold ring in dark mode */
+}
+
+@theme inline {
+  /* PLSOM Brand Color Tokens */
+  --color-plsom-primary-100: #005B99;
+  --color-plsom-primary-200: #4e88ca;
+  --color-plsom-primary-300: #b7e9ff;
+  
+  --color-plsom-accent-100: #FFD700;
+  --color-plsom-accent-200: #e9aa2b;
+  
+  --color-plsom-text-100: #333333;
+  --color-plsom-text-200: #5c5c5c;
+  
+  --color-plsom-bg-100: #F5F5F5;
+  --color-plsom-bg-200: #ebebeb;
+  --color-plsom-bg-300: #c2c2c2;
+  
+  /* PLSOM Dark Mode Colors */
+  --color-plsom-dark-primary-100: #FFFFFF;
+  --color-plsom-dark-primary-200: #e0e0e0;
+  --color-plsom-dark-primary-300: #9b9b9b;
+  
+  --color-plsom-dark-accent-100: #FFD700;
+  --color-plsom-dark-accent-200: #917800;
+  
+  --color-plsom-dark-text-100: #FFFFFF;
+  --color-plsom-dark-text-200: #e0e0e0;
+  
+  --color-plsom-dark-bg-100: #1e2436;
+  --color-plsom-dark-bg-200: #0F1626;
+  --color-plsom-dark-bg-300: #363c4e;
+
+  /* Standard semantic colors using CSS variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* PLSOM Typography */
+  --font-family-heading: 'Roboto Slab', 'Poppins', serif;
+  --font-family-body: 'Poppins', 'Open Sans', sans-serif;
+  --font-family-button: 'Poppins', sans-serif;
+
+  /* PLSOM Spacing & Sizing */
+  --radius-plsom: 0.25rem;
+  --shadow-plsom-card: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  --shadow-plsom-modal: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+}
+
+/* Base Styles */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-family-body);
+  line-height: 1.6;
+}
+
+/* PLSOM Typography */
+h1, h2, h3 {
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }
+
+button, .btn {
+  font-family: var(--font-family-button);
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* PLSOM Component Classes */
+.btn-plsom-primary {
+  background-color: var(--color-plsom-primary-100);
+  color: white;
+  font-family: var(--font-family-button);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-plsom);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-plsom-primary:hover {
+  background-color: var(--color-plsom-primary-200);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-plsom-card);
+}
+
+.btn-plsom-secondary {
+  background-color: var(--color-plsom-accent-100);
+  color: var(--color-plsom-primary-100);
+  font-family: var(--font-family-button);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-plsom);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-plsom-secondary:hover {
+  background-color: var(--color-plsom-accent-200);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-plsom-card);
+}
+
+.card-plsom {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-plsom);
+  box-shadow: var(--shadow-plsom-card);
+  transition: box-shadow 0.3s ease;
+}
+
+.card-plsom:hover {
+  box-shadow: var(--shadow-plsom-modal);
+}
+
+.input-plsom {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-plsom);
+  padding: 0.5rem 1rem;
+  color: var(--foreground);
+  font-family: var(--font-family-body);
+}
+
+.input-plsom:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+/* PLSOM Utility Classes */
+.text-plsom-primary { color: var(--color-plsom-primary-100); }
+.text-plsom-accent { color: var(--color-plsom-accent-100); }
+.bg-plsom-primary { background-color: var(--color-plsom-primary-100); }
+.bg-plsom-accent { background-color: var(--color-plsom-accent-100); }
+.bg-plsom-light { background-color: var(--color-plsom-bg-100); }
+
+/* Dark mode adjustments for PLSOM utilities */
+[data-theme='dark'] .text-plsom-primary { color: var(--color-plsom-dark-primary-100); }
+[data-theme='dark'] .bg-plsom-light { background-color: var(--color-plsom-dark-bg-200); }
