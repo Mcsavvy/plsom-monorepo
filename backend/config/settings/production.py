@@ -30,7 +30,11 @@ CSRF_COOKIE_SECURE = True
 
 
 INSTALLED_APPS += ["django_backblaze_b2"]
-MIDDLEWARE += ["config.middleware.SentryMiddleware"]
+MIDDLEWARE.insert(
+    MIDDLEWARE.index("django.middleware.security.SecurityMiddleware") + 1,
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+)
+MIDDLEWARE.append("config.middleware.SentryMiddleware")
 STORAGES.update(
     {
         "default": {
@@ -41,9 +45,7 @@ STORAGES.update(
 
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"},
-    "django-backblaze-b2": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache"
-    },
+    "django-backblaze-b2": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
 }
 
 BACKBLAZE_CONFIG: dict[str, str] = {
