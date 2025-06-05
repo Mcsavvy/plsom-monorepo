@@ -134,6 +134,16 @@ UNFOLD = {
                         "icon": "browse_activity",
                         "link": "/logs/",
                     },
+                    {
+                        "title": "Queue Tasks",
+                        "icon": "queue",
+                        "link": "/django_q/ormq/",
+                    },
+                    {
+                        "title": "Scheduled Tasks",
+                        "icon": "schedule",
+                        "link": "/django_q/schedule/",
+                    },
                 ],
             },
         ],
