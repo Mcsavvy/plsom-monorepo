@@ -29,7 +29,7 @@ clean: ## Clean cache and build files
 	rm -rf htmlcov/
 
 requirements: ## Generate requirements.txt
-	poetry export -f requirements.txt --output requirements.txt --without-hashes
+	poetry run pip freeze > requirements.txt
 
 db-migrate: ## Run database migrations
 	poetry run python manage.py migrate
