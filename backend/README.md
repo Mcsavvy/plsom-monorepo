@@ -23,7 +23,7 @@ PLSOM LMS is a comprehensive Learning Management System designed for the Perfect
 ## Tech Stack
 
 - **Backend:** Python 3.12, Django 5.2, Django REST Framework
-- **Task Queue:** Celery with Redis
+- **Task Queue:** Django Q2 with Redis
 - **Database:** PostgreSQL
 - **Authentication:** JWT (djangorestframework-simplejwt)
 - **File Storage:** (Pluggable, e.g., AWS S3, Google Cloud, Backblaze B2)
@@ -64,7 +64,7 @@ PLSOM LMS is a comprehensive Learning Management System designed for the Perfect
      - `DATABASE_URL` (PostgreSQL connection string)
      - `SECRET_KEY` (Django secret key)
      - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` (SMTP settings)
-     - `REDIS_URL` (for Celery)
+     - `REDIS_URL` (for Django Q2)
      - `ZOOM_API_KEY`, `ZOOM_API_SECRET` (for Zoom integration)
      - Storage provider credentials (e.g., AWS, Backblaze B2)
 
@@ -81,8 +81,11 @@ PLSOM LMS is a comprehensive Learning Management System designed for the Perfect
    docker-compose exec api poetry run python manage.py createsuperuser
    ```
 
-5. **(Optional) Run Celery Worker:**
-   Celery is already included in `docker-compose.yml` and will start automatically.
+5. **(Optional) Run Django Q2 Worker:**
+   Start the worker with:
+   ```bash
+   docker-compose exec api poetry run python manage.py qcluster
+   ```
 
 ### Local Development (without Docker)
 

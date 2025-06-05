@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["python312", "python312Packages.pip"]
+
+[phases.install]
+cmds = [
+  "pip install -r requirements.txt --break-system-packages"
+]
+
+[phases.build]
+cmds = [
+  "python manage.py migrate"
+]
+
+[start]
+cmd = "python manage.py qcluster"

@@ -1,5 +1,5 @@
 .ONESHELL:
-.PHONY: help, install, dev-install, test, lint, format, clean, db-migrate, db-upgrade, db-seed, db-purge, run, shell, celery, requirements
+.PHONY: help, install, dev-install, test, lint, format, clean, db-migrate, db-upgrade, db-seed, db-purge, run, shell, qcluster, requirements
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -50,5 +50,5 @@ run: ## Run development server
 shell: ## Open Django shell
 	poetry run python manage.py shell
 
-celery: ## Start Celery worker
-	poetry run celery -A config worker --loglevel=info
+qcluster: ## Start Django Q2 worker
+	poetry run python manage.py qcluster

@@ -17,15 +17,14 @@ services:
       timeout: 10s
       retries: 5
 
-  celery:
+  qcluster:
     build: .
-    command: celery -A config worker --loglevel=info
     exclude_from_hc: true
-    volumes:
-      - logs:/app/logs
-      - staticfiles:/app/staticfiles
+    command: python manage.py qcluster
     environment:
       - DJANGO_ENV=production
+    depends_on:
+      - api
 
 volumes:
   logs:
