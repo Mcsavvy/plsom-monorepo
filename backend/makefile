@@ -45,7 +45,13 @@ db-purge: ## Purge database
 	poetry run python manage.py flush
 
 run: ## Run development server
-	poetry run python manage.py runserver
+	@echo "Running in $(DJANGO_ENV) environment"
+	# use gunicorn for production
+	if [ "$(DJANGO_ENV)" = "production" ]; then
+		poetry run gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 4 --timeout 0
+	else
+		poetry run python manage.py runserver
+	fi
 
 shell: ## Open Django shell
 	poetry run python manage.py shell
