@@ -3,7 +3,7 @@ nixPkgs = ["python312", "poetry"]
 
 [phases.install]
 cmds = [
-  "poetry install --no-dev --no-interactive --no-ansi"
+  "pip install -r requirements.txt"
 ]
 
 [phases.build]
