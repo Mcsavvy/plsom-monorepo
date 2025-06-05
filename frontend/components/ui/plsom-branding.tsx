@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,6 +39,56 @@ const logoVariants = {
 }
 
 export function PLSOMBranding() {
+  const [currentDate, setCurrentDate] = useState<Date | null>(null)
+  const [logoError, setLogoError] = useState(false)
+
+  useEffect(() => {
+    // Set initial date
+    setCurrentDate(new Date())
+
+    // Update date every minute to ensure accuracy
+    const interval = setInterval(() => {
+      setCurrentDate(new Date())
+    }, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const formatDate = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }
+    return date.toLocaleDateString('en-US', options)
+  }
+
+  const LogoComponent = () => {
+    if (logoError) {
+      // Fallback logo design
+      return (
+        <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">P</div>
+            <div className="text-xs text-white/80">LSOM</div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <Image
+        src="/logo.png"
+        alt="PLSOM Logo"
+        width={96}
+        height={96}
+        className="w-24 h-24 object-contain"
+        priority
+        onError={() => setLogoError(true)}
+      />
+    )
+  }
+
   return (
     <motion.div 
       className="text-center text-white"
@@ -74,14 +125,7 @@ export function PLSOMBranding() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <Image
-              src="/logo.png"
-              alt="PLSOM Logo"
-              width={96}
-              height={96}
-              className="w-24 h-24 object-contain"
-              priority
-            />
+            <LogoComponent />
           </motion.div>
 
           {/* Orbiting elements */}
@@ -191,12 +235,31 @@ export function PLSOMBranding() {
         </motion.div>
         
         <motion.div 
-          className="border-t border-white/20 pt-4"
+          className="border-t border-white/20 pt-4 space-y-2"
           initial={{ opacity: 0, scaleX: 0 }}
           animate={{ opacity: 0.8, scaleX: 1 }}
           transition={{ delay: 3, duration: 0.8 }}
         >
-          <p className="font-body">&copy; 2024 PLSOM. Private Learning Platform.</p>
+          {/* Dynamic Date Display */}
+          {currentDate && (
+            <motion.p 
+              className="font-body text-xs text-white/70"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 0.7, y: 0 }}
+              transition={{ delay: 3.2, duration: 0.6 }}
+            >
+              {formatDate(currentDate)}
+            </motion.p>
+          )}
+          
+          <motion.p 
+            className="font-body"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 0.8, y: 0 }}
+            transition={{ delay: 3.4, duration: 0.6 }}
+          >
+            &copy; {currentDate?.getFullYear() || new Date().getFullYear()} PLSOM. Private Learning Platform.
+          </motion.p>
         </motion.div>
       </motion.div>
     </motion.div>

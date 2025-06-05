@@ -142,6 +142,11 @@ button, .btn {
   line-height: 1;
 }
 
+/* PLSOM Button Styles */
+.btn-plsom-primary {
+  @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300;
+}
+
 /* PLSOM Component Classes */
 .btn-plsom-primary {
   background-color: var(--color-plsom-primary-100);
