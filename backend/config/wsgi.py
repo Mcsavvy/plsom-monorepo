@@ -12,8 +12,8 @@ from django.core.wsgi import get_wsgi_application
 from decouple import config
 
 # Set environment
-django_env = config('DJANGO_ENV', default='development')
-os.environ.setdefault('DJANGO_ENV', django_env)
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django_env = config("DJANGO_ENV", default="development")
+os.environ.setdefault("DJANGO_ENV", django_env)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 application = get_wsgi_application()

@@ -12,6 +12,7 @@ from django_q.tasks import async_task
 
 # Create your views here.
 
+
 @extend_schema_view(
     list=extend_schema(tags=["Invitations"]),
     retrieve=extend_schema(tags=["Invitations"]),
@@ -28,13 +29,21 @@ class InvitationViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         invitation = serializer.save(created_by=self.request.user)
-        async_task('apps.invitations.tasks.send_invitation_email', invitation.id)
+        async_task(
+            "apps.invitations.tasks.send_invitation_email", invitation.id
+        )
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
+    @action(detail=True, methods=["post"], permission_classes=[IsAdmin])
     def resend(self, request, pk=None):
         invitation = self.get_object()
         # Update expiry
-        invitation.expires_at = timezone.now() + settings.INVITATION_EXPIRATION_TIME
+        invitation.expires_at = (
+            timezone.now() + settings.INVITATION_EXPIRATION_TIME
+        )
         invitation.save(update_fields=["expires_at"])
-        async_task('apps.invitations.tasks.send_invitation_email', invitation.id)
-        return Response({"detail": "Invitation resent."}, status=status.HTTP_200_OK)
+        async_task(
+            "apps.invitations.tasks.send_invitation_email", invitation.id
+        )
+        return Response(
+            {"detail": "Invitation resent."}, status=status.HTTP_200_OK
+        )

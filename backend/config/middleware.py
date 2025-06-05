@@ -1,12 +1,11 @@
-import zoneinfo
 from typing import Callable
 
 from django.conf import settings
 from django.http.request import HttpRequest as Request
 from django.http.response import HttpResponse as Response
-from django.utils import timezone
 
 from apps.users.models import User
+
 
 class SentryMiddleware:
     """Middleware to capture current user in Sentry."""

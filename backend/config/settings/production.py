@@ -30,7 +30,9 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv())
-CSRF_TRUSTED_ORIGINS: list[str] = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
+CSRF_TRUSTED_ORIGINS: list[str] = config(
+    "CSRF_TRUSTED_ORIGINS", default="", cast=Csv()
+)
 COOLIFY_URLS: list[str] = config("COOLIFY_URL", default="", cast=Csv())
 COOLIFY_URLS.extend(
     (
@@ -63,7 +65,9 @@ STORAGES.update(
 
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"},
-    "django-backblaze-b2": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+    "django-backblaze-b2": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache"
+    },
 }
 
 BACKBLAZE_CONFIG: dict[str, str] = {

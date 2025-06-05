@@ -58,7 +58,9 @@ class User(AbstractUser):
     # Remove username, use email as USERNAME_FIELD
     username = None
     email = models.EmailField(unique=True)
-    title = models.CharField(max_length=20, choices=TITLES, null=True, blank=True)
+    title = models.CharField(
+        max_length=20, choices=TITLES, null=True, blank=True
+    )
     role = models.CharField(max_length=20, choices=ROLES)
     program_type = models.CharField(
         max_length=20, choices=PROGRAM_TYPES, null=True, blank=True

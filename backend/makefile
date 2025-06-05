@@ -21,6 +21,7 @@ lint: ## Run linting
 
 format: ## Format code
 	poetry run ruff format apps config utils
+	poetry run ruff check --fix apps config utils
 
 clean: ## Clean cache and build files
 	find . -type d -name "__pycache__" -delete
