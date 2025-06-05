@@ -1,6 +1,7 @@
 # ruff: noqa: F403, F405
 import sentry_sdk
 from decouple import config
+from urllib.parse import urlparse
 
 from .base import *
 
@@ -27,6 +28,16 @@ DEBUG = False
 # SECURE_BROWSER_XSS_FILTER = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv())
+CSRF_TRUSTED_ORIGINS: list[str] = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
+COOLIFY_URLS: list[str] = config("COOLIFY_URL", default="", cast=Csv())
+
+for url in COOLIFY_URLS:
+    hostname = urlparse(url).hostname
+    if hostname:
+        ALLOWED_HOSTS.append(hostname)
+        CSRF_TRUSTED_ORIGINS.append(url)
 
 
 INSTALLED_APPS += ["django_backblaze_b2"]
