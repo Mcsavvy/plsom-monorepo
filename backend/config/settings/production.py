@@ -32,6 +32,13 @@ CSRF_COOKIE_SECURE = True
 ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv())
 CSRF_TRUSTED_ORIGINS: list[str] = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 COOLIFY_URLS: list[str] = config("COOLIFY_URL", default="", cast=Csv())
+COOLIFY_URLS.extend(
+    (
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://0.0.0.0:8000",
+    )
+)
 
 for url in COOLIFY_URLS:
     hostname = urlparse(url).hostname
