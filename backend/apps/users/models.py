@@ -72,7 +72,7 @@ class User(AbstractUser):
     is_setup_complete = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: list[str] = []
 
     def get_full_name(self) -> str:
         if self.title:

@@ -61,6 +61,16 @@ UNFOLD = {
                         "icon": "mail",
                         "link": "/invitations/invitation/",
                     },
+                    {
+                        "title": "Groups",
+                        "icon": "group",
+                        "link": "/auth/group/",
+                    },
+                    {
+                        "title": "Permissions",
+                        "icon": "lock",
+                        "link": "/auth/permission/",
+                    },
                 ],
             },
             {
@@ -163,6 +173,16 @@ UNFOLD = {
                     "title": "Profile",
                     "icon": "user",
                     "link": "{path}",
+                },
+                {
+                    "title": "Groups",
+                    "icon": "group",
+                    "link": "/auth/group/",
+                },
+                {
+                    "title": "Permissions",
+                    "icon": "lock",
+                    "link": "/auth/permission/",
                 },
                 {
                     "title": "Enrollments",
