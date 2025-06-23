@@ -12,7 +12,7 @@ from drf_spectacular.utils import extend_schema
 
 @extend_schema(tags=["Authentication"])
 class CustomTokenObtainPairView(BaseTokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+    serializer_class = CustomTokenObtainPairSerializer # type: ignore
 
 
 @extend_schema(tags=["Authentication"])

@@ -29,7 +29,7 @@ DEBUG = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv())
+ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv()) # type: ignore
 CSRF_TRUSTED_ORIGINS: list[str] = config(
     "CSRF_TRUSTED_ORIGINS", default="", cast=Csv()
 )
