@@ -18,12 +18,13 @@ class Class(models.Model):
     recording_url = models.URLField(null=True)
 
     class Meta:
-        ordering = ['scheduled_at']
-        verbose_name = 'Class'
-        verbose_name_plural = 'Classes'
+        ordering = ["scheduled_at"]
+        verbose_name = "Class"
+        verbose_name_plural = "Classes"
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"
+
 
 class Attendance(models.Model):
     class_session = models.ForeignKey(Class, on_delete=models.CASCADE)
@@ -34,6 +35,6 @@ class Attendance(models.Model):
     via_recording = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['join_time']
-        verbose_name = 'Attendance'
-        verbose_name_plural = 'Attendances'
+        ordering = ["join_time"]
+        verbose_name = "Attendance"
+        verbose_name_plural = "Attendances"

@@ -1,9 +1,8 @@
 from django.core.mail import send_mail
 from django.conf import settings
 from apps.invitations.models import Invitation
-from celery import shared_task
 
-@shared_task
+
 def send_invitation_email(invitation_id: int):
     invitation = Invitation.objects.get(id=invitation_id)
     subject = "You're invited to join the platform"
@@ -16,4 +15,4 @@ def send_invitation_email(invitation_id: int):
         settings.DEFAULT_FROM_EMAIL,
         [invitation.email],
         fail_silently=False,
-    ) 
+    )

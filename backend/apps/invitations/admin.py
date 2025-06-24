@@ -4,6 +4,7 @@ from .models import Invitation
 
 # Register your models here.
 
+
 @admin.register(Invitation)
 class InvitationAdmin(ModelAdmin):
     pass

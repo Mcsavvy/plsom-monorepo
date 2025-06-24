@@ -1,6 +1,7 @@
 # ruff: noqa: F403, F405
 import sentry_sdk
 from decouple import config
+from urllib.parse import urlparse
 
 from .base import *
 
@@ -19,18 +20,41 @@ sentry_sdk.init(
 DEBUG = False
 
 # Security settings
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = True
+# SECURE_SSL_REDIRECT = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+# SECURE_CONTENT_TYPE_NOSNIFF = True
+# SECURE_BROWSER_XSS_FILTER = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv())
+CSRF_TRUSTED_ORIGINS: list[str] = config(
+    "CSRF_TRUSTED_ORIGINS", default="", cast=Csv()
+)
+COOLIFY_URLS: list[str] = config("COOLIFY_URL", default="", cast=Csv())
+COOLIFY_URLS.extend(
+    (
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://0.0.0.0:8000",
+    )
+)
+
+for url in COOLIFY_URLS:
+    hostname = urlparse(url).hostname
+    if hostname:
+        ALLOWED_HOSTS.append(hostname)
+        CSRF_TRUSTED_ORIGINS.append(url)
+
 
 INSTALLED_APPS += ["django_backblaze_b2"]
-MIDDLEWARE += ["config.middleware.SentryMiddleware"]
+MIDDLEWARE.insert(
+    MIDDLEWARE.index("django.middleware.security.SecurityMiddleware") + 1,
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+)
+MIDDLEWARE.append("config.middleware.SentryMiddleware")
 STORAGES.update(
     {
         "default": {

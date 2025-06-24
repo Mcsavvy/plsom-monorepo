@@ -58,17 +58,21 @@ class User(AbstractUser):
     # Remove username, use email as USERNAME_FIELD
     username = None
     email = models.EmailField(unique=True)
-    title = models.CharField(max_length=20, choices=TITLES, null=True, blank=True)
+    title = models.CharField(
+        max_length=20, choices=TITLES, null=True, blank=True
+    )
     role = models.CharField(max_length=20, choices=ROLES)
     program_type = models.CharField(
         max_length=20, choices=PROGRAM_TYPES, null=True, blank=True
     )
     whatsapp_number = models.CharField(max_length=20, blank=True)
-    profile_picture = models.ImageField(upload_to="profiles/", null=True)
+    profile_picture = models.ImageField(
+        upload_to="profiles/", null=True, blank=True
+    )
     is_setup_complete = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: list[str] = []
 
     def get_full_name(self) -> str:
         if self.title:

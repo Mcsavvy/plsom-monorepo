@@ -1,8 +1,10 @@
 from django.templatetags.static import static
+from decouple import config
 
 def get_environment_display(request):
     """Return environment badge for admin header"""
     from django.conf import settings
+
     env = settings.DJANGO_ENV
     if env == "production":
         return ["PRODUCTION", "danger"]
@@ -15,10 +17,23 @@ UNFOLD = {
     "SITE_SUBHEADER": "Perfect Love School Of Ministry",
     "SITE_ICON": lambda request: static("favicon.ico"),
     "SITE_LOGO": lambda request: static("logo.png"),
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "type": "image/x-icon",
+            "href": lambda request: static("favicon.ico"),
+        },
+    ],
     "SITE_URL": "/",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
-    
+    "SITE_DROPDOWN": [
+        {
+            "icon": "diamond",
+            "title": "APP",
+            "link": config("FRONTEND_URL", default="https://plsom.com"),
+        },
+    ],
     # Sidebar Configuration
     "SIDEBAR": {
         "show_search": True,
@@ -28,12 +43,8 @@ UNFOLD = {
                 "title": "Dashboard",
                 "separator": True,
                 "items": [
-                    {
-                        "title": "Overview", 
-                        "icon": "home", 
-                        "link": "/admin/"
-                    },
-                ]
+                    {"title": "Overview", "icon": "home", "link": "/"},
+                ],
             },
             {
                 "title": "User Management",
@@ -41,74 +52,82 @@ UNFOLD = {
                 "collapsible": True,
                 "items": [
                     {
-                        "title": "Users", 
-                        "icon": "person", 
-                        "link": "/admin/users/user/",
-                        # "badge": "users.User|length"
+                        "title": "Users",
+                        "icon": "person",
+                        "link": "/users/user/",
                     },
                     {
-                        "title": "Invitations", 
-                        "icon": "mail", 
-                        "link": "/admin/invitations/invitation/",
-                        # "badge": "invitations.Invitation|length:unused"
+                        "title": "Invitations",
+                        "icon": "mail",
+                        "link": "/invitations/invitation/",
                     },
-                ]
+                    {
+                        "title": "Groups",
+                        "icon": "group",
+                        "link": "/auth/group/",
+                    },
+                    {
+                        "title": "Permissions",
+                        "icon": "lock",
+                        "link": "/auth/permission/",
+                    },
+                ],
             },
             {
-                "title": "Academic Management", 
+                "title": "Academic Management",
                 "separator": True,
                 "collapsible": True,
                 "items": [
                     {
-                        "title": "Cohorts", 
-                        "icon": "group", 
-                        "link": "/admin/cohorts/cohort/"
+                        "title": "Cohorts",
+                        "icon": "group",
+                        "link": "/cohorts/cohort/",
                     },
                     {
-                        "title": "Courses", 
-                        "icon": "book_ribbon", 
-                        "link": "/admin/courses/course/"
+                        "title": "Courses",
+                        "icon": "book_ribbon",
+                        "link": "/courses/course/",
                     },
                     {
-                        "title": "Course Assignments", 
-                        "icon": "person_add", 
-                        "link": "/admin/courses/courseassignment/"
+                        "title": "Course Assignments",
+                        "icon": "person_add",
+                        "link": "/courses/courseassignment/",
                     },
-                ]
+                ],
             },
             {
                 "title": "Classes & Sessions",
-                "separator": True, 
+                "separator": True,
                 "collapsible": True,
                 "items": [
                     {
-                        "title": "Classes", 
-                        "icon": "event", 
-                        "link": "/admin/classes/class/"
+                        "title": "Classes",
+                        "icon": "event",
+                        "link": "/classes/class/",
                     },
                     {
-                        "title": "Attendance", 
-                        "icon": "person_check", 
-                        "link": "/admin/classes/attendance/"
+                        "title": "Attendance",
+                        "icon": "person_check",
+                        "link": "/classes/attendance/",
                     },
-                ]
+                ],
             },
             {
                 "title": "Assessments",
                 "separator": True,
-                "collapsible": True, 
+                "collapsible": True,
                 "items": [
                     {
-                        "title": "Tests", 
-                        "icon": "assignment", 
-                        "link": "/admin/assessments/test/"
+                        "title": "Tests",
+                        "icon": "assignment",
+                        "link": "/assessments/test/",
                     },
                     {
-                        "title": "Submissions", 
-                        "icon": "assignment_returned", 
-                        "link": "/admin/assessments/submission/"
+                        "title": "Submissions",
+                        "icon": "assignment_returned",
+                        "link": "/assessments/submission/",
                     },
-                ]
+                ],
             },
             {
                 "title": "System",
@@ -116,26 +135,33 @@ UNFOLD = {
                 "collapsible": True,
                 "items": [
                     {
-                        "title": "Email Templates", 
-                        "icon": "mail", 
-                        "link": "/admin/communications/emailtemplate/"
+                        "title": "Email Templates",
+                        "icon": "mail",
+                        "link": "/communications/emailtemplate/",
                     },
                     {
-                        "title": "System Logs", 
-                        "icon": "browse_activity", 
-                        "link": "/admin/logs/"
+                        "title": "System Logs",
+                        "icon": "browse_activity",
+                        "link": "/logs/",
                     },
-                ]
-            }
-        ]
+                    {
+                        "title": "Queue Tasks",
+                        "icon": "queue",
+                        "link": "/django_q/ormq/",
+                    },
+                    {
+                        "title": "Scheduled Tasks",
+                        "icon": "schedule",
+                        "link": "/django_q/schedule/",
+                    },
+                ],
+            },
+        ],
     },
-    
     # Custom actions
     # "DASHBOARD_CALLBACK": "utils.admin.dashboard_callback",
-    
     # Environment badge
     "ENVIRONMENT": "config.settings.unfold.get_environment_display",
-    
     # Custom tabs
     "TABS": [
         {
@@ -149,11 +175,21 @@ UNFOLD = {
                     "link": "{path}",
                 },
                 {
-                    "title": "Enrollments", 
-                    "icon": "book",
-                    "link": "/admin/cohorts/enrollment/?student__id__exact={id}",
+                    "title": "Groups",
+                    "icon": "group",
+                    "link": "/auth/group/",
                 },
-            ]
+                {
+                    "title": "Permissions",
+                    "icon": "lock",
+                    "link": "/auth/permission/",
+                },
+                {
+                    "title": "Enrollments",
+                    "icon": "book",
+                    "link": "/cohorts/enrollment/?student__id__exact={id}",
+                },
+            ],
         },
         {
             "models": [
@@ -162,21 +198,20 @@ UNFOLD = {
             "items": [
                 {
                     "title": "Course Details",
-                    "icon": "book-open", 
+                    "icon": "book-open",
                     "link": "{path}",
                 },
                 {
                     "title": "Classes",
                     "icon": "calendar",
-                    "link": "/admin/classes/class/?course__id__exact={id}",
+                    "link": "/classes/class/?course__id__exact={id}",
                 },
                 {
                     "title": "Tests",
                     "icon": "clipboard-check",
-                    "link": "/admin/assessments/test/?course__id__exact={id}",
+                    "link": "/assessments/test/?course__id__exact={id}",
                 },
-            ]
-        }
-    ]
-
+            ],
+        },
+    ],
 }

@@ -8,9 +8,12 @@ from apps.users.models import User
 
 PermissionT = TypeVar("PermissionT", bound=Type[permissions.BasePermission])
 
+
 class Request(HttpRequest):
     """A request that has a user"""
+
     user: User
+
 
 def only_authenticated(cls: PermissionT) -> PermissionT:
     """wrap a permission class to only allow authenticated users"""
@@ -18,13 +21,18 @@ def only_authenticated(cls: PermissionT) -> PermissionT:
     def method_wrapper(method: MethodType) -> MethodType:
         @wraps(method)
         def wrapper(self, request: Request, *args, **kwargs):
-            if not permissions.IsAuthenticated.has_permission(self, request, *args, **kwargs):
+            if not permissions.IsAuthenticated.has_permission(
+                self, request, *args, **kwargs
+            ):
                 return False
             return method(self, request, *args, **kwargs)
+
         return wrapper
+
     cls.has_permission = method_wrapper(cls.has_permission)
     cls.has_object_permission = method_wrapper(cls.has_object_permission)
     return cls
+
 
 @only_authenticated
 class IsAdmin(permissions.BasePermission):
@@ -32,11 +40,14 @@ class IsAdmin(permissions.BasePermission):
 
     def has_permission(self, request: Request, view):
         user = request.user
-        return any((
-            user.is_superuser,
-            user.is_staff,
-            user.role.lower() == "admin",
-        ))
+        return any(
+            (
+                user.is_superuser,
+                user.is_staff,
+                user.role.lower() == "admin",
+            )
+        )
+
 
 @only_authenticated
 class IsLecturer(permissions.BasePermission):
@@ -44,10 +55,13 @@ class IsLecturer(permissions.BasePermission):
 
     def has_permission(self, request: Request, view):
         user = request.user
-        return any((
-            IsAdmin.has_permission(self, request, view),
-            user.role.lower() == "lecturer",
-        ))
+        return any(
+            (
+                IsAdmin.has_permission(self, request, view),
+                user.role.lower() == "lecturer",
+            )
+        )
+
 
 @only_authenticated
 class IsStudent(permissions.BasePermission):
