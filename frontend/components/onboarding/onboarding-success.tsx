@@ -6,8 +6,14 @@ import { CheckCircle, ArrowRight, BookOpen, Users, Award } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
+interface InvitationData {
+  program: string
+  role: string
+  invitedBy: string
+}
+
 interface OnboardingSuccessProps {
-  invitationData: any
+  invitationData: InvitationData
   onReturnToLogin: () => void
 }
 
@@ -102,7 +108,7 @@ export default  function OnboardingSuccess({ invitationData, onReturnToLogin }: 
           className="text-muted-foreground"
           variants={itemVariants}
         >
-          Your account has been successfully created. You're now ready to begin your ministry journey.
+          Your account has been successfully created. You&apos;re now ready to begin your ministry journey.
         </motion.p>
       </motion.div>
 
@@ -125,7 +131,7 @@ export default  function OnboardingSuccess({ invitationData, onReturnToLogin }: 
       {/* Next Steps */}
       <motion.div className="space-y-4" variants={itemVariants}>
         <h3 className="text-lg font-semibold text-foreground text-center">
-          What's Next?
+          What&apos;s Next?
         </h3>
         
         <div className="space-y-3">
@@ -172,7 +178,7 @@ export default  function OnboardingSuccess({ invitationData, onReturnToLogin }: 
           className="text-xs text-muted-foreground text-center"
           variants={itemVariants}
         >
-          You'll be redirected to the login page where you can sign in with your credentials
+          You&apos;ll be redirected to the login page where you can sign in with your credentials
         </motion.p>
       </motion.div>
 

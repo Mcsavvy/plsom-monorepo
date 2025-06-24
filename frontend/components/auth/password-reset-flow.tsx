@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { KeyRound, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -48,7 +48,6 @@ export default function PasswordResetFlow({ onSwitchFlow }: PasswordResetFlowPro
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -63,6 +62,7 @@ export default function PasswordResetFlow({ onSwitchFlow }: PasswordResetFlowPro
   const validateResetToken = async (token: string) => {
     try {
       // TODO: Replace with actual API call
+      console.log('Validating reset token:', token)
       await new Promise(resolve => setTimeout(resolve, 2000))
       setStep('reset')
     } catch {
@@ -104,6 +104,7 @@ export default function PasswordResetFlow({ onSwitchFlow }: PasswordResetFlowPro
       
       // Auto-redirect after 3 seconds
       setTimeout(() => {
+        // Could potentially use router.push('/login') here instead
         onSwitchFlow?.('login')
       }, 3000)
     } catch {

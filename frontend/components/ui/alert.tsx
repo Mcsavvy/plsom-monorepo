@@ -1,12 +1,13 @@
 'use client'
 
-import { forwardRef, HTMLAttributes } from 'react'
-import { motion } from 'framer-motion'
+import { forwardRef } from 'react'
+import { motion, HTMLMotionProps } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { AlertCircle, CheckCircle, Info, XCircle } from 'lucide-react'
 
-interface AlertProps extends HTMLAttributes<HTMLDivElement> {
+interface AlertProps extends Omit<HTMLMotionProps<'div'>, 'children'> {
   variant?: 'default' | 'destructive' | 'success' | 'warning'
+  children?: React.ReactNode
 }
 
 const Alert = forwardRef<HTMLDivElement, AlertProps>(
@@ -50,8 +51,8 @@ Alert.displayName = 'Alert'
 
 const AlertDescription = forwardRef<
   HTMLParagraphElement,
-  HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
+  Omit<HTMLMotionProps<'div'>, 'children'> & { children?: React.ReactNode }
+>(({ className, children, ...props }, ref) => (
   <motion.div
     ref={ref}
     className={cn('text-sm [&_p]:leading-relaxed', className)}
@@ -59,7 +60,9 @@ const AlertDescription = forwardRef<
     animate={{ opacity: 1 }}
     transition={{ delay: 0.1, duration: 0.3 }}
     {...props}
-  />
+  >
+    {children}
+  </motion.div>
 ))
 AlertDescription.displayName = 'AlertDescription'
 
