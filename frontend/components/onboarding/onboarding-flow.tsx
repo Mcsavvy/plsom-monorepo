@@ -49,7 +49,10 @@ export default function OnboardingFlow() {
     const validateInvitation = async () => {
       const token = searchParams.get('token')
       
-      if (!token) {
+      // Development bypass - remove this in production
+      const isDevelopment = process.env.NODE_ENV === 'development'
+      
+      if (!token && !isDevelopment) {
         setError('Invalid invitation link. Please contact your administrator.')
         setStep('error')
         return
