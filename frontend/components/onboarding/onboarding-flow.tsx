@@ -10,6 +10,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 
 type OnboardingStepType = 'validating' | 'form' | 'complete' | 'error'
 
+interface InvitationData {
+  email: string;
+  role: string;
+  program: string;
+  invitedBy: string;
+  expiresAt: Date;
+}
+
 const pageVariants = {
   initial: { opacity: 0, scale: 0.95 },
   animate: { 
@@ -21,17 +29,13 @@ const pageVariants = {
     }
   },
   exit: { 
-    opacity: 0, 
-    scale: 1.05,
-    transition: {
-      duration: 0.3
-    }
+    opacity: 0 
   }
 }
 
 export default function OnboardingFlow() {
   const [step, setStep] = useState<OnboardingStepType>('validating')
-  const [invitationData, setInvitationData] = useState<any>(null)
+  const [invitationData, setInvitationData] = useState<InvitationData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [windowWidth, setWindowWidth] = useState(0)
   const searchParams = useSearchParams()
@@ -235,13 +239,13 @@ export default function OnboardingFlow() {
         
         <div className="w-full max-w-md relative z-10">
           <AnimatePresence mode="wait">
-            {step === 'form' && (
+            {step === 'form' && invitationData && (
               <OnboardingForm 
                 invitationData={invitationData}
                 onComplete={handleOnboardingComplete}
               />
             )}
-            {step === 'complete' && (
+            {step === 'complete' && invitationData && (
               <OnboardingSuccess 
                 invitationData={invitationData}
                 onReturnToLogin={handleReturnToLogin}
