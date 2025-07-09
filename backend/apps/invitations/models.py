@@ -11,6 +11,7 @@ class Invitation(models.Model):
     token = models.UUIDField(default=uuid.uuid4, unique=True)
     expires_at = models.DateTimeField()
     used_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     program_type = models.CharField(
         max_length=20,
@@ -25,6 +26,9 @@ class Invitation(models.Model):
         on_delete=models.SET_NULL,
         help_text="Only required for students.",
     )
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.email} - {self.role} - {self.program_type}"
