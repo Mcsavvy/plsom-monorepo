@@ -4,10 +4,11 @@ import { forwardRef, InputHTMLAttributes } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
-
-const Input = forwardRef<HTMLInputElement, InputProps>(
+const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, type, ...props }, ref) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { onDrag, onDragEnd, onDragStart, onAnimationStart, onAnimationEnd, ...safeProps } = props
+    
     return (
       <motion.input
         type={type}
@@ -23,7 +24,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
         whileFocus={{ scale: 1.01 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        {...props}
+        {...safeProps}
       />
     )
   }

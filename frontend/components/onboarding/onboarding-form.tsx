@@ -7,11 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import Image from 'next/image'
 
+interface InvitationData {
+  email: string
+  role: string
+  program: string
+}
+
 interface OnboardingFormProps {
-  invitationData: any
+  invitationData: InvitationData
   onComplete: () => void
 }
 
@@ -296,7 +302,7 @@ export default function OnboardingForm({ invitationData, onComplete }: Onboardin
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            We'll use this for important notifications and updates
+            We&apos;ll use this for important notifications and updates
           </p>
         </motion.div>
 

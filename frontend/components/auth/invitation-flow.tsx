@@ -3,11 +3,17 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { UserPlus, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { UserPlus, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+
+interface InvitationData {
+  email: string
+  role: string
+  program: string
+}
 
 interface InvitationFormData {
   firstName: string
@@ -52,7 +58,7 @@ export default function InvitationFlow({ onSwitchFlow }: InvitationFlowProps) {
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [invitationData, setInvitationData] = useState<any>(null)
+  const [invitationData, setInvitationData] = useState<InvitationData | null>(null)
   
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -178,7 +184,7 @@ export default function InvitationFlow({ onSwitchFlow }: InvitationFlowProps) {
           variants={itemVariants}
           className="text-muted-foreground"
         >
-          Your account has been successfully created. You'll be redirected to your dashboard shortly.
+          Your account has been successfully created. You&apos;ll be redirected to your dashboard shortly.
         </motion.p>
 
         <motion.div
@@ -214,7 +220,7 @@ export default function InvitationFlow({ onSwitchFlow }: InvitationFlowProps) {
           Complete Your Account
         </h2>
         <p className="text-muted-foreground">
-          Welcome to PLSOM! Let's set up your account.
+          Welcome to PLSOM! Let&apos;s set up your account.
         </p>
         {invitationData && (
           <motion.div

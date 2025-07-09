@@ -255,7 +255,7 @@ export function ForgotPasswordRequest({ onSwitchFlow, onOtpSent }: ForgotPasswor
         </button>
         
         <p className="text-xs text-muted-foreground">
-          Don't have an account? Contact your administrator for an invitation.
+          Don&apos;t have an account? Contact your administrator for an invitation.
         </p>
       </motion.div>
     </motion.div>
