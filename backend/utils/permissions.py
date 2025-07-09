@@ -21,8 +21,13 @@ def only_authenticated(cls: PermissionT) -> PermissionT:
     def method_wrapper(method: MethodType) -> MethodType:
         @wraps(method)
         def wrapper(self, request: Request, *args, **kwargs):
+            view = kwargs.get("view")
+            if not view and len(args) > 0:
+                view = args[0]
+            if not view:
+                raise ValueError("View is required")
             if not permissions.IsAuthenticated.has_permission(
-                self, request, *args, **kwargs
+                self, request, view
             ):
                 return False
             return method(self, request, *args, **kwargs)
