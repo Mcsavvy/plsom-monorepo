@@ -2,6 +2,7 @@ from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
 from utils.common import ms_to_timedelta
+import sys
 
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -10,6 +11,7 @@ LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Environment-specific config loading
 DJANGO_ENV = config("DJANGO_ENV", default="development")
+TESTING = 'test' in sys.argv or 'test_coverage' in sys.argv
 
 # Load environment file based on DJANGO_ENV
 if DJANGO_ENV == "production":
@@ -51,6 +53,7 @@ THIRD_PARTY_APPS = [
     "django_q",
     "rest_framework",
     "rest_framework_simplejwt",
+    'rest_framework_simplejwt.token_blacklist',
     "corsheaders",
     "drf_spectacular",
 ]
@@ -108,6 +111,24 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
+
+# Use SQLite for testing
+if TESTING:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+    # Disable Redis and Q cluster for testing
+    Q_CLUSTER = {
+        'name': 'plsom',
+        'workers': 1,
+        'timeout': 60,
+        'django_redis': 'default',
+        'sync': True,  # Run synchronously for testing
+        'orm': 'default',
+    }
+    # Use console email backend for testing
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Custom User Model
 AUTH_USER_MODEL = "users.User"
