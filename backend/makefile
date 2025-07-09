@@ -14,7 +14,7 @@ dev-install: ## Install all dependencies including dev
 	poetry install
 
 test: ## Run tests
-	poetry run pytest
+	poetry run python manage.py test
 
 lint: ## Run linting
 	poetry run ruff check apps config utils
