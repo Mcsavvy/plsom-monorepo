@@ -1,8 +1,16 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import serializers
 from apps.cohorts.models import Enrollment
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # Define fields explicitly for schema documentation
+    access = serializers.CharField(read_only=True)
+    refresh = serializers.CharField(read_only=True)
+    role = serializers.CharField(read_only=True)
+    program_type = serializers.CharField(read_only=True)
+    cohort = serializers.IntegerField(read_only=True, allow_null=True)
+    
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
