@@ -20,10 +20,17 @@ class Command(BaseCommand):
                 )
             )
             return
+        
+        user = User.objects.filter(email=email, is_superuser=True).first()
 
-        if User.objects.filter(email=email, is_superuser=True).exists():
+        if user:
+            user.role = "admin"
+            user.set_password(password)
+            user.is_superuser = True
+            user.is_staff = True
+            user.save()
             self.stdout.write(
-                self.style.SUCCESS(f"Admin with email {email} already exists.")
+                self.style.SUCCESS(f"Admin with email {email} already exists and is updated.")
             )
             return
 
