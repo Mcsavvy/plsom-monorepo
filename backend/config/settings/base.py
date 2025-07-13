@@ -192,11 +192,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "DEFAULT_PAGINATION_CLASS": "utils.pagination.RefineDataProviderPagination",
+    "DEFAULT_PAGINATION_CLASS": "utils.refine.RefineDataProviderPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_FILTER_BACKENDS": [
-        "utils.pagination.RefineDataProviderFilter",
+        "utils.refine.RefineDataProviderFilter",
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
