@@ -1,5 +1,10 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.conf import settings
 from .models import Invitation
+
+User = get_user_model()
 
 
 class InvitationSerializer(serializers.ModelSerializer):
@@ -25,12 +30,28 @@ class InvitationSerializer(serializers.ModelSerializer):
             "created_by",
             "is_expired",
             "is_used",
+            "expires_at",
         ]
+
+    def create(self, validated_data):
+        # Automatically set expiry date to 7 days from now
+        validated_data['expires_at'] = timezone.now() + settings.INVITATION_EXPIRATION_TIME
+        return super().create(validated_data)
 
     def validate(self, data):
         role = data.get("role")
         program_type = data.get("program_type")
         cohort = data.get("cohort")
+        email = data.get("email")
+
+        if Invitation.objects.filter(email=email).exists():
+            raise serializers.ValidationError(
+                {"email": "User already invited."}
+            )
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError(
+                {"email": "User already exists."}
+            )
         if role == "student":
             if not program_type:
                 raise serializers.ValidationError(
@@ -40,4 +61,119 @@ class InvitationSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"cohort": "This field is required for students."}
                 )
+            # the cohort's program type must match the student's program type
+            if cohort.program_type != program_type:
+                raise serializers.ValidationError(
+                    {"cohort": "The cohort's program type must match the student's program type."}
+                )
         return data
+
+
+class InvitationVerifySerializer(serializers.Serializer):
+    """Serializer for verifying invitation tokens"""
+
+    token = serializers.UUIDField()
+
+    def validate_token(self, value):
+        try:
+            invitation = Invitation.objects.get(token=value)
+        except Invitation.DoesNotExist:
+            raise serializers.ValidationError("Invalid invitation token.")
+
+        if invitation.is_expired:
+            raise serializers.ValidationError("Invitation has expired.")
+
+        if invitation.is_used:
+            raise serializers.ValidationError(
+                "Invitation has already been used."
+            )
+
+        return value
+
+
+class OnboardingSerializer(serializers.Serializer):
+    """Serializer for user onboarding after invitation"""
+
+    token = serializers.UUIDField()
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    password = serializers.CharField(min_length=8, write_only=True)
+    password_confirm = serializers.CharField(min_length=8, write_only=True)
+    title = serializers.CharField(
+        max_length=20, required=False, allow_blank=True
+    )
+    whatsapp_number = serializers.CharField(
+        max_length=20, required=False, allow_blank=True
+    )
+
+    def validate_token(self, value):
+        try:
+            invitation = Invitation.objects.get(token=value)
+        except Invitation.DoesNotExist:
+            raise serializers.ValidationError("Invalid invitation token.")
+
+        if invitation.is_expired:
+            raise serializers.ValidationError("Invitation has expired.")
+
+        if invitation.is_used:
+            raise serializers.ValidationError(
+                "Invitation has already been used."
+            )
+
+        # Check if user already exists
+        if User.objects.filter(email=invitation.email).exists():
+            raise serializers.ValidationError(
+                "User with this email already exists."
+            )
+
+        self.invitation = invitation
+        return value
+
+    def validate(self, data):
+        if data["password"] != data["password_confirm"]:
+            raise serializers.ValidationError("Passwords do not match.")
+        return data
+
+    def create(self, validated_data):
+        invitation = self.invitation
+
+        # Remove password_confirm from validated_data
+        validated_data.pop("password_confirm")
+        validated_data.pop("token")
+
+        # Create user with invitation details
+        user = User.objects.create_user(
+            email=invitation.email,
+            role=invitation.role,
+            program_type=invitation.program_type,
+            is_active=True,
+            is_setup_complete=True,
+            **validated_data,
+        )
+
+        # Mark invitation as used
+        invitation.used_at = timezone.now()
+        invitation.save()
+
+        # If student, create enrollment
+        if invitation.role == "student" and invitation.cohort:
+            from apps.cohorts.models import Enrollment
+
+            Enrollment.objects.create(student=user, cohort=invitation.cohort)
+
+        return user
+
+
+class InvitationDetailsSerializer(serializers.Serializer):
+    """Serializer for returning invitation details for onboarding"""
+    email = serializers.EmailField()
+    role = serializers.CharField()
+    program_type = serializers.CharField()
+    cohort_name = serializers.CharField()
+
+
+class OnboardingResponseSerializer(serializers.Serializer):
+    """Serializer for onboarding response"""
+    user_id = serializers.IntegerField()
+    email = serializers.EmailField()
+    role = serializers.CharField()

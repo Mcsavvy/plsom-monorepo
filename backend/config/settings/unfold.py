@@ -138,12 +138,12 @@ UNFOLD = {
                     {
                         "title": "Email Templates",
                         "icon": "mail",
-                        "link": "/communications/emailtemplate/",
+                        "link": "/core/emailtemplate/",
                     },
                     {
                         "title": "System Logs",
                         "icon": "browse_activity",
-                        "link": "/logs/",
+                        "link": "/core/auditlog/",
                     },
                     {
                         "title": "Queue Tasks",
