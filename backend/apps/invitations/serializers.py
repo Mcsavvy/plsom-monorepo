@@ -44,14 +44,27 @@ class InvitationSerializer(serializers.ModelSerializer):
         cohort = data.get("cohort")
         email = data.get("email")
 
-        if Invitation.objects.filter(email=email).exists():
-            raise serializers.ValidationError(
-                {"email": "User already invited."}
-            )
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError(
-                {"email": "User already exists."}
-            )
+        # Only check for existing invitations during creation, not updates
+        if self.instance is None:  # Creating a new instance
+            if Invitation.objects.filter(email=email).exists():
+                raise serializers.ValidationError(
+                    {"email": "User already invited."}
+                )
+            if User.objects.filter(email=email).exists():
+                raise serializers.ValidationError(
+                    {"email": "User already exists."}
+                )
+        else:  # Updating existing instance
+            # Check if email conflicts with other invitations (excluding current one)
+            if Invitation.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+                raise serializers.ValidationError(
+                    {"email": "User already invited."}
+                )
+            if User.objects.filter(email=email).exists():
+                raise serializers.ValidationError(
+                    {"email": "User already exists."}
+                )
+        
         if role == "student":
             if not program_type:
                 raise serializers.ValidationError(

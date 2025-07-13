@@ -49,6 +49,9 @@ class RefineDataProviderPagination(PageNumberPagination):
         """
         Paginate a queryset using _start/_end parameters.
         """
+        # Set request instance for get_next_link and get_previous_link methods
+        self.request = request
+        
         # Get _start and _end parameters from the request
         start = request.query_params.get('_start')
         end = request.query_params.get('_end')

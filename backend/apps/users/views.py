@@ -1,8 +1,8 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import ValidationError, MethodNotAllowed
 from drf_spectacular.utils import extend_schema
 
 from apps.users.models import User
@@ -86,7 +86,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @extend_schema(exclude=True)
     def create(self, request, *args, **kwargs):
-        raise APIException("Method not allowed", status.HTTP_405_METHOD_NOT_ALLOWED)
+        raise MethodNotAllowed(self.request.method)
 
     @extend_schema(
         summary="Promote or Demote a User",
@@ -108,12 +108,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({"status": "user promoted to admin"})
         elif user.role == "admin":
             if user == request.user:
-                raise APIException("Admin cannot demote themselves", status.HTTP_400_BAD_REQUEST)
+                raise ValidationError("Admin cannot demote themselves")
             user.role = "lecturer"
             user.save()
             return Response({"status": "admin demoted to lecturer"})
         else:
-            raise APIException("User is not a lecturer or admin", status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("User is not a lecturer or admin")
 
     @extend_schema(
         summary="Get the current user",

@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import ValidationError
 from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
@@ -34,6 +34,18 @@ class InvitationViewSet(viewsets.ModelViewSet):
         async_task(
             "apps.invitations.tasks.send_invitation_email", invitation.id
         )
+
+    def perform_update(self, serializer):
+        """Common update logic for both update and partial_update"""
+        invitation = self.get_object()
+        if invitation.used_at:
+            raise ValidationError("Invitation has already been used.")
+        
+        # Save the updated invitation
+        updated_invitation = serializer.save()
+        
+        # Send email after successful update
+        async_task("apps.invitations.tasks.send_invitation_email", updated_invitation.id)
 
     @extend_schema(
         summary="Get Invitation",
@@ -71,13 +83,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         },
     )
     def update(self, request, *args, **kwargs):
-        invitation = self.get_object()
-        if invitation.used_at:
-            raise APIException("Invitation already used.", status.HTTP_400_BAD_REQUEST)
-        response = super().update(request, *args, **kwargs)
-        if response.status_code == status.HTTP_200_OK:
-            async_task("apps.invitations.tasks.send_invitation_email", invitation.id)
-        return response
+        return super().update(request, *args, **kwargs)
 
     @extend_schema(
         summary="Partially Update Invitation",
@@ -88,13 +94,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         },
     )
     def partial_update(self, request, *args, **kwargs):
-        invitation = self.get_object()
-        if invitation.used_at:
-            raise APIException("Invitation already used.", status.HTTP_400_BAD_REQUEST)
-        response = super().partial_update(request, *args, **kwargs)
-        if response.status_code == status.HTTP_200_OK:
-            async_task("apps.invitations.tasks.send_invitation_email", invitation.id)
-        return response
+        return super().partial_update(request, *args, **kwargs)
 
     @extend_schema(
         summary="Delete Invitation",
@@ -108,7 +108,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         # can only delete invitations that are not used
         invitation = self.get_object()
         if invitation.used_at:
-            raise APIException("Invitation already used.", status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("Invitation already used.")
 
         invitation.delete()
         return Response(
