@@ -65,6 +65,9 @@ def sync_admin_logs_to_audit(sender, instance, created, **kwargs):
             try:
                 model_class = instance.content_type.model_class()
                 if model_class:
+                    # skip AuditLog model
+                    if model_class == AuditLog:
+                        return
                     obj = model_class.objects.get(pk=instance.object_id)
                     # Use our custom serialization function instead of model_to_dict
                     audit_data.update(serialize_model_instance(obj))
