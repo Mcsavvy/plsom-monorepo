@@ -12,7 +12,7 @@ from drf_spectacular.utils import extend_schema
 
 @extend_schema(tags=["Authentication"])
 class CustomTokenObtainPairView(BaseTokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer # type: ignore
+    serializer_class = CustomTokenObtainPairSerializer  # type: ignore
 
 
 @extend_schema(tags=["Authentication"])
@@ -27,4 +27,6 @@ class CustomTokenVerifyView(TokenVerifyView):
 
 @extend_schema(tags=["Authentication"])
 class CustomTokenBlacklistView(TokenBlacklistView):
-    pass
+    @extend_schema(summary="Logout", description="Logout a user.")
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
