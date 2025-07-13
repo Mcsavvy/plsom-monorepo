@@ -11,7 +11,7 @@ LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Environment-specific config loading
 DJANGO_ENV = config("DJANGO_ENV", default="development")
-TESTING = 'test' in sys.argv or 'test_coverage' in sys.argv
+TESTING = "test" in sys.argv or "test_coverage" in sys.argv
 
 # Load environment file based on DJANGO_ENV
 if DJANGO_ENV == "production":
@@ -28,7 +28,16 @@ if env_file.exists():
     config = Config(RepositoryEnv(env_file))
 
 # FRONTEND URL
-FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
+if DJANGO_ENV == "development":
+    FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
+    ADMIN_DASHBOARD_URL = config(
+        "ADMIN_DASHBOARD_URL", default="http://localhost:5173"
+    )
+else:
+    FRONTEND_URL = config("FRONTEND_URL", default="https://app.plsom.com")
+    ADMIN_DASHBOARD_URL = config(
+        "ADMIN_DASHBOARD_URL", default="https://admin.plsom.com"
+    )
 
 # Security
 SECRET_KEY = config("SECRET_KEY")
@@ -53,7 +62,7 @@ THIRD_PARTY_APPS = [
     "django_q",
     "rest_framework",
     "rest_framework_simplejwt",
-    'rest_framework_simplejwt.token_blacklist',
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "drf_spectacular",
 ]
@@ -113,21 +122,21 @@ DATABASES = {
 
 # Use SQLite for testing
 if TESTING:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
     }
     # Disable Redis and Q cluster for testing
     Q_CLUSTER = {
-        'name': 'plsom',
-        'workers': 1,
-        'timeout': 60,
-        'django_redis': 'default',
-        'sync': True,  # Run synchronously for testing
-        'orm': 'default',
+        "name": "plsom",
+        "workers": 1,
+        "timeout": 60,
+        "django_redis": "default",
+        "sync": True,  # Run synchronously for testing
+        "orm": "default",
     }
     # Use console email backend for testing
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Custom User Model
 AUTH_USER_MODEL = "users.User"
@@ -182,9 +191,14 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "utils.pagination.RefineDataProviderPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_FILTER_BACKENDS": [
+        "utils.pagination.RefineDataProviderFilter",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
 }
 
 # JWT Settings
