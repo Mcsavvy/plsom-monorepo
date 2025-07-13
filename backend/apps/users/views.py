@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import APIException
 from drf_spectacular.utils import extend_schema
 
 from apps.users.models import User
@@ -9,7 +10,6 @@ from apps.users.serializers import (
     UserSerializer,
     PromoteDemoteResponseSerializer,
 )
-from utils.serializers import ErrorResponseSerializer
 from utils.permissions import IsAdmin, IsLecturer
 from apps.users.permissions import IsMeOrStaffCanRead
 
@@ -86,7 +86,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @extend_schema(exclude=True)
     def create(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        raise APIException("Method not allowed", status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @extend_schema(
         summary="Promote or Demote a User",
@@ -94,7 +94,6 @@ class UserViewSet(viewsets.ModelViewSet):
         request=None,
         responses={
             200: PromoteDemoteResponseSerializer,
-            400: ErrorResponseSerializer,
         },
     )
     @action(detail=True, methods=["post"], url_path="promote-demote")
@@ -109,18 +108,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({"status": "user promoted to admin"})
         elif user.role == "admin":
             if user == request.user:
-                return Response(
-                    {"detail": "Admin cannot demote themselves"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise APIException("Admin cannot demote themselves", status.HTTP_400_BAD_REQUEST)
             user.role = "lecturer"
             user.save()
             return Response({"status": "admin demoted to lecturer"})
         else:
-            return Response(
-                {"detail": "User is not a lecturer or admin"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise APIException("User is not a lecturer or admin", status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         summary="Get the current user",
