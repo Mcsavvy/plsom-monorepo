@@ -61,6 +61,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "django_q",
     "rest_framework",
+    "drf_standardized_errors",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
@@ -199,6 +200,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
+    "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 
 # JWT Settings

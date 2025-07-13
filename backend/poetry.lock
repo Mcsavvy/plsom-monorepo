@@ -530,6 +530,28 @@ offline = ["drf-spectacular-sidecar"]
 sidecar = ["drf-spectacular-sidecar"]
 
 [[package]]
+name = "drf-standardized-errors"
+version = "0.15.0"
+description = "Standardize your API error responses."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "drf_standardized_errors-0.15.0-py3-none-any.whl", hash = "sha256:75dcfec11433a16c81f8c5948a5cd2932cd5b02f426f64ca82020a78c155b263"},
+    {file = "drf_standardized_errors-0.15.0.tar.gz", hash = "sha256:83112d072e751eb444c2f16ab4618273b912cffc07f12b81998060fdfa2eb655"},
+]
+
+[package.dependencies]
+django = ">=3.2"
+djangorestframework = ">=3.12"
+
+[package.extras]
+dev = ["pre-commit"]
+doc = ["myst-parser", "sphinx (!=5.2.0.post0)", "sphinx-autobuild", "sphinx-rtd-theme (>=1.1.0)"]
+openapi = ["drf-spectacular (>=0.27.1)", "inflection"]
+release = ["flit", "keyring", "tbump"]
+test = ["tox", "tox-gh-actions"]
+
+[[package]]
 name = "executing"
 version = "2.2.0"
 description = "Get the currently executing AST node of a frame, and other information"
@@ -1851,4 +1873,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.4"
-content-hash = "1266b5650d682fd9b3ff1e877b66af03a16cde2a565580d4a7c048ddf6369334"
+content-hash = "db24e707e1e762c316cbb997ac148287d56d863bb422070a649204908a1af5bd"
