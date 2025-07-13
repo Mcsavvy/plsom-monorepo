@@ -5,6 +5,7 @@ from .models import AuditLog
 from django.contrib.contenttypes.models import ContentType
 from apps.invitations.models import Invitation
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema_field
 
 User = get_user_model()
 
@@ -38,6 +39,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['timestamp']
 
+    @extend_schema_field(dict)
     def get_author_info(self, obj):
         if obj.author:
             return {
