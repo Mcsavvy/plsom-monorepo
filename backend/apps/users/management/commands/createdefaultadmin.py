@@ -20,7 +20,7 @@ class Command(BaseCommand):
                 )
             )
             return
-        
+
         user = User.objects.filter(email=email, is_superuser=True).first()
 
         if user:
@@ -30,7 +30,9 @@ class Command(BaseCommand):
             user.is_staff = True
             user.save()
             self.stdout.write(
-                self.style.SUCCESS(f"Admin with email {email} already exists and is updated.")
+                self.style.SUCCESS(
+                    f"Admin with email {email} already exists and is updated."
+                )
             )
             return
 

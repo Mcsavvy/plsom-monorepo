@@ -32,7 +32,7 @@ def only_authenticated(cls: PermissionT) -> PermissionT:
                 return False
             return method(self, request, *args, **kwargs)
 
-        return wrapper # type: ignore
+        return wrapper  # type: ignore
 
     cls.has_permission = method_wrapper(cls.has_permission)
     cls.has_object_permission = method_wrapper(cls.has_object_permission)

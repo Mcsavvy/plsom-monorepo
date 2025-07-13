@@ -1,6 +1,7 @@
 from django.templatetags.static import static
 from decouple import config
 
+
 def get_environment_display(request):
     """Return environment badge for admin header"""
     from django.conf import settings

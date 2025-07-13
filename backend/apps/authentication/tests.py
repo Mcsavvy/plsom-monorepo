@@ -128,7 +128,10 @@ class AuthenticationTestCase(APITestCase):
             is_active=True,
         )
 
-        data = {"email": "student_no_cohort@test.com", "password": "testpass123"}
+        data = {
+            "email": "student_no_cohort@test.com",
+            "password": "testpass123",
+        }
         response = self.client.post(self.token_obtain_url, data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -215,7 +218,9 @@ class AuthenticationTestCase(APITestCase):
 
     def test_custom_token_claims(self):
         """Test that custom claims are properly included in JWT tokens"""
-        from apps.authentication.serializers import CustomTokenObtainPairSerializer
+        from apps.authentication.serializers import (
+            CustomTokenObtainPairSerializer,
+        )
 
         # Test with student having enrollment
         token = CustomTokenObtainPairSerializer.get_token(self.student_user)
@@ -321,7 +326,9 @@ class AuthenticationIntegrationTestCase(APITestCase):
 
         # Test authenticated request (this would require a protected endpoint)
         # For now, we'll just verify the token is properly formatted
-        self.assertTrue(access_token.startswith("eyJ"))  # JWT tokens start with eyJ
+        self.assertTrue(
+            access_token.startswith("eyJ")
+        )  # JWT tokens start with eyJ
 
     def test_token_refresh_cycle(self):
         """Test complete token refresh cycle"""
