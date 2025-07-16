@@ -1,3 +1,4 @@
+import uuid
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -127,7 +128,9 @@ class InvitationViewSet(viewsets.ModelViewSet):
         invitation = self.get_object()
         # Update expiry
         invitation.expires_at = timezone.now() + settings.INVITATION_EXPIRATION_TIME
-        invitation.save(update_fields=["expires_at"])
+        invitation.used_at = None
+        invitation.token = uuid.uuid4()
+        invitation.save(update_fields=["expires_at", "used_at", "token"])
         async_task("apps.invitations.tasks.send_invitation_email", invitation.id)
         return Response({"detail": "Invitation resent."}, status=status.HTTP_200_OK)
 

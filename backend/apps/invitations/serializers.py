@@ -1,7 +1,11 @@
+from datetime import timedelta
+from typing import Any, Optional
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.conf import settings
+
+from apps.cohorts.models import Cohort
 from .models import Invitation
 
 User = get_user_model()
@@ -16,7 +20,6 @@ class InvitationSerializer(serializers.ModelSerializer):
             "role",
             "program_type",
             "cohort",
-            "token",
             "expires_at",
             "used_at",
             "created_by",
@@ -25,7 +28,6 @@ class InvitationSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
-            "token",
             "used_at",
             "created_by",
             "is_expired",
@@ -33,38 +35,35 @@ class InvitationSerializer(serializers.ModelSerializer):
             "expires_at",
         ]
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Invitation:
         # Automatically set expiry date to 7 days from now
-        validated_data['expires_at'] = timezone.now() + settings.INVITATION_EXPIRATION_TIME
+        expires_at = timezone.now() + settings.INVITATION_EXPIRATION_TIME
+        validated_data["expires_at"] = expires_at
         return super().create(validated_data)
 
-    def validate(self, data):
-        role = data.get("role")
-        program_type = data.get("program_type")
-        cohort = data.get("cohort")
-        email = data.get("email")
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        role: str = data.get("role", "")
+        program_type: str = data.get("program_type", "")
+        cohort: Optional[Cohort] = data.get("cohort")
+        email: str = data.get("email", "")
 
         # Only check for existing invitations during creation, not updates
         if self.instance is None:  # Creating a new instance
             if Invitation.objects.filter(email=email).exists():
-                raise serializers.ValidationError(
-                    {"email": "User already invited."}
-                )
+                raise serializers.ValidationError({"email": "User already invited."})
             if User.objects.filter(email=email).exists():
-                raise serializers.ValidationError(
-                    {"email": "User already exists."}
-                )
+                raise serializers.ValidationError({"email": "User already exists."})
         else:  # Updating existing instance
             # Check if email conflicts with other invitations (excluding current one)
-            if Invitation.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
-                raise serializers.ValidationError(
-                    {"email": "User already invited."}
-                )
+            if (
+                Invitation.objects.filter(email=email)
+                .exclude(pk=self.instance.pk)
+                .exists()
+            ):
+                raise serializers.ValidationError({"email": "User already invited."})
             if User.objects.filter(email=email).exists():
-                raise serializers.ValidationError(
-                    {"email": "User already exists."}
-                )
-        
+                raise serializers.ValidationError({"email": "User already exists."})
+
         if role == "student":
             if not program_type:
                 raise serializers.ValidationError(
@@ -77,7 +76,14 @@ class InvitationSerializer(serializers.ModelSerializer):
             # the cohort's program type must match the student's program type
             if cohort.program_type != program_type:
                 raise serializers.ValidationError(
-                    {"cohort": "The cohort's program type must match the student's program type."}
+                    {
+                        "cohort": "The cohort's program type must match the student's program type."
+                    }
+                )
+            # the cohort must not be ending soon
+            if cohort.end_date < (timezone.now() + timedelta(days=30)).date():
+                raise serializers.ValidationError(
+                    {"cohort": "The cohort is ending soon. Please select a different cohort."}
                 )
         return data
 
@@ -97,9 +103,7 @@ class InvitationVerifySerializer(serializers.Serializer):
             raise serializers.ValidationError("Invitation has expired.")
 
         if invitation.is_used:
-            raise serializers.ValidationError(
-                "Invitation has already been used."
-            )
+            raise serializers.ValidationError("Invitation has already been used.")
 
         return value
 
