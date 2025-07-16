@@ -555,7 +555,8 @@ class InvitationViewSetTestCase(APITestCase):
         response = self.client.patch(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("already been used", response.data["detail"])
+        print(response.data)
+        self.assertIn("already been used", response.data["errors"][0]["detail"])
         mock_async_task.assert_not_called()
 
     @patch("apps.invitations.views.async_task")
