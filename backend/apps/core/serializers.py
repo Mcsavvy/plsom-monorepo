@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.utils.encoders import JSONEncoder as DRFJSONEncoder
 from .models import AuditLog
 from django.contrib.contenttypes.models import ContentType
+from apps.cohorts.models import Cohort, Enrollment
 from apps.invitations.models import Invitation
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema_field
@@ -13,6 +14,10 @@ User = get_user_model()
 CONTENT_TYPE_MAP = {
     "invitations": ContentType.objects.get_for_model(Invitation),
     "users": ContentType.objects.get_for_model(User),
+    "cohorts": ContentType.objects.get_for_model(Cohort),
+    "students": ContentType.objects.get_for_model(User),
+    "staff": ContentType.objects.get_for_model(User),
+    "enrollments": ContentType.objects.get_for_model(Enrollment),
 }
 
 class SafeJSONField(serializers.JSONField):

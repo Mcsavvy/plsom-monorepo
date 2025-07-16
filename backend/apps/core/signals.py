@@ -1,3 +1,4 @@
+from typing import Any
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -9,7 +10,7 @@ def serialize_model_instance(instance):
     Serialize a model instance to a JSON-serializable dictionary.
     Handles ForeignKey relationships by storing only the ID and string representation.
     """
-    data = {}
+    data: dict[str, Any] = {}
     
     for field in instance._meta.fields:
         field_name = field.name
