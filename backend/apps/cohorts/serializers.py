@@ -149,22 +149,6 @@ class CohortSerializer(serializers.ModelSerializer):
         except ImportError:
             # Classes app not ready yet
             pass
-        
-        # Check for active assessments
-        try:
-            from apps.assessments.models import Test
-            active_tests = Test.objects.filter(
-                cohort=instance,
-                is_published=True,
-                due_date__gte=today
-            )
-            if active_tests.exists():
-                raise serializers.ValidationError({
-                    'is_active': 'Cannot deactivate cohort with active assessments.'
-                })
-        except (ImportError, AttributeError):
-            # Assessments app not ready yet or Test model doesn't exist
-            pass
     
     def create(self, validated_data):
         program_type = validated_data.get('program_type')

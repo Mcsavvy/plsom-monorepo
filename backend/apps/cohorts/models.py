@@ -63,18 +63,6 @@ class Cohort(models.Model):
                 'end_date': 'End date must be after start date.'
             })
         
-        # Validate cohort duration
-        if self.start_date and self.end_date:
-            duration = self.end_date - self.start_date
-            if duration.days < 30:
-                raise ValidationError({
-                    'end_date': 'Cohort duration must be at least 30 days.'
-                })
-            if duration.days > 730:
-                raise ValidationError({
-                    'end_date': 'Cohort duration cannot exceed 2 years.'
-                })
-        
         # Cannot activate ended cohort
         if self.is_active and self.is_ended:
             raise ValidationError({
@@ -101,20 +89,9 @@ class Cohort(models.Model):
             return False, "Cannot delete cohort that has already started"
         
         # Check for associated classes
-        try:
-            from apps.classes.models import Class
-            if Class.objects.filter(cohort=self).exists():
-                return False, "Cannot delete cohort with associated classes"
-        except ImportError:
-            pass
-        
-        # Check for associated assessments
-        try:
-            from apps.assessments.models import Test
-            if Test.objects.filter(cohort=self).exists():
-                return False, "Cannot delete cohort with associated assessments"
-        except (ImportError, AttributeError):
-            pass
+        from apps.classes.models import Class
+        if Class.objects.filter(cohort=self).exists():
+            return False, "Cannot delete cohort with associated classes"
         
         return True, "Cohort can be deleted"
     
@@ -122,12 +99,6 @@ class Cohort(models.Model):
         """Check if cohort can be archived"""
         if not self.is_active:
             return False, "Cannot archive inactive cohort"
-        
-        if not self.is_started:
-            return False, "Cannot archive cohort that hasn't started yet"
-        
-        if self.is_ended:
-            return False, "Cohort has already ended"
         
         return True, "Cohort can be archived"
     
@@ -165,7 +136,7 @@ class Enrollment(models.Model):
         """Model-level validation"""
         super().clean()
         
-        if self.student and self.cohort:
+        if self.student_id and self.cohort_id:
             # Student program type should match cohort program type
             if self.student.program_type != self.cohort.program_type:
                 raise ValidationError(

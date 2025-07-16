@@ -143,13 +143,6 @@ class CohortViewSet(viewsets.ModelViewSet):
         except ImportError:
             pass
         
-        try:
-            from apps.assessments.models import Test
-            if Test.objects.filter(cohort=instance).exists():
-                raise ValidationError("Cannot delete cohort with associated assessments")
-        except (ImportError, AttributeError):
-            pass
-        
         instance.delete()
     
     @extend_schema(
@@ -236,7 +229,7 @@ class CohortViewSet(viewsets.ModelViewSet):
         responses={200: CurrentCohortSerializer(many=True)},
     )
     @action(detail=False, methods=['get'], url_path='current')
-    def current_cohorts(self, request):
+    def current(self, request):
         """
         Returns current active cohorts for all authenticated users.
         This is a special endpoint that bypasses the normal queryset filtering.
@@ -293,7 +286,7 @@ class CohortViewSet(viewsets.ModelViewSet):
         ],
     )
     @action(detail=True, methods=['post'], url_path='archive')
-    def archive_cohort(self, request, pk=None):
+    def archive(self, request, pk=None):
         """
         Archive a cohort by setting its end date to today and deactivating it.
         Only admin can perform this action.
