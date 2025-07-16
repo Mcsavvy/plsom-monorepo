@@ -3,12 +3,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError, MethodNotAllowed
+from rest_framework.parsers import MultiPartParser, FormParser
 from drf_spectacular.utils import extend_schema
 
 from apps.users.models import User
 from apps.users.serializers import (
     UserSerializer,
     PromoteDemoteResponseSerializer,
+    ProfilePictureUploadSerializer,
 )
 from utils.permissions import IsAdmin, IsLecturer
 from apps.users.permissions import IsMeOrStaffCanRead
@@ -34,6 +36,8 @@ class UserViewSet(viewsets.ModelViewSet):
         elif self.action == "promote":
             permission_classes = [IsAdmin]
         elif self.action == "me":
+            permission_classes = [IsAuthenticated]
+        elif self.action in ["upload_profile_picture", "delete_profile_picture"]:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAuthenticated, IsMeOrStaffCanRead]
@@ -126,4 +130,60 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Get the current user.
         """
-        return Response(UserSerializer(request.user).data)
+        return Response(self.get_serializer(request.user).data)
+
+    @extend_schema(
+        summary="Upload Profile Picture",
+        description="Upload a profile picture for the current user.",
+        request=ProfilePictureUploadSerializer,
+        responses={200: UserSerializer},
+    )
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="upload-profile-picture",
+        parser_classes=[MultiPartParser, FormParser]
+    )
+    def upload_profile_picture(self, request):
+        """
+        Upload a profile picture for the current user.
+        """
+        serializer = ProfilePictureUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save(request.user)
+            return Response(
+                self.get_serializer(user).data,
+                status=200
+            )
+        return Response(serializer.errors, status=400)
+
+    @extend_schema(
+        summary="Delete Profile Picture",
+        description="Delete the profile picture for the current user.",
+        request=None,
+        responses={200: UserSerializer},
+    )
+    @action(
+        detail=False,
+        methods=["delete"],
+        url_path="delete-profile-picture"
+    )
+    def delete_profile_picture(self, request):
+        """
+        Delete the profile picture for the current user.
+        """
+        user = request.user
+        
+        if user.profile_picture:
+            user.profile_picture.delete(save=False)
+            user.profile_picture = None
+            user.save()
+            return Response(
+                self.get_serializer(user).data,
+                status=200
+            )
+        else:
+            return Response(
+                {"error": "No profile picture to delete."},
+                status=400
+            )
