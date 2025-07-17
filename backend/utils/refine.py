@@ -433,5 +433,5 @@ class RefineDataProviderMixin:
         """
         Override to ensure we have a base queryset.
         """
-        queryset = super().get_queryset()
+        queryset = super().get_queryset() # type: ignore
         return queryset
