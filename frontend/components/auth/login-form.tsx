@@ -59,34 +59,32 @@ export default function LoginForm({ onSwitchFlow }: LoginFormProps) {
 
     try {
       // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
+      // For now, simulate successful login with mock data
+      
+      // Simulate different user roles based on email for demo purposes
+      let role = 'student' // Default role
+      if (formData.email.includes('admin')) {
+        role = 'admin'
+      } else if (formData.email.includes('lecturer') || formData.email.includes('teacher')) {
+        role = 'lecturer'
+      }
 
-      if (response.ok) {
-        const { role } = await response.json()
-        // Redirect based on user role
-        switch (role) {
-          case 'admin':
-            router.push('/admin/dashboard')
-            break
-          case 'lecturer':
-            router.push('/lecturer/dashboard')
-            break
-          case 'student':
-            router.push('/student/dashboard')
-            break
-          default:
-            router.push('/dashboard')
-        }
-      } else {
-        const errorData = await response.json()
-        setError(errorData.message || 'Login failed. Please try again.')
+      // Redirect based on user role
+      switch (role) {
+        case 'admin':
+          router.push('/admin/dashboard')
+          break
+        case 'lecturer':
+          router.push('/lecturer/dashboard')
+          break
+        case 'student':
+          router.push('/student/dashboard')
+          break
+        default:
+          router.push('/student/dashboard')
       }
     } catch {
-      setError('Network error. Please check your connection and try again.')
+      setError('Login failed. Please check your credentials and try again.')
     } finally {
       setIsLoading(false)
     }

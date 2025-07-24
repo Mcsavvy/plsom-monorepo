@@ -38,11 +38,17 @@ const logoVariants = {
   }
 }
 
-export function PLSOMBranding() {
+interface PLSOMBrandingProps {
+  compact?: boolean
+}
+
+export function PLSOMBranding({ compact = false }: PLSOMBrandingProps) {
   const [currentDate, setCurrentDate] = useState<Date | null>(null)
   const [logoError, setLogoError] = useState(false)
 
   useEffect(() => {
+    if (compact) return // Skip date updates for compact version
+    
     // Set initial date
     setCurrentDate(new Date())
 
@@ -52,7 +58,7 @@ export function PLSOMBranding() {
     }, 60000) // Update every minute
 
     return () => clearInterval(interval)
-  }, [])
+  }, [compact])
 
   const formatDate = (date: Date) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -63,14 +69,17 @@ export function PLSOMBranding() {
     return date.toLocaleDateString('en-US', options)
   }
 
-  const LogoComponent = () => {
+  const LogoComponent = ({ size = 96, isCompact = false }: { size?: number; isCompact?: boolean }) => {
     if (logoError) {
       // Fallback logo design
       return (
-        <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+        <div 
+          className="bg-primary/20 backdrop-blur-md rounded-full flex items-center justify-center border border-border"
+          style={{ width: size, height: size }}
+        >
           <div className="text-center">
-            <div className="text-2xl font-bold text-white">P</div>
-            <div className="text-xs text-white/80">LSOM</div>
+            <div className={`${isCompact ? 'text-sm' : 'text-2xl'} font-bold text-primary`}>P</div>
+            {!isCompact && <div className="text-xs text-primary/80">LSOM</div>}
           </div>
         </div>
       )
@@ -80,12 +89,28 @@ export function PLSOMBranding() {
       <Image
         src="/logo.png"
         alt="PLSOM Logo"
-        width={96}
-        height={96}
-        className="w-24 h-24 object-contain"
+        width={size}
+        height={size}
+        className="object-contain rounded-full"
+        style={{ width: size, height: size }}
         priority
         onError={() => setLogoError(true)}
       />
+    )
+  }
+
+  // Compact version for sidebar
+  if (compact) {
+    return (
+      <div className="flex items-center space-x-2">
+        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+          <LogoComponent size={24} isCompact={true} />
+        </div>
+        <div className="text-foreground">
+          <div className="text-sm font-semibold">PLSOM</div>
+          <div className="text-xs text-muted-foreground">LMS</div>
+        </div>
+      </div>
     )
   }
 
@@ -125,7 +150,7 @@ export function PLSOMBranding() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <LogoComponent />
+            <LogoComponent size={96} />
           </motion.div>
 
           {/* Orbiting elements */}
