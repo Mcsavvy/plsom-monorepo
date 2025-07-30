@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import  OnboardingForm  from './onboarding-form'
+import  MultiStepOnboardingForm  from './multi-step-onboarding-form'
 import  OnboardingSuccess  from './onboarding-success'
+import  OnboardingError  from './onboarding-error'
 import { PLSOMBranding } from '@/components/ui/plsom-branding'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 
 type OnboardingStepType = 'validating' | 'form' | 'complete' | 'error'
+type OnboardingErrorType = 'invalid_token' | 'expired_token' | 'validation_failed' | 'network_error'
 
 interface InvitationData {
   email: string;
@@ -37,6 +38,7 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState<OnboardingStepType>('validating')
   const [invitationData, setInvitationData] = useState<InvitationData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [errorType, setErrorType] = useState<OnboardingErrorType>('validation_failed')
   const [windowWidth, setWindowWidth] = useState(0)
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -52,20 +54,58 @@ export default function OnboardingFlow() {
       // Development bypass - remove this in production
       const isDevelopment = process.env.NODE_ENV === 'development'
       
-      if (!token && !isDevelopment) {
-        setError('Invalid invitation link. Please contact your administrator.')
-        setStep('error')
-        return
+      if (!token) {
+        if (isDevelopment) {
+          // In development, allow access without token for testing
+          const mockInvitationData = {
+            email: 'dev.user@plsom.org',
+            role: 'student',
+            program: 'Development Test Program',
+            invitedBy: 'Development Admin',
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          }
+          setInvitationData(mockInvitationData)
+          setStep('form')
+          return
+        } else {
+          setError('No invitation token provided. Please use the complete invitation link from your email.')
+          setErrorType('invalid_token')
+          setStep('error')
+          return
+        }
       }
 
       try {
         // TODO: Replace with actual API call
+        // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 2000))
         
-        // Simulate invitation validation
+        // Simulate different error scenarios for testing
+        if (isDevelopment) {
+          // You can uncomment these lines to test different error scenarios:
+          // throw new Error('EXPIRED_TOKEN')
+          // throw new Error('INVALID_TOKEN') 
+          // throw new Error('NETWORK_ERROR')
+        }
+        
+        // TODO: Make actual API call to validate token
+        // const response = await fetch(`/api/invitations/validate`, {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ token })
+        // })
+        
+        // if (!response.ok) {
+        //   const errorData = await response.json()
+        //   throw new Error(errorData.code || 'VALIDATION_FAILED')
+        // }
+        
+        // const data = await response.json()
+        
+        // For now, simulate successful validation with mock data
         const mockInvitationData = {
           email: 'john.doe@plsom.org',
-          role: 'student',
+          role: 'student', 
           program: 'Certificate Level 2 Practical Ministry',
           invitedBy: 'Dr. Sarah Johnson',
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
@@ -73,8 +113,36 @@ export default function OnboardingFlow() {
         
         setInvitationData(mockInvitationData)
         setStep('form')
-      } catch {
-        setError('Invalid or expired invitation link. Please contact your administrator.')
+        
+      } catch (error) {
+        console.error('Token validation failed:', error)
+        
+        // Handle specific error types
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        
+        switch (errorMessage) {
+          case 'EXPIRED_TOKEN':
+            setError('Your invitation link has expired. Invitation links are valid for 7 days from when they were sent. Please contact your program administrator to request a new invitation.')
+            setErrorType('expired_token')
+            break
+            
+          case 'INVALID_TOKEN':
+            setError('The invitation token is invalid or malformed. Please ensure you copied the complete link from your invitation email.')
+            setErrorType('invalid_token')
+            break
+            
+          case 'NETWORK_ERROR':
+          case 'Failed to fetch':
+            setError('Unable to connect to our servers. Please check your internet connection and try again.')
+            setErrorType('network_error')
+            break
+            
+          default:
+            setError('Unable to validate your invitation. This may be due to an invalid or expired link. Please contact your administrator for assistance.')
+            setErrorType('validation_failed')
+            break
+        }
+        
         setStep('error')
       }
     }
@@ -130,43 +198,11 @@ export default function OnboardingFlow() {
 
   if (step === 'error') {
     return (
-      <motion.div 
-        className="min-h-screen flex items-center justify-center bg-gradient-to-br from-plsom-primary-100 via-plsom-primary-200 to-plsom-accent-100"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <motion.div 
-          className="max-w-md mx-auto p-8"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-        >
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">⚠️</span>
-            </div>
-            <h2 className="text-2xl font-heading font-bold text-white mb-2">
-              Invitation Invalid
-            </h2>
-          </div>
-          
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription className="text-center">
-              {error}
-            </AlertDescription>
-          </Alert>
-          
-          <motion.button
-            onClick={handleReturnToLogin}
-            className="w-full bg-white/20 backdrop-blur-md hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Return to Login
-          </motion.button>
-        </motion.div>
-      </motion.div>
+      <OnboardingError 
+        error={error || 'An unexpected error occurred'}
+        errorType={errorType}
+        onReturnToLogin={handleReturnToLogin}
+      />
     )
   }
 
@@ -243,7 +279,7 @@ export default function OnboardingFlow() {
         <div className="w-full max-w-md relative z-10">
           <AnimatePresence mode="wait">
             {step === 'form' && invitationData && (
-              <OnboardingForm 
+              <MultiStepOnboardingForm 
                 invitationData={invitationData}
                 onComplete={handleOnboardingComplete}
               />

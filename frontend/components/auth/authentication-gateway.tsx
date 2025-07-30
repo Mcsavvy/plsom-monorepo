@@ -205,6 +205,23 @@ export function AuthenticationGateway() {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {/* Development Link - Remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <motion.div
+            className="absolute bottom-4 right-4"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1, duration: 0.5 }}
+          >
+            <a
+              href="/dev-dashboard"
+              className="text-xs text-white/70 hover:text-white bg-black/20 hover:bg-black/30 px-3 py-2 rounded-full backdrop-blur-sm transition-all duration-300"
+            >
+              🛠️ Dev Dashboard
+            </a>
+          </motion.div>
+        )}
       </motion.div>
     </motion.div>
   )
