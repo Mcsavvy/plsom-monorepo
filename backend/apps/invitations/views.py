@@ -154,7 +154,6 @@ class InvitationViewSet(viewsets.ModelViewSet):
         response_data = {
             "email": invitation.email,
             "role": invitation.role,
-            "program_type": invitation.program_type,
             "cohort_name": invitation.cohort.name if invitation.cohort else None,
         }
 

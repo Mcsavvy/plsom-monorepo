@@ -18,7 +18,6 @@ class InvitationSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "role",
-            "program_type",
             "cohort",
             "expires_at",
             "used_at",
@@ -43,7 +42,6 @@ class InvitationSerializer(serializers.ModelSerializer):
 
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         role: str = data.get("role", "")
-        program_type: str = data.get("program_type", "")
         cohort: Optional[Cohort] = data.get("cohort")
         email: str = data.get("email", "")
 
@@ -65,20 +63,9 @@ class InvitationSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"email": "User already exists."})
 
         if role == "student":
-            if not program_type:
-                raise serializers.ValidationError(
-                    {"program_type": "This field is required for students."}
-                )
             if not cohort:
                 raise serializers.ValidationError(
                     {"cohort": "This field is required for students."}
-                )
-            # the cohort's program type must match the student's program type
-            if cohort.program_type != program_type:
-                raise serializers.ValidationError(
-                    {
-                        "cohort": "The cohort's program type must match the student's program type."
-                    }
                 )
             # the cohort must not be ending soon
             if cohort.end_date < (timezone.now() + timedelta(days=30)).date():
@@ -162,7 +149,6 @@ class OnboardingSerializer(serializers.Serializer):
         user = User.objects.create_user(
             email=invitation.email,
             role=invitation.role,
-            program_type=invitation.program_type,
             is_active=True,
             is_setup_complete=True,
             **validated_data,
@@ -185,7 +171,6 @@ class InvitationDetailsSerializer(serializers.Serializer):
     """Serializer for returning invitation details for onboarding"""
     email = serializers.EmailField()
     role = serializers.CharField()
-    program_type = serializers.CharField()
     cohort_name = serializers.CharField()
 
 
