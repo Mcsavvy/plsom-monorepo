@@ -10,15 +10,17 @@ from drf_spectacular.utils import extend_schema_field
 
 User = get_user_model()
 
-
-CONTENT_TYPE_MAP = {
-    "invitations": ContentType.objects.get_for_model(Invitation),
-    "users": ContentType.objects.get_for_model(User),
-    "cohorts": ContentType.objects.get_for_model(Cohort),
-    "students": ContentType.objects.get_for_model(User),
-    "staff": ContentType.objects.get_for_model(User),
-    "enrollments": ContentType.objects.get_for_model(Enrollment),
-}
+def get_content_type(resource: str) -> ContentType:
+    resource_map = {
+        "invitations": Invitation,
+        "users": User,
+        "cohorts": Cohort,
+        "students": User,
+        "staff": User,
+    }
+    if resource not in resource_map:
+        raise ValueError(f"Invalid resource: {resource}")
+    return ContentType.objects.get_for_model(resource_map[resource])
 
 class SafeJSONField(serializers.JSONField):
     """
@@ -72,7 +74,7 @@ class CreateAuditLogSerializer(serializers.ModelSerializer):
 
         resource = validated_data.get('resource')
         if resource:
-            content_type = CONTENT_TYPE_MAP.get(resource)
+            content_type = get_content_type(resource)
             if content_type:
                 validated_data['content_type'] = content_type
                 if object_id:
