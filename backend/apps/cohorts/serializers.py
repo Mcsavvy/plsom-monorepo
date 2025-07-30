@@ -25,19 +25,32 @@ class CohortSerializer(serializers.ModelSerializer):
     
     @extend_schema_field(int)
     def get_enrolled_students_count(self, obj):
-        return obj.enrollment_set.count()
+        return obj.enrollments.count()
     
     def validate_name(self, value):
-        """Validate cohort name is unique"""
+        """Validate cohort name is unique within the same program type"""
         instance = getattr(self, 'instance', None)
+        
+        # Get the program type from the data or instance
+        program_type = None
+        if hasattr(self, 'initial_data') and 'program_type' in self.initial_data:
+            program_type = self.initial_data['program_type']
+        elif instance:
+            program_type = instance.program_type
+        
+        if not program_type:
+            # If no program type available, skip validation
+            return value
+        
         if instance:
-            # For updates, exclude current instance
-            if Cohort.objects.filter(name=value).exclude(id=instance.id).exists():
-                raise serializers.ValidationError("Cohort with this name already exists.")
+            # For updates, exclude current instance and filter by program type
+            if Cohort.objects.filter(name=value, program_type=program_type).exclude(id=instance.id).exists():
+                raise serializers.ValidationError(f"Cohort with this name already exists for {program_type} program.")
         else:
-            # For creates
-            if Cohort.objects.filter(name=value).exists():
-                raise serializers.ValidationError("Cohort with this name already exists.")
+            # For creates, filter by program type
+            if Cohort.objects.filter(name=value, program_type=program_type).exists():
+                print(f"Cohort with this name already exists for {program_type} program.")
+                raise serializers.ValidationError(f"Cohort with this name already exists for {program_type} program.")
         return value
     
     def validate_start_date(self, value):
@@ -259,4 +272,4 @@ class CurrentCohortSerializer(serializers.ModelSerializer):
     
     @extend_schema_field(int)
     def get_enrolled_students_count(self, obj):
-        return obj.enrollment_set.count() 
+        return obj.enrollments.count()
