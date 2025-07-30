@@ -69,6 +69,20 @@ class IsLecturer(permissions.BasePermission):
 
 
 @only_authenticated
+class IsStaff(permissions.BasePermission):
+    """Check if a user is a staff"""
+
+    def has_permission(self, request: Request, view):
+        user = request.user
+        return any(
+            (
+                user.is_superuser,
+                user.is_staff,
+                user.role.lower() in ["lecturer", "admin"],
+            )
+        )
+
+@only_authenticated
 class IsStudent(permissions.BasePermission):
     """Check if a user is a student"""
 

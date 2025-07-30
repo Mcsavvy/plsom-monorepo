@@ -2,25 +2,8 @@ import json
 from rest_framework import serializers
 from rest_framework.utils.encoders import JSONEncoder as DRFJSONEncoder
 from .models import AuditLog
-from django.contrib.contenttypes.models import ContentType
-from apps.cohorts.models import Cohort, Enrollment
-from apps.invitations.models import Invitation
-from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema_field
-
-User = get_user_model()
-
-def get_content_type(resource: str) -> ContentType:
-    resource_map = {
-        "invitations": Invitation,
-        "users": User,
-        "cohorts": Cohort,
-        "students": User,
-        "staff": User,
-    }
-    if resource not in resource_map:
-        raise ValueError(f"Invalid resource: {resource}")
-    return ContentType.objects.get_for_model(resource_map[resource])
+from .utils import get_content_type, get_resource_meta
 
 class SafeJSONField(serializers.JSONField):
     """
@@ -37,6 +20,7 @@ class SafeJSONField(serializers.JSONField):
 
 
 class AuditLogSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
     author_info = serializers.SerializerMethodField()
     data = SafeJSONField()
     previous_data = SafeJSONField()
@@ -56,6 +40,10 @@ class AuditLogSerializer(serializers.ModelSerializer):
                 'name': obj.author.get_full_name() or obj.author.username
             }
         return {'name': obj.author_name} if obj.author_name else None
+
+    @extend_schema_field(dict)
+    def get_name(self, obj):
+        return get_resource_meta("audit-logs", obj.id)["name"]
 
 
 class CreateAuditLogSerializer(serializers.ModelSerializer):
@@ -101,3 +89,8 @@ class CreateAuditLogSerializer(serializers.ModelSerializer):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
+
+
+class MetaSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    description = serializers.CharField()
