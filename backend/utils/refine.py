@@ -191,10 +191,10 @@ class RefineDataProviderFilter(filters.BaseFilterBackend):
 
             # Handle 'not equal' operator by adding to exclude_kwargs
             if operator == 'ne':
-                exclude_kwargs[field] = value
+                exclude_kwargs[field] = self.convert_value_for_field(queryset.model, field, value)
             else:
                 # For all other operators, build a filter dictionary
-                kwargs = self.build_filter_kwargs(field, operator, value)
+                kwargs = self.build_filter_kwargs(queryset.model, field, operator, value)
                 if kwargs:
                     filter_kwargs.update(kwargs)
         
@@ -226,24 +226,59 @@ class RefineDataProviderFilter(filters.BaseFilterBackend):
         else:
             return param, 'eq'
     
-    def build_filter_kwargs(self, field, operator, value):
+    def convert_value_for_field(self, model, field_name, value):
+        """
+        Convert string values to appropriate Python types based on field type.
+        """
+        try:
+            field = model._meta.get_field(field_name)
+            from django.db import models
+            
+            # Handle BooleanField
+            if isinstance(field, models.BooleanField):
+                if str(value).lower() in ['true', '1', 'yes', 'on']:
+                    return True
+                elif str(value).lower() in ['false', '0', 'no', 'off']:
+                    return False
+                else:
+                    # If it's not a recognized boolean string, return original value
+                    return value
+            
+            # Add more field type conversions here if needed in the future
+            # elif isinstance(field, models.IntegerField):
+            #     return int(value)
+            # elif isinstance(field, models.FloatField):
+            #     return float(value)
+            
+        except (models.FieldDoesNotExist, ValueError, TypeError):
+            # If field doesn't exist or conversion fails, return original value
+            pass
+        
+        return value
+
+    def build_filter_kwargs(self, model, field, operator, value):
         """
         Build Django filter kwargs based on operator.
         'ne' is handled separately using .exclude()
         """
+        # Convert value based on field type
+        converted_value = self.convert_value_for_field(model, field, value)
+        
         if operator == 'like':
-            return {f'{field}__icontains': value}
+            return {f'{field}__icontains': converted_value}
         elif operator == 'gte':
-            return {f'{field}__gte': value}
+            return {f'{field}__gte': converted_value}
         elif operator == 'lte':
-            return {f'{field}__lte': value}
+            return {f'{field}__lte': converted_value}
         elif operator == 'eq':
-            return {field: value}
+            return {field: converted_value}
         elif operator == 'in':
             # Assumes value is a comma-separated string
             values = [v.strip() for v in value.split(',') if v.strip()]
-            if values:
-                return {f'{field}__in': values}
+            # Convert each value in the list
+            converted_values = [self.convert_value_for_field(model, field, v) for v in values]
+            if converted_values:
+                return {f'{field}__in': converted_values}
             return {}
         elif operator == 'isnull':
             if str(value).lower() in ['true', '1']:
