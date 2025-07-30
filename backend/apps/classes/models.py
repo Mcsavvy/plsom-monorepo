@@ -6,9 +6,13 @@ from apps.users.models import User
 
 
 class Class(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    lecturer = models.ForeignKey(User, on_delete=models.CASCADE)
-    cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE)
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="classes"
+    )
+    lecturer = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="classes"
+    )
+    cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name="classes")
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     scheduled_at = models.DateTimeField()
@@ -27,8 +31,12 @@ class Class(models.Model):
 
 
 class Attendance(models.Model):
-    class_session = models.ForeignKey(Class, on_delete=models.CASCADE)
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    class_session = models.ForeignKey(
+        Class, on_delete=models.CASCADE, related_name="attendances"
+    )
+    student = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="attendances"
+    )
     join_time = models.DateTimeField()
     leave_time = models.DateTimeField(null=True)
     duration_minutes = models.PositiveIntegerField(default=0)
