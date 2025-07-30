@@ -35,7 +35,7 @@ PLSOM LMS is a comprehensive Learning Management System designed for the Perfect
 
 ## Project Structure
 
-- `apps/` — Modular Django apps (users, courses, classes, assessments, cohorts, invitations, communications, integrations, authentication)
+- `apps/` — Modular Django apps (users, courses, classes, assessments, cohorts, invitations, core, integrations, authentication)
 - `config/` — Django project configuration and settings
 - `manage.py` — Django management script
 - `Dockerfile`, `docker-compose.yml` — Containerization setup
