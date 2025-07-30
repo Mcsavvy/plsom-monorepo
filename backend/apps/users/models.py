@@ -62,9 +62,6 @@ class User(AbstractUser):
         max_length=20, choices=TITLES, null=True, blank=True
     )
     role = models.CharField(max_length=20, choices=ROLES)
-    program_type = models.CharField(
-        max_length=20, choices=PROGRAM_TYPES, null=True, blank=True
-    )
     whatsapp_number = models.CharField(max_length=20, blank=True)
     profile_picture = models.ImageField(
         upload_to="profiles/", null=True, blank=True

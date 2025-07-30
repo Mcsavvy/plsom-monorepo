@@ -21,7 +21,6 @@ class CustomUserCreationForm(UserCreationForm):
             "first_name",
             "last_name",
             "role",
-            "program_type",
             "title",
             "whatsapp_number",
             "profile_picture",
@@ -40,7 +39,6 @@ class CustomUserChangeForm(UserChangeForm):
             "first_name",
             "last_name",
             "role",
-            "program_type",
             "title",
             "whatsapp_number",
             "profile_picture",
@@ -81,13 +79,12 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
                     "is_setup_complete",
                 )
             },
-        ),
+        ),  
         (
             "Permissions",
             {
                 "fields": (
                     "role",
-                    "program_type",
                     "is_staff",
                     "is_superuser",
                     "is_active",
@@ -109,7 +106,6 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
                     "first_name",
                     "last_name",
                     "role",
-                    "program_type",
                     "title",
                     "whatsapp_number",
                     "profile_picture",
