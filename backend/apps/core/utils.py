@@ -8,12 +8,14 @@ def get_content_type(resource: str) -> ContentType:
     from apps.users.models import User
     from apps.cohorts.models import Enrollment
     from apps.core.models import AuditLog
+    from apps.courses.models import Course
 
     resource_map = {
         "users": User,
         "cohorts": Cohort,
         "students": User,
         "staff": User,
+        "courses": Course,
         "enrollments": Enrollment,
         "invitations": Invitation,
         "audit-logs": AuditLog,
@@ -34,6 +36,7 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
     from apps.users.models import User
     from apps.cohorts.models import Enrollment
     from apps.core.models import AuditLog
+    from apps.courses.models import Course
 
     if resource == "invitations":
         invitation = Invitation.objects.get(id=id)
@@ -82,6 +85,21 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
             "name": staff.get_full_name(),
             "description": (
                 "Staff " + staff.get_full_name() + " (" + staff.email + ")"
+            ),
+        }
+    elif resource == "courses":
+        course = Course.objects.get(id=id)
+        lecturer_name: str | None = None
+        if course.lecturer:
+            lecturer_name = course.lecturer.get_full_name()
+        return {
+            "name": course.name,
+            "description": (
+                course.name
+                + " ("
+                + course.program_type
+                + ") "
+                + ("taught by " + lecturer_name if lecturer_name else "")
             ),
         }
     elif resource == "audit-logs":

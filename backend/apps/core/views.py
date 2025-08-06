@@ -130,7 +130,7 @@ class MetaView(generics.GenericAPIView):
     def get(self, request: Request, *args, **kwargs):
         try:
             meta = get_resource_meta(
-                kwargs.get("resource"),
+                kwargs.get("resource"),  # type: ignore
                 kwargs.get("id"),  # type: ignore
             )
             return Response(meta)

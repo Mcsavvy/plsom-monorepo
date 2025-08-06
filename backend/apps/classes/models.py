@@ -10,9 +10,11 @@ class Class(models.Model):
         Course, on_delete=models.CASCADE, related_name="classes"
     )
     lecturer = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="classes"
+        User, on_delete=models.CASCADE, related_name="classes_taught"
     )
-    cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name="classes")
+    cohort = models.ForeignKey(
+        Cohort, on_delete=models.CASCADE, related_name="classes"
+    )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     scheduled_at = models.DateTimeField()

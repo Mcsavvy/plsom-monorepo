@@ -1,17 +1,16 @@
 from rest_framework import serializers
 from apps.classes.models import Class, Attendance
-from apps.courses.models import Course
-from apps.cohorts.models import Cohort
-from apps.users.models import User
 
 
 class ClassSerializer(serializers.ModelSerializer):
     """Serializer for Class model"""
-    
-    course_name = serializers.CharField(source='course.name', read_only=True)
-    lecturer_name = serializers.CharField(source='lecturer.get_full_name', read_only=True)
-    cohort_name = serializers.CharField(source='cohort.name', read_only=True)
-    
+
+    course_name = serializers.CharField(source="course.name", read_only=True)
+    lecturer_name = serializers.CharField(
+        source="lecturer.get_full_name", read_only=True
+    )
+    cohort_name = serializers.CharField(source="cohort.name", read_only=True)
+
     class Meta:
         model = Class
         fields = (
@@ -35,11 +34,13 @@ class ClassSerializer(serializers.ModelSerializer):
 
 class ClassListSerializer(serializers.ModelSerializer):
     """Simplified serializer for class listings"""
-    
-    course_name = serializers.CharField(source='course.name', read_only=True)
-    lecturer_name = serializers.CharField(source='lecturer.get_full_name', read_only=True)
-    cohort_name = serializers.CharField(source='cohort.name', read_only=True)
-    
+
+    course_name = serializers.CharField(source="course.name", read_only=True)
+    lecturer_name = serializers.CharField(
+        source="lecturer.get_full_name", read_only=True
+    )
+    cohort_name = serializers.CharField(source="cohort.name", read_only=True)
+
     class Meta:
         model = Class
         fields = (
@@ -56,10 +57,14 @@ class ClassListSerializer(serializers.ModelSerializer):
 
 class AttendanceSerializer(serializers.ModelSerializer):
     """Serializer for Attendance model"""
-    
-    student_name = serializers.CharField(source='student.get_full_name', read_only=True)
-    class_title = serializers.CharField(source='class_session.title', read_only=True)
-    
+
+    student_name = serializers.CharField(
+        source="student.get_full_name", read_only=True
+    )
+    class_title = serializers.CharField(
+        source="class_session.title", read_only=True
+    )
+
     class Meta:
         model = Attendance
         fields = (
@@ -73,4 +78,4 @@ class AttendanceSerializer(serializers.ModelSerializer):
             "duration_minutes",
             "via_recording",
         )
-        read_only_fields = ("student_name", "class_title") 
+        read_only_fields = ("student_name", "class_title")

@@ -8,6 +8,15 @@ class Course(models.Model):
     program_type = models.CharField(max_length=20, choices=User.PROGRAM_TYPES)
     module_count = models.PositiveIntegerField()
     description = models.TextField()
+    lecturer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="courses_taught",
+        limit_choices_to={"role__in": ["admin", "lecturer"]},
+        help_text="The lecturer assigned to teach this course",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
