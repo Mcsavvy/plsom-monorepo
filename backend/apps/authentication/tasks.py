@@ -11,7 +11,7 @@ User = get_user_model()
 def send_password_reset_email(user_id: int, uid: str, token: str):
     """
     Send password reset email to user.
-    
+
     Args:
         user_id: The user's ID
         uid: Base64 encoded user ID
@@ -25,10 +25,10 @@ def send_password_reset_email(user_id: int, uid: str, token: str):
             base_url = settings.ADMIN_DASHBOARD_URL
         else:
             base_url = settings.FRONTEND_URL
-        
+
         # Create reset URL
         reset_url = f"{base_url}/reset-password?uid={uid}&token={token}"
-        
+
         # Email content
         subject = "Password Reset Request - PLSOM"
         message = f"""
@@ -46,7 +46,7 @@ def send_password_reset_email(user_id: int, uid: str, token: str):
         Best regards,
         PLSOM Team
         """
-        
+
         # Send email
         send_mail(
             subject=subject,
@@ -55,10 +55,12 @@ def send_password_reset_email(user_id: int, uid: str, token: str):
             recipient_list=[user.email],
             fail_silently=False,
         )
-        
+
     except User.DoesNotExist:
         # Log error if user doesn't exist (shouldn't happen in normal flow)
         pass
     except Exception:
         # Log any other errors that might occur during email sending
-        logger.exception(f"Error sending password reset email to user {user_id}")
+        logger.exception(
+            f"Error sending password reset email to user {user_id}"
+        )

@@ -40,20 +40,27 @@ class ForgotPasswordSerializer(serializers.Serializer):
             if not user.is_active:
                 raise serializers.ValidationError("User account is not active.")
         except User.DoesNotExist:
-            raise serializers.ValidationError("No user found with this email address.")
+            raise serializers.ValidationError(
+                "No user found with this email address."
+            )
         return value
 
     def save(self):
-        email = self.validated_data['email']
+        email = self.validated_data["email"]
         user = User.objects.get(email=email)
-        
+
         # Generate password reset token
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        
+
         # Queue the email sending task
-        async_task("apps.authentication.tasks.send_password_reset_email", user.id, uid, token)
-        
+        async_task(
+            "apps.authentication.tasks.send_password_reset_email",
+            user.id,
+            uid,
+            token,
+        )
+
         return user
 
 
@@ -64,10 +71,10 @@ class ResetPasswordSerializer(serializers.Serializer):
     confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        uid = attrs.get('uid')
-        token = attrs.get('token')
-        new_password = attrs.get('new_password')
-        confirm_password = attrs.get('confirm_password')
+        uid = attrs.get("uid")
+        token = attrs.get("token")
+        new_password = attrs.get("new_password")
+        confirm_password = attrs.get("confirm_password")
 
         if new_password != confirm_password:
             raise serializers.ValidationError("Passwords do not match.")
@@ -81,16 +88,16 @@ class ResetPasswordSerializer(serializers.Serializer):
         if not default_token_generator.check_token(user, token):
             raise serializers.ValidationError("Invalid or expired reset link.")
 
-        attrs['user'] = user
+        attrs["user"] = user
         return attrs
 
     def save(self):
-        user = self.validated_data['user']
-        new_password = self.validated_data['new_password']
-        
+        user = self.validated_data["user"]
+        new_password = self.validated_data["new_password"]
+
         user.set_password(new_password)
         user.save()
-        
+
         return user
 
 
@@ -100,29 +107,31 @@ class ChangePasswordSerializer(serializers.Serializer):
     confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        current_password = attrs.get('current_password')
-        new_password = attrs.get('new_password')
-        confirm_password = attrs.get('confirm_password')
+        current_password = attrs.get("current_password")
+        new_password = attrs.get("new_password")
+        confirm_password = attrs.get("confirm_password")
 
         if new_password != confirm_password:
             raise serializers.ValidationError("New passwords do not match.")
 
         if current_password == new_password:
-            raise serializers.ValidationError("New password must be different from current password.")
+            raise serializers.ValidationError(
+                "New password must be different from current password."
+            )
 
         return attrs
 
     def validate_current_password(self, value):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if not user.check_password(value):
             raise serializers.ValidationError("Current password is incorrect.")
         return value
 
     def save(self):
-        user = self.context['request'].user
-        new_password = self.validated_data['new_password']
-        
+        user = self.context["request"].user
+        new_password = self.validated_data["new_password"]
+
         user.set_password(new_password)
         user.save()
-        
+
         return user

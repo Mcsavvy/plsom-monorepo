@@ -53,7 +53,9 @@ class ProfilePictureUploadSerializer(serializers.Serializer):
     def validate_profile_picture(self, value):
         # Validate file size (max 5MB)
         if value.size > 5 * 1024 * 1024:
-            raise serializers.ValidationError("Image file size must be less than 5MB.")
+            raise serializers.ValidationError(
+                "Image file size must be less than 5MB."
+            )
 
         # Validate file type
         allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif"]
@@ -86,7 +88,9 @@ class StudentEnrollmentActionSerializer(serializers.Serializer):
     def validate_cohort_id(self, value):
         """Check that the cohort exists."""
         if not Cohort.objects.filter(id=value).exists():
-            raise serializers.ValidationError("Cohort with this ID does not exist.")
+            raise serializers.ValidationError(
+                "Cohort with this ID does not exist."
+            )
         return value
 
 
@@ -149,7 +153,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
 class StaffCourseSerializer(serializers.ModelSerializer):
     """Serializer for courses taught by staff"""
-    
+
     class Meta:
         model = Course
         fields = (
@@ -164,10 +168,10 @@ class StaffCourseSerializer(serializers.ModelSerializer):
 
 class StaffClassSerializer(serializers.ModelSerializer):
     """Serializer for classes taught by staff"""
-    
-    course_name = serializers.CharField(source='course.name', read_only=True)
-    cohort_name = serializers.CharField(source='cohort.name', read_only=True)
-    
+
+    course_name = serializers.CharField(source="course.name", read_only=True)
+    cohort_name = serializers.CharField(source="cohort.name", read_only=True)
+
     class Meta:
         model = Class
         fields = (

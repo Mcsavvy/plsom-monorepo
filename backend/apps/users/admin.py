@@ -79,7 +79,7 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
                     "is_setup_complete",
                 )
             },
-        ),  
+        ),
         (
             "Permissions",
             {

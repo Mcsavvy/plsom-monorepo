@@ -69,7 +69,11 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
         return {
             "name": student.get_full_name(),
             "description": (
-                "Student " + student.get_full_name() + " (" + student.email + ")"
+                "Student "
+                + student.get_full_name()
+                + " ("
+                + student.email
+                + ")"
             ),
         }
     elif resource == "staff":

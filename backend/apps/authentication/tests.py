@@ -356,174 +356,174 @@ class AuthenticationIntegrationTestCase(APITestCase):
         self.assertTrue(original_access.startswith("eyJ"))
         self.assertTrue(new_access.startswith("eyJ"))
 
-    @patch('apps.authentication.serializers.async_task')
+    @patch("apps.authentication.serializers.async_task")
     def test_forgot_password_success(self, mock_async_task):
         """Test successful forgot password request"""
-        url = reverse('forgot_password')
-        data = {'email': 'test@test.com'}
-        
+        url = reverse("forgot_password")
+        data = {"email": "test@test.com"}
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Verify the task was called with correct parameters
         mock_async_task.assert_called_once()
 
     def test_forgot_password_invalid_email(self):
         """Test forgot password with non-existent email"""
-        url = reverse('forgot_password')
-        data = {'email': 'nonexistent@example.com'}
-        
+        url = reverse("forgot_password")
+        data = {"email": "nonexistent@example.com"}
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('email', response.data)
+        self.assertIn("email", response.data)
 
     def test_forgot_password_inactive_user(self):
         """Test forgot password with inactive user"""
         self.user.is_active = False
         self.user.save()
-        
-        url = reverse('forgot_password')
-        data = {'email': 'test@test.com'}
-        
+
+        url = reverse("forgot_password")
+        data = {"email": "test@test.com"}
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('email', response.data)
+        self.assertIn("email", response.data)
 
     def test_reset_password_success(self):
         """Test successful password reset"""
         # Generate reset token
         token = default_token_generator.make_token(self.user)
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
-        
-        url = reverse('reset_password')
+
+        url = reverse("reset_password")
         data = {
-            'uid': uid,
-            'token': token,
-            'new_password': 'newpass123',
-            'confirm_password': 'newpass123'
+            "uid": uid,
+            "token": token,
+            "new_password": "newpass123",
+            "confirm_password": "newpass123",
         }
-        
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Verify password was changed
         self.user.refresh_from_db()
-        self.assertTrue(self.user.check_password('newpass123'))
+        self.assertTrue(self.user.check_password("newpass123"))
 
     def test_reset_password_invalid_token(self):
         """Test password reset with invalid token"""
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
-        
-        url = reverse('reset_password')
+
+        url = reverse("reset_password")
         data = {
-            'uid': uid,
-            'token': 'invalid_token',
-            'new_password': 'newpass123',
-            'confirm_password': 'newpass123'
+            "uid": uid,
+            "token": "invalid_token",
+            "new_password": "newpass123",
+            "confirm_password": "newpass123",
         }
-        
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('non_field_errors', response.data)
+        self.assertIn("non_field_errors", response.data)
 
     def test_reset_password_password_mismatch(self):
         """Test password reset with mismatched passwords"""
         token = default_token_generator.make_token(self.user)
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
-        
-        url = reverse('reset_password')
+
+        url = reverse("reset_password")
         data = {
-            'uid': uid,
-            'token': token,
-            'new_password': 'newpass123',
-            'confirm_password': 'differentpass'
+            "uid": uid,
+            "token": token,
+            "new_password": "newpass123",
+            "confirm_password": "differentpass",
         }
-        
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('non_field_errors', response.data)
+        self.assertIn("non_field_errors", response.data)
 
     def test_change_password_success(self):
         """Test successful password change for authenticated user"""
         self.client.force_authenticate(user=self.user)
-        
-        url = reverse('change_password')
+
+        url = reverse("change_password")
         data = {
-            'current_password': 'testpass123',
-            'new_password': 'newpass123',
-            'confirm_password': 'newpass123'
+            "current_password": "testpass123",
+            "new_password": "newpass123",
+            "confirm_password": "newpass123",
         }
-        
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Verify password was changed
         self.user.refresh_from_db()
-        self.assertTrue(self.user.check_password('newpass123'))
+        self.assertTrue(self.user.check_password("newpass123"))
 
     def test_change_password_wrong_current_password(self):
         """Test password change with wrong current password"""
         self.client.force_authenticate(user=self.user)
-        
-        url = reverse('change_password')
+
+        url = reverse("change_password")
         data = {
-            'current_password': 'wrongpass',
-            'new_password': 'newpass123',
-            'confirm_password': 'newpass123'
+            "current_password": "wrongpass",
+            "new_password": "newpass123",
+            "confirm_password": "newpass123",
         }
-        
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('current_password', response.data)
+        self.assertIn("current_password", response.data)
 
     def test_change_password_password_mismatch(self):
         """Test password change with mismatched new passwords"""
         self.client.force_authenticate(user=self.user)
-        
-        url = reverse('change_password')
+
+        url = reverse("change_password")
         data = {
-            'current_password': 'testpass123',
-            'new_password': 'newpass123',
-            'confirm_password': 'differentpass'
+            "current_password": "testpass123",
+            "new_password": "newpass123",
+            "confirm_password": "differentpass",
         }
-        
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('non_field_errors', response.data)
+        self.assertIn("non_field_errors", response.data)
 
     def test_change_password_same_password(self):
         """Test password change with same password"""
         self.client.force_authenticate(user=self.user)
-        
-        url = reverse('change_password')
+
+        url = reverse("change_password")
         data = {
-            'current_password': 'testpass123',
-            'new_password': 'testpass123',
-            'confirm_password': 'testpass123'
+            "current_password": "testpass123",
+            "new_password": "testpass123",
+            "confirm_password": "testpass123",
         }
-        
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('non_field_errors', response.data)
+        self.assertIn("non_field_errors", response.data)
 
     def test_change_password_unauthenticated(self):
         """Test password change without authentication"""
-        url = reverse('change_password')
+        url = reverse("change_password")
         data = {
-            'current_password': 'testpass123',
-            'new_password': 'newpass123',
-            'confirm_password': 'newpass123'
+            "current_password": "testpass123",
+            "new_password": "newpass123",
+            "confirm_password": "newpass123",
         }
-        
+
         response = self.client.post(url, data)
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

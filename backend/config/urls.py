@@ -16,10 +16,14 @@ urlpatterns = [
     path("api/invitations/", include("apps.invitations.urls")),
     path("api/", include("apps.users.urls")),
     path("api/", include("apps.cohorts.urls")),
+    path("api/", include("apps.courses.urls")),
     path("api/", include("apps.core.urls")),
     path("", admin.site.urls),
 ]
 
 # Serve media files in development - add before admin URLs
 if settings.DEBUG:
-    urlpatterns = static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + urlpatterns
+    urlpatterns = (
+        static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        + urlpatterns
+    )

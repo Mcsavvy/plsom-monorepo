@@ -100,7 +100,9 @@ class UserViewSet(viewsets.GenericViewSet, mixins.UpdateModelMixin):
             user.save()
             return Response(self.get_serializer(user).data, status=200)
         else:
-            return Response({"error": "No profile picture to delete."}, status=400)
+            return Response(
+                {"error": "No profile picture to delete."}, status=400
+            )
 
 
 @extend_schema(tags=["Students"])
@@ -176,7 +178,9 @@ class StudentViewSet(
         cohort = Cohort.objects.get(id=cohort_id)
 
         # Check if enrollment exists
-        enrollment = Enrollment.objects.filter(student=student, cohort=cohort).first()
+        enrollment = Enrollment.objects.filter(
+            student=student, cohort=cohort
+        ).first()
         if not enrollment:
             raise ValidationError("Student is not enrolled in this cohort.")
 
@@ -185,7 +189,9 @@ class StudentViewSet(
 
 
 @extend_schema(tags=["Staff"])
-class StaffViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+class StaffViewSet(
+    viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin
+):
     """
     Viewset for staff operations (lecturers and admins).
     """

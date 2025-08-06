@@ -41,12 +41,15 @@ class InvitationViewSet(viewsets.ModelViewSet):
         invitation = self.get_object()
         if invitation.used_at:
             raise ValidationError("Invitation has already been used.")
-        
+
         # Save the updated invitation
         updated_invitation = serializer.save()
-        
+
         # Send email after successful update
-        async_task("apps.invitations.tasks.send_invitation_email", updated_invitation.id)
+        async_task(
+            "apps.invitations.tasks.send_invitation_email",
+            updated_invitation.id,
+        )
 
     @extend_schema(
         summary="Get Invitation",
@@ -127,12 +130,18 @@ class InvitationViewSet(viewsets.ModelViewSet):
     def resend(self, request, pk=None):
         invitation = self.get_object()
         # Update expiry
-        invitation.expires_at = timezone.now() + settings.INVITATION_EXPIRATION_TIME
+        invitation.expires_at = (
+            timezone.now() + settings.INVITATION_EXPIRATION_TIME
+        )
         invitation.used_at = None
         invitation.token = uuid.uuid4()
         invitation.save(update_fields=["expires_at", "used_at", "token"])
-        async_task("apps.invitations.tasks.send_invitation_email", invitation.id)
-        return Response({"detail": "Invitation resent."}, status=status.HTTP_200_OK)
+        async_task(
+            "apps.invitations.tasks.send_invitation_email", invitation.id
+        )
+        return Response(
+            {"detail": "Invitation resent."}, status=status.HTTP_200_OK
+        )
 
     @extend_schema(
         summary="Verify Invitation Token",
@@ -154,13 +163,13 @@ class InvitationViewSet(viewsets.ModelViewSet):
         response_data = {
             "email": invitation.email,
             "role": invitation.role,
-            "cohort_name": invitation.cohort.name if invitation.cohort else None,
+            "cohort_name": invitation.cohort.name
+            if invitation.cohort
+            else None,
         }
 
         response_serializer = InvitationDetailsSerializer(response_data)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
-        
-
 
     @extend_schema(
         summary="Complete User Onboarding",

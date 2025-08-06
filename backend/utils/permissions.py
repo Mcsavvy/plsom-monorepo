@@ -82,6 +82,7 @@ class IsStaff(permissions.BasePermission):
             )
         )
 
+
 @only_authenticated
 class IsStudent(permissions.BasePermission):
     """Check if a user is a student"""

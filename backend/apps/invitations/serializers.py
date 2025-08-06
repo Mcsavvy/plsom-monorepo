@@ -48,9 +48,13 @@ class InvitationSerializer(serializers.ModelSerializer):
         # Only check for existing invitations during creation, not updates
         if self.instance is None:  # Creating a new instance
             if Invitation.objects.filter(email=email).exists():
-                raise serializers.ValidationError({"email": "User already invited."})
+                raise serializers.ValidationError(
+                    {"email": "User already invited."}
+                )
             if User.objects.filter(email=email).exists():
-                raise serializers.ValidationError({"email": "User already exists."})
+                raise serializers.ValidationError(
+                    {"email": "User already exists."}
+                )
         else:  # Updating existing instance
             # Check if email conflicts with other invitations (excluding current one)
             if (
@@ -58,9 +62,13 @@ class InvitationSerializer(serializers.ModelSerializer):
                 .exclude(pk=self.instance.pk)
                 .exists()
             ):
-                raise serializers.ValidationError({"email": "User already invited."})
+                raise serializers.ValidationError(
+                    {"email": "User already invited."}
+                )
             if User.objects.filter(email=email).exists():
-                raise serializers.ValidationError({"email": "User already exists."})
+                raise serializers.ValidationError(
+                    {"email": "User already exists."}
+                )
 
         if role == "student":
             if not cohort:
@@ -70,7 +78,9 @@ class InvitationSerializer(serializers.ModelSerializer):
             # the cohort must not be ending soon
             if cohort.end_date < (timezone.now() + timedelta(days=30)).date():
                 raise serializers.ValidationError(
-                    {"cohort": "The cohort is ending soon. Please select a different cohort."}
+                    {
+                        "cohort": "The cohort is ending soon. Please select a different cohort."
+                    }
                 )
         return data
 
@@ -90,7 +100,9 @@ class InvitationVerifySerializer(serializers.Serializer):
             raise serializers.ValidationError("Invitation has expired.")
 
         if invitation.is_used:
-            raise serializers.ValidationError("Invitation has already been used.")
+            raise serializers.ValidationError(
+                "Invitation has already been used."
+            )
 
         return value
 
@@ -169,6 +181,7 @@ class OnboardingSerializer(serializers.Serializer):
 
 class InvitationDetailsSerializer(serializers.Serializer):
     """Serializer for returning invitation details for onboarding"""
+
     email = serializers.EmailField()
     role = serializers.CharField()
     cohort_name = serializers.CharField()
@@ -176,6 +189,7 @@ class InvitationDetailsSerializer(serializers.Serializer):
 
 class OnboardingResponseSerializer(serializers.Serializer):
     """Serializer for onboarding response"""
+
     user_id = serializers.IntegerField()
     email = serializers.EmailField()
     role = serializers.CharField()

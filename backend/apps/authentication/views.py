@@ -1,4 +1,3 @@
-
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
@@ -39,15 +38,17 @@ class CustomTokenBlacklistView(TokenBlacklistView):
     @extend_schema(summary="Logout", description="Logout a user.")
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-    
-class CreateAPIView(generics.CreateAPIView):
 
+
+class CreateAPIView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_200_OK, headers=headers
+        )
 
 
 class ForgotPasswordView(CreateAPIView):
@@ -77,7 +78,9 @@ class ResetPasswordView(CreateAPIView):
         description="Reset user password using token.",
         tags=["Authentication"],
         responses={
-            200: OpenApiResponse(description="Password has been reset successfully.")
+            200: OpenApiResponse(
+                description="Password has been reset successfully."
+            )
         },
     )
     def post(self, request, *args, **kwargs):
@@ -93,7 +96,9 @@ class ChangePasswordView(CreateAPIView):
         description="Change password for authenticated user.",
         tags=["Authentication"],
         responses={
-            200: OpenApiResponse(description="Password has been changed successfully.")
+            200: OpenApiResponse(
+                description="Password has been changed successfully."
+            )
         },
     )
     def post(self, request, *args, **kwargs):

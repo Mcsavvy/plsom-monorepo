@@ -5,7 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from apps.core.utils import get_resource_meta
 from utils.permissions import IsAdmin, IsStaff
 from .models import AuditLog
-from .serializers import AuditLogSerializer, CreateAuditLogSerializer, MetaSerializer
+from .serializers import (
+    AuditLogSerializer,
+    CreateAuditLogSerializer,
+    MetaSerializer,
+)
 from drf_spectacular.utils import extend_schema
 from rest_framework.request import Request
 
@@ -16,7 +20,13 @@ class AuditLogViewSet(viewsets.ModelViewSet):
     search_fields = ["resource", "author_name"]
     ordering = ["-timestamp"]
 
-    filterable_fields = ["resource", "action", "author", "timestamp", "ip_address"]
+    filterable_fields = [
+        "resource",
+        "action",
+        "author",
+        "timestamp",
+        "ip_address",
+    ]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -76,7 +86,9 @@ class AuditLogViewSet(viewsets.ModelViewSet):
 
         # Only allow updating certain fields
         allowed_fields = ["meta"]
-        update_data = {k: v for k, v in request.data.items() if k in allowed_fields}
+        update_data = {
+            k: v for k, v in request.data.items() if k in allowed_fields
+        }
 
         if "name" in request.data:
             # Store custom name in meta
@@ -84,7 +96,9 @@ class AuditLogViewSet(viewsets.ModelViewSet):
                 update_data["meta"] = instance.meta.copy()
             update_data["meta"]["custom_name"] = request.data["name"]
 
-        serializer = self.get_serializer(instance, data=update_data, partial=True)
+        serializer = self.get_serializer(
+            instance, data=update_data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -98,6 +112,7 @@ class AuditLogViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+
 
 @extend_schema(tags=["Meta"])
 class MetaView(generics.GenericAPIView):
@@ -115,7 +130,8 @@ class MetaView(generics.GenericAPIView):
     def get(self, request: Request, *args, **kwargs):
         try:
             meta = get_resource_meta(
-                kwargs.get("resource"), kwargs.get("id") # type: ignore
+                kwargs.get("resource"),
+                kwargs.get("id"),  # type: ignore
             )
             return Response(meta)
         except Exception as e:

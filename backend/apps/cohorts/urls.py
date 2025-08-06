@@ -4,9 +4,9 @@ from rest_framework.routers import DefaultRouter
 from apps.cohorts.views import CohortViewSet, EnrollmentViewSet
 
 router = DefaultRouter()
-router.register(r'cohorts', CohortViewSet, basename='cohort')
-router.register(r'enrollments', EnrollmentViewSet, basename='enrollment')
+router.register(r"cohorts", CohortViewSet, basename="cohort")
+router.register(r"enrollments", EnrollmentViewSet, basename="enrollment")
 
 urlpatterns = [
-    path('', include(router.urls)),
-] 
+    path("", include(router.urls)),
+]

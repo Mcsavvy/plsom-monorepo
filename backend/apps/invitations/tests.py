@@ -497,10 +497,10 @@ class InvitationViewSetTestCase(APITestCase):
 
         url = reverse("invitation-detail", kwargs={"pk": invitation.id})
         self.client.force_authenticate(user=self.admin_user)
-        
+
         # Reset mock call count before the operation we want to test
         mock_async_task.reset_mock()
-        
+
         response = self.client.put(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -524,10 +524,10 @@ class InvitationViewSetTestCase(APITestCase):
 
         url = reverse("invitation-detail", kwargs={"pk": invitation.id})
         self.client.force_authenticate(user=self.admin_user)
-        
+
         # Reset mock call count before the operation we want to test
         mock_async_task.reset_mock()
-        
+
         response = self.client.patch(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -783,23 +783,23 @@ class InvitationIntegrationTestCase(APITestCase):
             "program_type": "diploma",
             "cohort": self.cohort.id,
         }
-        
+
         self.client.force_authenticate(user=self.admin_user)
-        
+
         # Create invitation
         response = self.client.post(reverse("invitation-list"), data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # Verify invitation exists in database
         invitation = Invitation.objects.get(email="newstudent@test.com")
         self.assertEqual(invitation.role, "student")
         self.assertEqual(invitation.program_type, "diploma")
         self.assertEqual(invitation.cohort, self.cohort)
-        
+
         # Verify expiry date was set automatically
         self.assertIsNotNone(invitation.expires_at)
         self.assertGreater(invitation.expires_at, timezone.now())
-        
+
         # Note: In real tests, you would need to wait for the async task or use a synchronous test runner
 
     def test_invitation_token_security(self):

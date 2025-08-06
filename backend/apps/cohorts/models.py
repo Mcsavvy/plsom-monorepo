@@ -15,7 +15,10 @@ class Cohort(models.Model):
     class Meta:
         ordering = ["-start_date"]
         constraints = [
-            models.UniqueConstraint(fields=["name", "program_type"], name="unique_cohort_name_program_type")
+            models.UniqueConstraint(
+                fields=["name", "program_type"],
+                name="unique_cohort_name_program_type",
+            )
         ]
 
     def __str__(self):
@@ -56,13 +59,21 @@ class Cohort(models.Model):
         super().clean()
 
         # End date must be after start date
-        if self.start_date and self.end_date and self.end_date <= self.start_date:
-            raise ValidationError({"end_date": "End date must be after start date."})
+        if (
+            self.start_date
+            and self.end_date
+            and self.end_date <= self.start_date
+        ):
+            raise ValidationError(
+                {"end_date": "End date must be after start date."}
+            )
 
         # Cannot activate ended cohort
         if self.is_active and self.is_ended:
             raise ValidationError(
-                {"is_active": "Cannot activate a cohort that has already ended."}
+                {
+                    "is_active": "Cannot activate a cohort that has already ended."
+                }
             )
 
     def save(self, *args, **kwargs):
@@ -126,7 +137,8 @@ class Enrollment(models.Model):
         ordering = ["-enrolled_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["student", "cohort"], name="unique_student_cohort_enrollment"
+                fields=["student", "cohort"],
+                name="unique_student_cohort_enrollment",
             )
         ]
 
