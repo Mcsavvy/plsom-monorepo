@@ -195,27 +195,13 @@ class StaffSerializer(serializers.ModelSerializer):
     """Serializer for staff users (lecturers and admins) with their teaching information"""
 
     # Get courses taught by this staff member
-    courses_taught = serializers.SerializerMethodField()
-    
-    # Get classes taught by this staff member
-    # classes_taught = serializers.SerializerMethodField()
-    
+    courses_taught = StaffCourseSerializer(many=True, read_only=True)
+
+    # get classes taught by this staff member
+    # classes_taught = StaffClassSerializer(many=True, read_only=True)
+
     # Get total classes count
     total_classes = serializers.SerializerMethodField()
-
-    @extend_schema_field(StaffCourseSerializer)
-    def get_courses_taught(self, obj):
-        """Get unique courses taught by this staff member"""
-        courses = Course.objects.filter(
-            classes__lecturer=obj
-        ).distinct()
-        return StaffCourseSerializer(courses, many=True, context=self.context).data
-
-    @extend_schema_field(StaffClassSerializer)
-    def get_classes_taught(self, obj):
-        """Get classes taught by this staff member"""
-        classes = Class.objects.filter(lecturer=obj).order_by('-scheduled_at')
-        return StaffClassSerializer(classes, many=True, context=self.context).data
 
     @extend_schema_field(serializers.IntegerField)
     def get_total_classes(self, obj):
