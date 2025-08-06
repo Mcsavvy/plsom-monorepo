@@ -19,9 +19,11 @@ class Class(models.Model):
     description = models.TextField(blank=True)
     scheduled_at = models.DateTimeField()
     duration_minutes = models.PositiveIntegerField(default=90)
-    zoom_meeting_id = models.CharField(max_length=50, null=True)
-    zoom_join_url = models.URLField(null=True)
-    recording_url = models.URLField(null=True)
+    zoom_meeting_id = models.CharField(max_length=50, null=True, blank=True)
+    zoom_join_url = models.URLField(null=True, blank=True)
+    password_for_zoom = models.CharField(max_length=200, null=True, blank=True)
+    recording_url = models.URLField(null=True, blank=True)
+    password_for_recording = models.CharField(max_length=200, null=True, blank=True)
 
     class Meta:
         ordering = ["scheduled_at"]
@@ -29,7 +31,7 @@ class Class(models.Model):
         verbose_name_plural = "Classes"
 
     def __str__(self):
-        return f"{self.course.title} - {self.title}"
+        return f"{self.course.name} - {self.title}"
 
 
 class Attendance(models.Model):
