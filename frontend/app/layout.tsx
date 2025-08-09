@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   keywords:
     "PLSOM, Perfect Love School of Ministry, LMS, Ministry Training, Theological Education",
   authors: [{ name: "PLSOM Development Team" }],
+  manifest: "/manifest.json",
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
