@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.configPath": ".prettierrc",
+    "prettier.useTabs": true,
+    "prettier.tabWidth": 2,
+    "editor.tabSize": 2
+}
