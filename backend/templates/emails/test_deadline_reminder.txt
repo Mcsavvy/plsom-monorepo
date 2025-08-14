@@ -1,0 +1,43 @@
+⚠️ URGENT: TEST DEADLINE TODAY - {{ test.title }}
+Perfect Love School of Ministry
+
+Dear Student,
+
+⚠️ URGENT REMINDER
+YOUR TEST DEADLINE IS TODAY!
+
+This is a friendly reminder that your test is due today. Please complete it as soon as possible to avoid missing the deadline.
+
+=== TEST INFORMATION ===
+Title: {{ test.title }}
+Course: {{ course.name }}
+Deadline: {{ test.available_until|date:"F d, Y \a\t g:i A" }}
+{% if test.time_limit_minutes %}
+Time Required: {{ test.time_limit_minutes }} minutes
+{% endif %}
+Attempts Allowed: {{ test.max_attempts }}
+
+BEFORE YOU BEGIN:
+- Ensure you have a stable internet connection
+- Set aside uninterrupted time to complete the test
+- Have any required materials ready
+- Pray for wisdom and clarity
+
+{% if test.instructions %}
+TEST INSTRUCTIONS:
+{{ test.instructions }}
+{% endif %}
+
+⚠️ IMPORTANT: Late submissions may not be accepted, so please prioritize completing this test today. If you encounter any technical difficulties, contact support immediately.
+
+To take the test immediately, log into your student portal.
+
+May the Lord guide your thoughts and give you peace as you complete this assessment.
+
+Praying for your success,
+{{ instructor.get_full_name }}
+PLSOM Academic Team
+
+---
+Perfect Love School of Ministry
+"But seek first the kingdom of God and his righteousness, and all these things will be added to you." - Matthew 6:33

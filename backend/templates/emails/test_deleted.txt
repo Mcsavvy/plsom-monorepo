@@ -1,0 +1,34 @@
+TEST REMOVED: {{ test.title }}
+Perfect Love School of Ministry
+
+Dear Student,
+
+We want to inform you that a test has been removed from your course assignments:
+
+=== REMOVED TEST ===
+Title: {{ test.title }}
+Course: {{ course.name }}
+Cohort: {{ cohort.name }}
+Instructor: {{ instructor.get_full_name }}
+
+📌 WHAT THIS MEANS:
+This test is no longer required and has been completely removed from your assignments. You do not need to complete it, and it will not affect your course grade.
+
+IMPORTANT INFORMATION:
+If you had already started or completed this test, please note:
+- Any work you submitted will be preserved in our records
+- This removal does not negatively impact your academic standing
+- Your instructor will provide alternative assessments if needed
+- Feel free to contact your instructor with any questions about this change
+
+If you have any concerns about your course progress or need clarification about upcoming assessments, please don't hesitate to reach out to your instructor directly.
+
+Continue to be faithful in your studies, and may the Lord bless your learning journey.
+
+Grace and peace,
+{{ instructor.get_full_name }}
+PLSOM Academic Team
+
+---
+Perfect Love School of Ministry
+Equipping Saints for Kingdom Service

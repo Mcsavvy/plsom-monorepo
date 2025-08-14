@@ -1,0 +1,60 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Test Updated - {{ test.title }}{% endblock %}
+
+{% block header_icon %}📝{% endblock %}
+{% block header_title %}Test Updated{% endblock %}
+
+{% block accent_color %}#f39c12{% endblock %}
+{% block button_color %}#f39c12{% endblock %}
+{% block button_hover %}#e67e22{% endblock %}
+{% block notice_bg %}#fff3cd{% endblock %}
+{% block notice_border %}#f39c12{% endblock %}
+
+{% block content %}
+<p>Your instructor has made updates to one of your tests. Please review the changes below:</p>
+
+<div class="test-info">
+    <h2>{{ test.title }}</h2>
+    <p><strong>Course:</strong> {{ course.name }}</p>
+    <p><strong>Cohort:</strong> {{ cohort.name }}</p>
+    <p><strong>Updated by:</strong> {{ instructor.get_full_name }}</p>
+</div>
+
+<div class="notice-box warning">
+    <strong>ℹ️ What's Changed</strong><br>
+    The test content, questions, or instructions may have been updated. Please review the test details to ensure you're familiar with any changes before taking or continuing the assessment.
+</div>
+
+<div class="details-list">
+    <h3>📊 Current Test Information</h3>
+    <ul>
+        {% if test.time_limit_minutes %}
+        <li><strong>Time Limit:</strong> {{ test.time_limit_minutes }} minutes</li>
+        {% endif %}
+        <li><strong>Maximum Attempts:</strong> {{ test.max_attempts }}</li>
+        <li><strong>Questions:</strong> {{ test.total_questions }}</li>
+        {% if test.available_until %}
+        <li><strong>Deadline:</strong> {{ test.available_until|date:"F d, Y \a\t g:i A" }}</li>
+        {% endif %}
+    </ul>
+    {% if test.instructions %}
+    <p><strong>Current Instructions:</strong></p>
+    <p>{{ test.instructions|linebreaks }}</p>
+    {% endif %}
+</div>
+
+<div style="text-align: center;">
+    <a href="#" class="cta-button">Review Test</a>
+</div>
+
+<p><strong>Important Notes:</strong></p>
+<ul>
+    <li>If you have already started this test, your progress has been preserved</li>
+    <li>If you haven't started yet, please review the updated information carefully</li>
+    <li>Contact your instructor if you have questions about the changes</li>
+</ul>
+{% endblock %}
+
+{% block blessing %}God's blessings on your continued studies as you engage with these updates.{% endblock %}
+{% block footer_motto %}Committed to Excellence in Ministry Education{% endblock %}

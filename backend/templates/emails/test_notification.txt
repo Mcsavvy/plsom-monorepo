@@ -1,0 +1,23 @@
+TEST NOTIFICATION: {{ test.title }}
+Perfect Love School of Ministry
+
+Dear Student,
+
+=== TEST INFORMATION ===
+Title: {{ test.title }}
+Course: {{ course.name }}
+Cohort: {{ cohort.name }}
+Instructor: {{ instructor.get_full_name }}
+
+Please check your student portal for more details about this test notification.
+
+May the Lord bless your studies and grant you wisdom in all your endeavors.
+
+Grace and peace,
+{{ instructor.get_full_name }}
+PLSOM Academic Team
+
+---
+Perfect Love School of Ministry
+Building Kingdom Leaders | Advancing God's Kingdom
+"Study to show yourself approved unto God" - 2 Timothy 2:15

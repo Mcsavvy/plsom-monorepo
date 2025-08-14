@@ -1,0 +1,48 @@
+NEW TEST AVAILABLE: {{ test.title }}
+Perfect Love School of Ministry
+
+Dear Student,
+
+A new test has been published and is now available for you to take:
+
+=== TEST DETAILS ===
+Title: {{ test.title }}
+Course: {{ course.name }}
+Cohort: {{ cohort.name }}
+Instructor: {{ instructor.get_full_name }}
+{% if test.description %}
+Description: {{ test.description }}
+{% endif %}
+
+=== REQUIREMENTS ===
+{% if test.time_limit_minutes %}
+Time Limit: {{ test.time_limit_minutes }} minutes
+{% endif %}
+Maximum Attempts: {{ test.max_attempts }}
+Number of Questions: {{ test.total_questions }}
+{% if test.randomize_questions %}
+Note: Questions will be presented in random order
+{% endif %}
+
+{% if test.instructions %}
+=== INSTRUCTIONS ===
+{{ test.instructions }}
+{% endif %}
+
+{% if test.available_until %}
+⏰ IMPORTANT DEADLINE: {{ test.available_until|date:"F d, Y \a\t g:i A" }}
+Please complete the test before this deadline.
+{% endif %}
+
+To access the test, please log into your student portal.
+
+May the Lord bless your studies and grant you wisdom as you engage with this assessment.
+
+Grace and peace,
+{{ instructor.get_full_name }}
+PLSOM Academic Team
+
+---
+Perfect Love School of Ministry
+Building Kingdom Leaders | Advancing God's Kingdom
+"Study to show yourself approved unto God" - 2 Timothy 2:15

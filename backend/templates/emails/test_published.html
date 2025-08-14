@@ -1,0 +1,58 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Test Published - {{ test.title }}{% endblock %}
+
+{% block header_icon %}✅{% endblock %}
+{% block header_title %}Test Now Available{% endblock %}
+
+{% block accent_color %}#27ae60{% endblock %}
+{% block button_color %}#27ae60{% endblock %}
+{% block button_hover %}#229954{% endblock %}
+{% block notice_bg %}#d5f4e6{% endblock %}
+{% block notice_border %}#27ae60{% endblock %}
+
+{% block content %}
+<div class="notice-box success">
+    <strong>🎉 Great News!</strong><br>
+    Your instructor has just published a test that is now ready for you to take.
+</div>
+
+<div class="test-info">
+    <h2>{{ test.title }}</h2>
+    <p><strong>Course:</strong> {{ course.name }}</p>
+    <p><strong>Cohort:</strong> {{ cohort.name }}</p>
+    <p><strong>Instructor:</strong> {{ instructor.get_full_name }}</p>
+    {% if test.description %}
+    <p><strong>Description:</strong> {{ test.description }}</p>
+    {% endif %}
+</div>
+
+{% if test.available_until %}
+<div class="deadline-alert">
+    <strong>⏰ Important Deadline</strong><br>
+    <div class="time">{{ test.available_until|date:"F d, Y \a\t g:i A" }}</div>
+    <em>Don't wait - start planning your time now!</em>
+</div>
+{% endif %}
+
+<div class="details-list">
+    <h3>📝 What You Need to Know</h3>
+    <ul>
+        {% if test.time_limit_minutes %}
+        <li><strong>Time Allowed:</strong> {{ test.time_limit_minutes }} minutes once started</li>
+        {% endif %}
+        <li><strong>Attempts Allowed:</strong> {{ test.max_attempts }}</li>
+        <li><strong>Number of Questions:</strong> {{ test.total_questions }}</li>
+        {% if test.instructions %}
+        <li><strong>Special Instructions:</strong> {{ test.instructions|linebreaks }}</li>
+        {% endif %}
+    </ul>
+</div>
+
+<div style="text-align: center;">
+    <a href="#" class="cta-button">Take Test Now</a>
+</div>
+{% endblock %}
+
+{% block blessing %}Remember to pray and prepare your heart before beginning. Trust in the Lord's guidance as you demonstrate what you have learned.{% endblock %}
+{% block closing %}Blessings on your studies{% endblock %}

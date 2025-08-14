@@ -1,0 +1,42 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Test Removed - {{ test.title }}{% endblock %}
+
+{% block header_icon %}📋{% endblock %}
+{% block header_title %}Test Removed{% endblock %}
+
+{% block accent_color %}#7f8c8d{% endblock %}
+{% block notice_bg %}#f8f9fa{% endblock %}
+{% block notice_border %}#7f8c8d{% endblock %}
+
+{% block content %}
+<p>We want to inform you that a test has been removed from your course assignments:</p>
+
+<div class="test-info">
+    <h2>{{ test.title }}</h2>
+    <p><strong>Course:</strong> {{ course.name }}</p>
+    <p><strong>Cohort:</strong> {{ cohort.name }}</p>
+    <p><strong>Instructor:</strong> {{ instructor.get_full_name }}</p>
+</div>
+
+<div class="notice-box">
+    <strong>📌 What This Means</strong><br>
+    This test is no longer required and has been completely removed from your assignments. You do not need to complete it, and it will not affect your course grade.
+</div>
+
+<div class="details-list">
+    <h3>📝 Important Information</h3>
+    <p>If you had already started or completed this test, please note:</p>
+    <ul>
+        <li>Any work you submitted will be preserved in our records</li>
+        <li>This removal does not negatively impact your academic standing</li>
+        <li>Your instructor will provide alternative assessments if needed</li>
+        <li>Feel free to contact your instructor with any questions about this change</li>
+    </ul>
+</div>
+
+<p>If you have any concerns about your course progress or need clarification about upcoming assessments, please don't hesitate to reach out to your instructor directly.</p>
+{% endblock %}
+
+{% block blessing %}Continue to be faithful in your studies, and may the Lord bless your learning journey.{% endblock %}
+{% block footer_motto %}Equipping Saints for Kingdom Service{% endblock %}

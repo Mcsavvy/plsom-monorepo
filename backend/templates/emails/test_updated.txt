@@ -1,0 +1,47 @@
+TEST UPDATED: {{ test.title }}
+Perfect Love School of Ministry
+
+Dear Student,
+
+Your instructor has made updates to one of your tests. Please review the changes below:
+
+=== UPDATED TEST ===
+Title: {{ test.title }}
+Course: {{ course.name }}
+Cohort: {{ cohort.name }}
+Updated by: {{ instructor.get_full_name }}
+
+ℹ️ WHAT'S CHANGED:
+The test content, questions, or instructions may have been updated. Please review the test details to ensure you're familiar with any changes before taking or continuing the assessment.
+
+=== CURRENT TEST INFORMATION ===
+{% if test.time_limit_minutes %}
+Time Limit: {{ test.time_limit_minutes }} minutes
+{% endif %}
+Maximum Attempts: {{ test.max_attempts }}
+Questions: {{ test.total_questions }}
+{% if test.available_until %}
+Deadline: {{ test.available_until|date:"F d, Y \a\t g:i A" }}
+{% endif %}
+
+{% if test.instructions %}
+Current Instructions:
+{{ test.instructions }}
+{% endif %}
+
+IMPORTANT NOTES:
+- If you have already started this test, your progress has been preserved
+- If you haven't started yet, please review the updated information carefully
+- Contact your instructor if you have questions about the changes
+
+To review the test, please log into your student portal.
+
+God's blessings on your continued studies as you engage with these updates.
+
+Grace and peace,
+{{ instructor.get_full_name }}
+PLSOM Academic Team
+
+---
+Perfect Love School of Ministry
+Committed to Excellence in Ministry Education

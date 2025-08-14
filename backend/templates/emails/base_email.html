@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PLSOM Notification{% endblock %}</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .email-container {
+            background-color: white;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .header .subtitle {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.9;
+            font-style: italic;
+        }
+        .content {
+            padding: 35px 30px;
+            background-color: white;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+        .test-info {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 6px;
+            margin: 25px 0;
+            border-left: 5px solid {% block accent_color %}#3498db{% endblock %};
+        }
+        .test-info h2 {
+            margin: 0 0 15px 0;
+            font-size: 22px;
+            color: #2c3e50;
+        }
+        .test-info p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+        .test-info strong {
+            color: #34495e;
+        }
+        .notice-box {
+            background-color: {% block notice_bg %}#e8f4fd{% endblock %};
+            border: 2px solid {% block notice_border %}#3498db{% endblock %};
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .notice-box.urgent {
+            background-color: #fdeded;
+            border-color: #e74c3c;
+        }
+        .notice-box.success {
+            background-color: #d5f4e6;
+            border-color: #27ae60;
+        }
+        .notice-box.warning {
+            background-color: #fff3cd;
+            border-color: #f39c12;
+        }
+        .deadline-alert {
+            background-color: #fff8e1;
+            border: 2px solid #ff9800;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .deadline-alert .time {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e65100;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: {% block button_color %}#3498db{% endblock %};
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 25px 0;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: {% block button_hover %}#2980b9{% endblock %};
+        }
+        .details-list {
+            background-color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border: 1px solid #ecf0f1;
+        }
+        .details-list h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        .details-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .details-list li {
+            margin: 8px 0;
+            color: #34495e;
+        }
+        .signature {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            font-size: 15px;
+        }
+        .signature .blessing {
+            font-style: italic;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        .footer {
+            background-color: #34495e;
+            color: white;
+            padding: 25px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer .motto {
+            font-style: italic;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        .footer .contact {
+            margin-top: 15px;
+            opacity: 0.8;
+            font-size: 13px;
+        }
+        /* Responsive design */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+            }
+            .content {
+                padding: 25px 20px;
+            }
+            .header {
+                padding: 25px 20px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .test-info, .notice-box, .deadline-alert {
+                padding: 20px 15px;
+            }
+            .cta-button {
+                display: block;
+                text-align: center;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>{% block header_icon %}📝{% endblock %} {% block header_title %}PLSOM Notification{% endblock %}</h1>
+            <p class="subtitle">Perfect Love School of Ministry</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">Dear Student,</div>
+            
+            {% block content %}
+            <!-- Main content goes here -->
+            {% endblock %}
+            
+            <div class="signature">
+                {% block custom_message %}
+                <div class="blessing">{% block blessing %}May the Lord bless your studies and grant you wisdom in all your endeavors.{% endblock %}</div>
+                {% endblock %}
+                
+                <p>{% block closing %}Grace and peace{% endblock %},<br>
+                <strong>{{ instructor.get_full_name }}</strong><br>
+                PLSOM Academic Team</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="motto">{% block footer_motto %}"Study to show yourself approved unto God" - 2 Timothy 2:15{% endblock %}</div>
+            <p><strong>Perfect Love School of Ministry</strong><br>
+            Building Kingdom Leaders | Advancing God's Kingdom</p>
+            
+            {% block footer_extra %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

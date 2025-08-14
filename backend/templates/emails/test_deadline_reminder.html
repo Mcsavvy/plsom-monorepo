@@ -1,0 +1,55 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Test Deadline Today - {{ test.title }}{% endblock %}
+
+{% block header_icon %}⏰{% endblock %}
+{% block header_title %}Test Deadline TODAY{% endblock %}
+
+{% block accent_color %}#e74c3c{% endblock %}
+{% block button_color %}#e74c3c{% endblock %}
+{% block button_hover %}#c0392b{% endblock %}
+
+{% block content %}
+<div class="notice-box urgent">
+    <h2 style="margin: 0; color: #e74c3c;">⚠️ URGENT REMINDER</h2>
+    <p style="margin: 10px 0 0 0; font-size: 18px;"><strong>Your test deadline is TODAY!</strong></p>
+</div>
+
+<p>This is a friendly reminder that your test is due today. Please complete it as soon as possible to avoid missing the deadline.</p>
+
+<div class="test-info">
+    <h2>{{ test.title }}</h2>
+    <p><strong>Course:</strong> {{ course.name }}</p>
+    <p><strong>Deadline:</strong> <span style="color: #e74c3c; font-weight: bold;">{{ test.available_until|date:"F d, Y \a\t g:i A" }}</span></p>
+    {% if test.time_limit_minutes %}
+    <p><strong>Time Required:</strong> {{ test.time_limit_minutes }} minutes</p>
+    {% endif %}
+    <p><strong>Attempts Allowed:</strong> {{ test.max_attempts }}</p>
+</div>
+
+<div style="text-align: center;">
+    <a href="#" class="cta-button" style="font-size: 18px; padding: 18px 35px;">TAKE TEST NOW</a>
+</div>
+
+<div class="details-list">
+    <h3>📋 Before You Begin</h3>
+    <ul>
+        <li>Ensure you have a stable internet connection</li>
+        <li>Set aside uninterrupted time to complete the test</li>
+        <li>Have any required materials ready</li>
+        <li>Pray for wisdom and clarity</li>
+    </ul>
+    {% if test.instructions %}
+    <p><strong>Test Instructions:</strong></p>
+    <p>{{ test.instructions|linebreaks }}</p>
+    {% endif %}
+</div>
+
+<div class="notice-box urgent">
+    <strong>⚠️ Important:</strong> Late submissions may not be accepted, so please prioritize completing this test today. If you encounter any technical difficulties, contact support immediately.
+</div>
+{% endblock %}
+
+{% block blessing %}May the Lord guide your thoughts and give you peace as you complete this assessment.{% endblock %}
+{% block closing %}Praying for your success{% endblock %}
+{% block footer_motto %}"But seek first the kingdom of God and his righteousness, and all these things will be added to you." - Matthew 6:33{% endblock %}

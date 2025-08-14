@@ -1,0 +1,14 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Test Notification - {{ test.title }}{% endblock %}
+
+{% block content %}
+<div class="test-info">
+    <h2>{{ test.title }}</h2>
+    <p><strong>Course:</strong> {{ course.name }}</p>
+    <p><strong>Cohort:</strong> {{ cohort.name }}</p>
+    <p><strong>Instructor:</strong> {{ instructor.get_full_name }}</p>
+</div>
+
+<p>Please check your student portal for more details about this test notification.</p>
+{% endblock %}

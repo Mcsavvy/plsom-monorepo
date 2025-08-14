@@ -1,0 +1,56 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}New Test Available - {{ test.title }}{% endblock %}
+
+{% block header_icon %}📝{% endblock %}
+{% block header_title %}New Test Available{% endblock %}
+
+{% block accent_color %}#3498db{% endblock %}
+{% block button_color %}#3498db{% endblock %}
+{% block button_hover %}#2980b9{% endblock %}
+
+{% block content %}
+<p>A new test has been published and is now available for you to take:</p>
+
+<div class="test-info">
+    <h2>{{ test.title }}</h2>
+    <p><strong>Course:</strong> {{ course.name }}</p>
+    <p><strong>Cohort:</strong> {{ cohort.name }}</p>
+    <p><strong>Instructor:</strong> {{ instructor.get_full_name }}</p>
+    {% if test.description %}
+    <p><strong>Description:</strong> {{ test.description }}</p>
+    {% endif %}
+    {% if test.instructions %}
+    <p><strong>Instructions:</strong></p>
+    <p>{{ test.instructions|linebreaks }}</p>
+    {% endif %}
+</div>
+
+<div class="details-list">
+    <h3>📋 Test Details</h3>
+    <ul>
+        {% if test.time_limit_minutes %}
+        <li><strong>Time Limit:</strong> {{ test.time_limit_minutes }} minutes</li>
+        {% endif %}
+        <li><strong>Maximum Attempts:</strong> {{ test.max_attempts }}</li>
+        <li><strong>Number of Questions:</strong> {{ test.total_questions }}</li>
+        {% if test.randomize_questions %}
+        <li><em>Note: Questions will be presented in random order</em></li>
+        {% endif %}
+    </ul>
+</div>
+
+{% if test.available_until %}
+<div class="deadline-alert">
+    <strong>⏰ Important Deadline</strong><br>
+    <div class="time">{{ test.available_until|date:"F d, Y \a\t g:i A" }}</div>
+    <em>Please complete the test before this deadline.</em>
+</div>
+{% endif %}
+
+<div style="text-align: center;">
+    <a href="#" class="cta-button">Access Test Portal</a>
+</div>
+{% endblock %}
+
+{% block blessing %}May the Lord bless your studies and grant you wisdom as you engage with this assessment.{% endblock %}
