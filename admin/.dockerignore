@@ -74,6 +74,9 @@ Dockerfile*
 .dockerignore
 docker-compose*.yml
 
+# Keep nginx config for Docker build
+!nginx.conf
+
 # CI/CD
 .github/
 .gitlab-ci.yml
