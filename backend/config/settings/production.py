@@ -33,15 +33,14 @@ ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv())  # ty
 CSRF_TRUSTED_ORIGINS: list[str] = config(
     "CSRF_TRUSTED_ORIGINS", default="", cast=Csv()
 )
-COOLIFY_URLS: list[str] = [
-    FRONTEND_URL,
-    ADMIN_DASHBOARD_URL,
-]
+COOLIFY_URLS: list[str] = config("COOLIFY_URL", default="", cast=Csv())
 COOLIFY_URLS.extend(
     (
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "http://0.0.0.0:8000",
+        FRONTEND_URL,
+        ADMIN_DASHBOARD_URL,
     )
 )
 
