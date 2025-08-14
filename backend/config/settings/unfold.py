@@ -1,5 +1,5 @@
 from django.templatetags.static import static
-from decouple import config
+from .base import config
 
 
 def get_environment_display(request):

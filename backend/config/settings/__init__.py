@@ -1,4 +1,5 @@
 from decouple import config
+from . import base # noqa: F403, F401
 
 # Get environment setting
 env = config("DJANGO_ENV", default="development")

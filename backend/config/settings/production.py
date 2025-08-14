@@ -1,9 +1,9 @@
 # ruff: noqa: F403, F405
 import sentry_sdk
-from decouple import config
 from urllib.parse import urlparse
 
 from .base import *
+
 
 sentry_sdk.init(
     dsn=config("SENTRY_DSN"),
