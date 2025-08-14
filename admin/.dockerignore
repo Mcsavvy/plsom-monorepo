@@ -42,8 +42,8 @@ docs/
 .eslintrc.*
 .prettierrc.*
 .prettierignore
-*.config.js
-*.config.ts
+# *.config.js
+# *.config.ts
 # Keep TypeScript config files for build
 # tsconfig.json
 # tsconfig.node.json
