@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
       target: runner
     ports:
-      - "3000:80"
+      - "3002:80"
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -20,9 +20,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    networks:
-      - plsom_network
-
-networks:
-  plsom_network:
-    external: true
