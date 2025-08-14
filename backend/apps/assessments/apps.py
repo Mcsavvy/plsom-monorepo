@@ -6,4 +6,4 @@ class AssessmentsConfig(AppConfig):
     name = "apps.assessments"
     
     def ready(self):
-        import apps.assessments.signals
+        import apps.assessments.signals  # noqa: F401

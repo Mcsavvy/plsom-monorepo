@@ -63,20 +63,29 @@ def send_test_notification_email(test_id, notification_type, user_ids=None):
             "deadline_reminder": f"Test Deadline Reminder: {test.title}",
         }
 
-        template_map = {
+        html_template_map = {
             "created": "emails/test_created.html",
             "updated": "emails/test_updated.html",
             "deleted": "emails/test_deleted.html",
             "published": "emails/test_published.html",
             "deadline_reminder": "emails/test_deadline_reminder.html",
         }
+        
+        text_template_map = {
+            "created": "emails/test_created.txt",
+            "updated": "emails/test_updated.txt",
+            "deleted": "emails/test_deleted.txt",
+            "published": "emails/test_published.txt",
+            "deadline_reminder": "emails/test_deadline_reminder.txt",
+        }
 
         subject = subject_map.get(notification_type, f"Test Notification: {test.title}")
-        template = template_map.get(notification_type, "emails/test_notification.html")
+        html_template = html_template_map.get(notification_type, "emails/test_notification.html")
+        text_template = text_template_map.get(notification_type, "emails/test_notification.txt")
 
         # Generate email content
-        html_message = render_to_string(template, context)
-        plain_message = strip_tags(html_message)
+        html_message = render_to_string(html_template, context)
+        plain_message = render_to_string(text_template, context)
 
         # Send to each recipient
         recipient_emails = [user.email for user in recipients if user.email]
