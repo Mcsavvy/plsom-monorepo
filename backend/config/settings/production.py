@@ -28,11 +28,39 @@ DEBUG = False
 # SECURE_BROWSER_XSS_FILTER = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+# CORS Configuration
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS: list[str] = config(
+    "CORS_ALLOWED_ORIGINS", default="", cast=Csv()
+)
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+CORS_EXPOSE_HEADERS = ["content-type", "content-disposition"]
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 
 ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv())  # type: ignore
 CSRF_TRUSTED_ORIGINS: list[str] = config(
     "CSRF_TRUSTED_ORIGINS", default="", cast=Csv()
 )
+
 COOLIFY_URLS: list[str] = config("COOLIFY_URL", default="", cast=Csv())
 COOLIFY_URLS.extend(
     (
@@ -49,7 +77,9 @@ for url in COOLIFY_URLS:
     if hostname:
         ALLOWED_HOSTS.append(hostname)
         CSRF_TRUSTED_ORIGINS.append(url)
+        CORS_ALLOWED_ORIGINS.append(url)
 
+print(CORS_ALLOWED_ORIGINS)
 
 INSTALLED_APPS += ["django_backblaze_b2"]
 MIDDLEWARE.insert(
