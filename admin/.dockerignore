@@ -44,8 +44,9 @@ docs/
 .prettierignore
 *.config.js
 *.config.ts
-tsconfig.json
-tsconfig.node.json
+# Keep TypeScript config files for build
+# tsconfig.json
+# tsconfig.node.json
 
 # Testing
 coverage/
