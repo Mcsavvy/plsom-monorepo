@@ -90,3 +90,55 @@ class IsStudent(permissions.BasePermission):
     def has_permission(self, request: Request, view):
         user = request.user
         return user.role.lower() == "student"
+
+
+@only_authenticated
+class IsLecturerOrAdmin(permissions.BasePermission):
+    """Check if a user is a lecturer or admin"""
+
+    def has_permission(self, request: Request, view):
+        user = request.user
+        return any(
+            (
+                user.is_superuser,
+                user.is_staff,
+                user.role.lower() in ["lecturer", "admin"],
+            )
+        )
+
+
+@only_authenticated
+class IsStudentOrReadOnly(permissions.BasePermission):
+    """Allow students to read only, lecturers/admins full access"""
+
+    def has_permission(self, request: Request, view):
+        user = request.user
+        
+        # Read-only access for students
+        if user.role.lower() == "student":
+            return request.method in permissions.SAFE_METHODS
+        
+        # Full access for lecturers and admins
+        return user.role.lower() in ["lecturer", "admin"] or user.is_superuser
+
+
+@only_authenticated
+class IsOwnerOrLecturer(permissions.BasePermission):
+    """Allow object access to owners (students for their own submissions) or lecturers/admins"""
+
+    def has_object_permission(self, request: Request, view, obj):
+        user = request.user
+        
+        # Lecturers and admins have full access
+        if user.role.lower() in ["lecturer", "admin"] or user.is_superuser:
+            return True
+        
+        # Students can only access their own objects
+        if user.role.lower() == "student":
+            # Check if object has a student field or is related to the user
+            if hasattr(obj, 'student'):
+                return obj.student == user
+            elif hasattr(obj, 'user'):
+                return obj.user == user
+        
+        return False
