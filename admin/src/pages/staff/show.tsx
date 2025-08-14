@@ -10,7 +10,6 @@ import {
   CheckCircle,
   XCircle,
   Edit,
-  ArrowLeft,
   BookOpen,
   Users,
   TrendingUp,
@@ -160,10 +159,8 @@ export const StaffShow: React.FC = () => {
     );
   }
 
-  const initials = `${staff.first_name?.charAt(0) || ''}${staff.last_name?.charAt(0) || ''}`;
-  const displayName = staff.title
-    ? `${staff.title} ${staff.first_name} ${staff.last_name}`
-    : `${staff.first_name} ${staff.last_name}`;
+  const initials = staff.initials;
+  const displayName = staff.displayName;
 
   return (
     <div className='space-y-6'>
@@ -253,7 +250,7 @@ export const StaffShow: React.FC = () => {
             <div className='flex items-start gap-4'>
               <Avatar className='h-16 w-16'>
                 <AvatarImage
-                  src={staff.profile_picture || undefined}
+                  src={staff.profilePicture || undefined}
                   alt={displayName}
                 />
                 <AvatarFallback className='text-lg'>{initials}</AvatarFallback>
@@ -267,11 +264,11 @@ export const StaffShow: React.FC = () => {
                   </Badge>
                   <Badge
                     variant='outline'
-                    className={getStatusColor(staff.is_active)}
+                    className={getStatusColor(staff.isActive)}
                   >
-                    {getStatusIcon(staff.is_active)}
+                    {getStatusIcon(staff.isActive)}
                     <span className='ml-1'>
-                      {staff.is_active ? 'Active' : 'Inactive'}
+                      {staff.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </Badge>
                 </div>
@@ -291,13 +288,13 @@ export const StaffShow: React.FC = () => {
                 </div>
               </div>
 
-              {staff.whatsapp_number && (
+              {staff.whatsappNumber && (
                 <div className='flex items-center gap-3'>
                   <Phone className='h-4 w-4 text-muted-foreground' />
                   <div>
                     <div className='text-sm font-medium'>WhatsApp</div>
                     <div className='text-sm text-muted-foreground'>
-                      {staff.whatsapp_number}
+                      {staff.whatsappNumber}
                     </div>
                   </div>
                 </div>
@@ -308,7 +305,7 @@ export const StaffShow: React.FC = () => {
                 <div>
                   <div className='text-sm font-medium'>Setup Complete</div>
                   <div className='text-sm text-muted-foreground'>
-                    {staff.is_setup_complete ? 'Yes' : 'No'}
+                    {staff.isSetupComplete ? 'Yes' : 'No'}
                   </div>
                 </div>
               </div>
@@ -330,13 +327,13 @@ export const StaffShow: React.FC = () => {
               <div>
                 <div className='text-sm font-medium'>Total Classes</div>
                 <div className='text-lg font-semibold'>
-                  {staff.total_classes || 0}
+                  {staff.totalClasses || 0}
                 </div>
               </div>
             </div>
 
-            {staff.courses_taught &&
-              Object.keys(staff.courses_taught).length > 0 && (
+            {staff.coursesTaught &&
+              Object.keys(staff.coursesTaught).length > 0 && (
                 <>
                   <Separator />
                   <div>

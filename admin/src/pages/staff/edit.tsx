@@ -103,11 +103,11 @@ export const StaffEdit: React.FC = () => {
   useEffect(() => {
     if (staff) {
       form.reset({
-        first_name: staff.first_name,
-        last_name: staff.last_name,
+        first_name: staff.firstName,
+        last_name: staff.lastName,
         email: staff.email,
         title: (staff.title as string) || '',
-        whatsapp_number: staff.whatsapp_number || '',
+        whatsapp_number: staff.whatsappNumber || '',
       });
     }
   }, [staff, form]);
@@ -198,9 +198,7 @@ export const StaffEdit: React.FC = () => {
     );
   }
 
-  const displayName = staff.title
-    ? `${staff.title} ${staff.first_name} ${staff.last_name}`
-    : `${staff.first_name} ${staff.last_name}`;
+  const displayName = staff.displayName;
 
   return (
     <div className='space-y-6'>
