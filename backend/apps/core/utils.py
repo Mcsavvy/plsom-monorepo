@@ -10,6 +10,7 @@ def get_content_type(resource: str) -> ContentType:
     from apps.core.models import AuditLog
     from apps.courses.models import Course
     from apps.classes.models import Class
+    from apps.assessments.models import Test, Submission
 
     resource_map = {
         "users": User,
@@ -21,6 +22,8 @@ def get_content_type(resource: str) -> ContentType:
         "enrollments": Enrollment,
         "invitations": Invitation,
         "audit-logs": AuditLog,
+        "tests": Test,
+        "submissions": Submission,
     }
     if resource not in resource_map:
         raise ValueError(f"Invalid resource: {resource}")
@@ -40,6 +43,7 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
     from apps.core.models import AuditLog
     from apps.courses.models import Course
     from apps.classes.models import Class
+    from apps.assessments.models import Test, Submission
     if resource == "invitations":
         invitation = Invitation.objects.get(id=id)
         return {
@@ -120,6 +124,18 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
                 + " "
                 + audit_log.resource.title()
             ),
+        }
+    elif resource == "tests":
+        test = Test.objects.get(id=id)
+        return {
+            "name": test.title,
+            "description": (test.title + " (" + test.course.name + ")"),
+        }
+    elif resource == "submissions":
+        submission = Submission.objects.get(id=id)
+        return {
+            "name": submission.test.title,
+            "description": (submission.test.title + " (" + submission.student.get_full_name() + ")"),
         }
     else:
         raise ValueError(f"Invalid resource: {resource}")
