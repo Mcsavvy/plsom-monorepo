@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        - VITE_API_URL=${VITE_API_URL}
     ports:
       - "3002:80"
     environment:

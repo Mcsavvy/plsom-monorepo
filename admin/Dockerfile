@@ -29,8 +29,12 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy source code
 COPY . .
 
-# Build the application
+# Build arguments and environment variables
+ARG VITE_API_URL
 ENV NODE_ENV=production
+ENV VITE_API_URL=$VITE_API_URL
+
+# Build the application
 RUN pnpm run build
 
 # Stage 3: Production server with nginx
