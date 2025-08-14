@@ -110,6 +110,11 @@ class TestSerializer(serializers.ModelSerializer):
         """Update test with safe question management logic."""
         questions_data = validated_data.pop('questions', None)
         
+        # Store previous state for notification logic
+        instance._previous_status = instance.status
+        instance._previous_deadline = instance.available_until
+        instance._questions_updated = questions_data is not None
+        
         # Update test fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

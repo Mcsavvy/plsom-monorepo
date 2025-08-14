@@ -201,6 +201,10 @@ class TestViewSet(viewsets.ModelViewSet):
         test.status = "published"
         test.save()
 
+        # Trigger notification
+        from .signals import trigger_test_published_notification
+        trigger_test_published_notification(test.id)
+
         serializer = self.get_serializer(test)
         return Response(serializer.data)
 
