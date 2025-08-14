@@ -1,0 +1,90 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist
+dist-ssr
+*.local
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor directories and files
+.vscode
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Development tools
+.eslintrc.*
+.prettierrc.*
+.prettierignore
+*.config.js
+*.config.ts
+tsconfig.json
+tsconfig.node.json
+
+# Testing
+coverage/
+*.lcov
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Temporary folders
+tmp/
+temp/
+
+# Docker
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Cache directories
+.npm
+.yarn
+.cache
+.parcel-cache
+
+# Optional REPL history
+.node_repl_history
