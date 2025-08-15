@@ -1,4 +1,4 @@
-import React from "react"
+import React from "react";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/provider/theme-provider";
 import SessionProvider from "@/provider/session-provider";
@@ -46,16 +46,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased font-body">
+      <body className="font-body antialiased">
         <ThemeProvider
           attribute="data-theme"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <SessionProvider>
-            {children}
-          </SessionProvider>
+          <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
       </body>
     </html>

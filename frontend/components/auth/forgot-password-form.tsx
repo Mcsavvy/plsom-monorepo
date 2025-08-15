@@ -11,7 +11,13 @@ import { useAuth } from "@/hooks/auth";
 import { ForgotPasswordRequest, forgotPasswordSchema } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { PLSOMBranding } from "@/components/ui/plsom-branding";
 
 interface ForgotPasswordFormProps {
@@ -22,7 +28,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
-  
+
   const { requestPasswordReset } = useAuth();
 
   const form = useForm<ForgotPasswordRequest>({
@@ -41,7 +47,9 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
       setIsSuccess(true);
       onSuccess?.();
     } catch (err: any) {
-      setError(err?.message || "Failed to send password reset email. Please try again.");
+      setError(
+        err?.message || "Failed to send password reset email. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +57,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
 
   if (isSuccess) {
     return (
-      <div className=" flex items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/20">
+      <div className="from-background to-secondary/20 flex items-center justify-center bg-gradient-to-br p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -57,11 +65,11 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
           className="w-full max-w-md"
         >
           <Card className="shadow-lg">
-            <CardHeader className="text-center space-y-4">
+            <CardHeader className="space-y-4 text-center">
               <PLSOMBranding compact />
               <div>
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                <div className="mb-4 flex items-center justify-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
                     <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
@@ -72,11 +80,12 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-center space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  If you don't see the email in your inbox, please check your spam folder.
+              <div className="space-y-2 text-center">
+                <p className="text-muted-foreground text-sm">
+                  If you don't see the email in your inbox, please check your
+                  spam folder.
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   The reset link will expire in 24 hours for security reasons.
                 </p>
               </div>
@@ -88,7 +97,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
                     Back to Sign In
                   </Link>
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -108,7 +117,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
   }
 
   return (
-    <div className=" flex items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/20">
+    <div className="from-background to-secondary/20 flex items-center justify-center bg-gradient-to-br p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -116,7 +125,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
         className="w-full max-w-md"
       >
         <Card className="shadow-lg">
-          <CardHeader className="text-center space-y-4">
+          <CardHeader className="space-y-4 text-center">
             <PLSOMBranding compact />
             <div>
               <CardTitle className="text-2xl">Reset Your Password</CardTitle>
@@ -131,18 +140,21 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm dark:bg-red-950/20 dark:border-red-800 dark:text-red-300"
+                  className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/20 dark:text-red-300"
                 >
                   {error}
                 </motion.div>
               )}
 
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-foreground">
+                <label
+                  htmlFor="email"
+                  className="text-foreground text-sm font-medium"
+                >
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Mail className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
                   <Input
                     id="email"
                     type="email"
@@ -159,11 +171,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
                 )}
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -178,7 +186,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
             <div className="mt-6 text-center">
               <Link
                 href="/login"
-                className="inline-flex items-center text-sm text-primary hover:text-primary/80 transition-colors"
+                className="text-primary hover:text-primary/80 inline-flex items-center text-sm transition-colors"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Sign In

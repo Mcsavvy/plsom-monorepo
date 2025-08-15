@@ -4,7 +4,8 @@ import ProtectedPageWrapper from "@/components/wrappers/protected-page-wrapper";
 
 export const metadata: Metadata = {
   title: "Account Inactive - PLSOM LMS",
-  description: "Your account has been deactivated and requires admin activation."
+  description:
+    "Your account has been deactivated and requires admin activation.",
 };
 
 export default function AccountInactive() {

@@ -22,11 +22,14 @@ export function useSessionRefresher({
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isActiveRef = useRef(false);
 
-  const log = useCallback((message: string, ...args: any[]) => {
-    if (debug) {
-      console.log(`[useSessionRefresher] ${message}`, ...args);
-    }
-  }, [debug]);
+  const log = useCallback(
+    (message: string, ...args: any[]) => {
+      if (debug) {
+        console.log(`[useSessionRefresher] ${message}`, ...args);
+      }
+    },
+    [debug]
+  );
 
   const scheduleNextRefresh = useCallback(() => {
     if (!session?.tokens.access_expires_at || !isActiveRef.current) {
@@ -45,7 +48,9 @@ export function useSessionRefresher({
     const timeUntilExpiration = expirationTime - currentTime;
     const timeUntilRefresh = timeUntilExpiration - refreshBufferMs;
 
-    log(`Token expires in ${Math.round(timeUntilExpiration / 1000)}s, will refresh in ${Math.round(timeUntilRefresh / 1000)}s`);
+    log(
+      `Token expires in ${Math.round(timeUntilExpiration / 1000)}s, will refresh in ${Math.round(timeUntilRefresh / 1000)}s`
+    );
 
     if (timeUntilRefresh <= 0) {
       // Token expires very soon, refresh immediately
@@ -70,12 +75,12 @@ export function useSessionRefresher({
       log("Attempting to refresh session");
       await refreshLogin();
       log("Session refreshed successfully");
-      
+
       // Schedule next refresh after successful refresh
       scheduleNextRefresh();
     } catch (error) {
       log("Failed to refresh session:", error);
-      
+
       // If refresh fails, try again in 1 minute
       refreshTimeoutRef.current = setTimeout(() => {
         log("Retrying refresh after failure");
@@ -91,7 +96,9 @@ export function useSessionRefresher({
         log("Periodic check - session exists, ensuring refresh is scheduled");
         scheduleNextRefresh();
       } else {
-        log("Periodic check - no session or refresher not active, clearing timeouts");
+        log(
+          "Periodic check - no session or refresher not active, clearing timeouts"
+        );
         if (refreshTimeoutRef.current) {
           clearTimeout(refreshTimeoutRef.current);
           refreshTimeoutRef.current = null;
@@ -119,7 +126,7 @@ export function useSessionRefresher({
 
     log("Starting session refresher");
     isActiveRef.current = true;
-    
+
     if (session) {
       scheduleNextRefresh();
       startPeriodicCheck();
@@ -158,7 +165,9 @@ export function useSessionRefresher({
   // Effect to handle refresh buffer changes
   useEffect(() => {
     if (session && isActiveRef.current) {
-      log(`Refresh buffer changed to ${refreshBufferMs}ms, rescheduling refresh`);
+      log(
+        `Refresh buffer changed to ${refreshBufferMs}ms, rescheduling refresh`
+      );
       scheduleNextRefresh();
     }
   }, [refreshBufferMs, session, scheduleNextRefresh, log]);

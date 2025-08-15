@@ -62,17 +62,22 @@ export function PLSOMBranding({
       // Fallback logo design
       return (
         <div
-          className="bg-primary/20 rounded-full flex items-center justify-center border border-primary/30"
+          className="bg-primary/20 border-primary/30 flex items-center justify-center rounded-full border"
           style={{ width: config.logo, height: config.logo }}
         >
           <div className="text-center">
             <div
               className={cn(
-                "font-bold text-primary",
-                size === "xs" ? "text-xs" : 
-                size === "sm" ? "text-sm" : 
-                size === "md" ? "text-lg" : 
-                size === "lg" ? "text-xl" : "text-2xl"
+                "text-primary font-bold",
+                size === "xs"
+                  ? "text-xs"
+                  : size === "sm"
+                    ? "text-sm"
+                    : size === "md"
+                      ? "text-lg"
+                      : size === "lg"
+                        ? "text-xl"
+                        : "text-2xl"
               )}
             >
               P
@@ -81,9 +86,13 @@ export function PLSOMBranding({
               <div
                 className={cn(
                   "text-primary/80 leading-none",
-                  size === "sm" ? "text-xs" : 
-                  size === "md" ? "text-xs" : 
-                  size === "lg" ? "text-sm" : "text-sm"
+                  size === "sm"
+                    ? "text-xs"
+                    : size === "md"
+                      ? "text-xs"
+                      : size === "lg"
+                        ? "text-sm"
+                        : "text-sm"
                 )}
               >
                 LSOM
@@ -100,7 +109,7 @@ export function PLSOMBranding({
         alt="PLSOM Logo"
         width={config.logo}
         height={config.logo}
-        className="object-contain rounded-full"
+        className="rounded-full object-contain"
         style={{ width: config.logo, height: config.logo }}
         priority
         onError={() => setLogoError(true)}
@@ -113,15 +122,9 @@ export function PLSOMBranding({
 
     return (
       <div className={config.container}>
-        {showName && (
-          <div className={config.name}>
-            PLSOM
-          </div>
-        )}
+        {showName && <div className={config.name}>PLSOM</div>}
         {showSubtitle && (
-          <div className={config.subtitle}>
-            Perfect Love School of Ministry
-          </div>
+          <div className={config.subtitle}>Perfect Love School of Ministry</div>
         )}
       </div>
     );

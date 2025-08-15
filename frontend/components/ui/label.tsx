@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { forwardRef } from 'react'
-import { motion, HTMLMotionProps } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { forwardRef } from "react";
+import { motion, HTMLMotionProps } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-interface LabelProps extends Omit<HTMLMotionProps<'label'>, 'children'> {
-  children?: React.ReactNode
+interface LabelProps extends Omit<HTMLMotionProps<"label">, "children"> {
+  children?: React.ReactNode;
 }
 
 const Label = forwardRef<HTMLLabelElement, LabelProps>(
@@ -13,8 +13,8 @@ const Label = forwardRef<HTMLLabelElement, LabelProps>(
     <motion.label
       ref={ref}
       className={cn(
-        'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-        'text-foreground',
+        "text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+        "text-foreground",
         className
       )}
       initial={{ opacity: 0, y: -5 }}
@@ -25,7 +25,7 @@ const Label = forwardRef<HTMLLabelElement, LabelProps>(
       {children}
     </motion.label>
   )
-)
-Label.displayName = 'Label'
+);
+Label.displayName = "Label";
 
-export { Label }
+export { Label };

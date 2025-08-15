@@ -65,8 +65,7 @@ export const changePasswordSchema = z.object({
   token: z.string(),
   new_password: z.string(),
   confirm_password: z.string(),
-})
-
+});
 
 export type LoginCredentials = z.infer<typeof loginCredentialsSchema>;
 

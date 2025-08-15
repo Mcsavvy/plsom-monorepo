@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Environment files
+.env*
+
+# Logs
+*.log
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Documentation (optional - remove if you want to format docs)
+*.md
+
+# Config files that shouldn't be formatted
+package-lock.json
+pnpm-lock.yaml
+*.config.js
+*.config.mjs
+*.config.ts

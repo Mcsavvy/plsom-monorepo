@@ -4,12 +4,25 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UserX, Mail, Clock, AlertTriangle, RefreshCw, Home } from "lucide-react";
+import {
+  UserX,
+  Mail,
+  Clock,
+  AlertTriangle,
+  RefreshCw,
+  Home,
+} from "lucide-react";
 
 import { useAuth } from "@/hooks/auth";
 import { useSession } from "@/hooks/session";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { PLSOMBranding } from "@/components/ui/plsom-branding";
 
 export function AccountInactivePage() {
@@ -38,7 +51,7 @@ export function AccountInactivePage() {
     setIsCheckingStatus(true);
     try {
       await refreshCurrentUser();
-      
+
       // After refresh, check if user is now active
       if (session.user.is_active) {
         router.push("/");
@@ -73,7 +86,7 @@ export function AccountInactivePage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/20">
+    <div className="from-background to-secondary/20 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -81,12 +94,12 @@ export function AccountInactivePage() {
         className="w-full max-w-md"
       >
         <Card className="shadow-lg">
-          <CardHeader className="text-center space-y-4">
+          <CardHeader className="space-y-4 text-center">
             <PLSOMBranding size="sm" showName showSubtitle />
-            
+
             <div>
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
+              <div className="mb-4 flex items-center justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
                   <UserX className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 </div>
               </div>
@@ -96,18 +109,19 @@ export function AccountInactivePage() {
               </CardDescription>
             </div>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             {/* Account Status Info */}
-            <div className="p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+            <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-950/20">
               <div className="flex items-start space-x-3">
-                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
                     Access Restricted
                   </p>
                   <p className="text-sm text-orange-700 dark:text-orange-300">
-                    Your account has been temporarily deactivated. Please contact an administrator to reactivate your account.
+                    Your account has been temporarily deactivated. Please
+                    contact an administrator to reactivate your account.
                   </p>
                 </div>
               </div>
@@ -115,12 +129,14 @@ export function AccountInactivePage() {
 
             {/* User Info (if available) */}
             {session?.user && (
-              <div className="text-center space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Account: <span className="font-medium">{session.user.email}</span>
+              <div className="space-y-2 text-center">
+                <p className="text-muted-foreground text-sm">
+                  Account:{" "}
+                  <span className="font-medium">{session.user.email}</span>
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Name: <span className="font-medium">
+                <p className="text-muted-foreground text-sm">
+                  Name:{" "}
+                  <span className="font-medium">
                     {session.user.first_name} {session.user.last_name}
                   </span>
                 </p>
@@ -129,18 +145,18 @@ export function AccountInactivePage() {
 
             {/* What to do section */}
             <div className="space-y-4">
-              <h3 className="font-medium text-sm">What you can do:</h3>
-              
+              <h3 className="text-sm font-medium">What you can do:</h3>
+
               <div className="space-y-3 text-sm">
                 <div className="flex items-start space-x-3">
-                  <Clock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <Clock className="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0" />
                   <p className="text-muted-foreground">
                     Wait for an administrator to reactivate your account
                   </p>
                 </div>
-                
+
                 <div className="flex items-start space-x-3">
-                  <Mail className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <Mail className="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0" />
                   <p className="text-muted-foreground">
                     Contact support for assistance with account reactivation
                   </p>
@@ -150,13 +166,18 @@ export function AccountInactivePage() {
 
             {/* Contact Information */}
             <div className="space-y-3">
-              <h3 className="font-medium text-sm">Contact Information:</h3>
-              
+              <h3 className="text-sm font-medium">Contact Information:</h3>
+
               <div className="space-y-2">
                 {contactInfo.map((contact, index) => (
-                  <div key={index} className="flex items-center space-x-3 text-sm">
-                    <contact.icon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{contact.title}:</span>
+                  <div
+                    key={index}
+                    className="flex items-center space-x-3 text-sm"
+                  >
+                    <contact.icon className="text-muted-foreground h-4 w-4" />
+                    <span className="text-muted-foreground">
+                      {contact.title}:
+                    </span>
                     <span className="font-medium">{contact.value}</span>
                   </div>
                 ))}
@@ -194,9 +215,10 @@ export function AccountInactivePage() {
             </div>
 
             {/* Help Text */}
-            <div className="text-center pt-4 border-t">
-              <p className="text-xs text-muted-foreground">
-                If you believe this is an error, please contact support immediately.
+            <div className="border-t pt-4 text-center">
+              <p className="text-muted-foreground text-xs">
+                If you believe this is an error, please contact support
+                immediately.
               </p>
             </div>
           </CardContent>

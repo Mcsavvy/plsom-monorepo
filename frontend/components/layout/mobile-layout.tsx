@@ -32,9 +32,7 @@ export function MobileLayout({
       )}
 
       {/* Main Content */}
-      <main className={`relative min-h-screen py-12 md:py-0`}>
-        {children}
-      </main>
+      <main className={`relative min-h-screen py-12 md:py-0`}>{children}</main>
 
       <MobileNavigation />
 
@@ -47,7 +45,7 @@ export function MobileLayout({
 
       {/* Install Button Card (if not banner) */}
       {showInstallButton && installButtonVariant === "card" && (
-        <div className="fixed bottom-4 left-4 right-4 z-40">
+        <div className="fixed right-4 bottom-4 left-4 z-40">
           <PWAInstallButton variant="card" />
         </div>
       )}

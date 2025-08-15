@@ -23,7 +23,7 @@ export function ProtectedPageWrapper({
   fallback,
   redirectTo = "/login",
   showLoading = true,
-  loadingComponent
+  loadingComponent,
 }: ProtectedPageWrapperProps) {
   const { isAuthenticated } = useAuth();
   const { session, loading } = useSession();
@@ -46,10 +46,8 @@ export function ProtectedPageWrapper({
     if (loadingComponent) {
       return <>{loadingComponent}</>;
     }
-    
-    return (
-      <LoadingSpinner/>
-    );
+
+    return <LoadingSpinner />;
   }
 
   // Show fallback or redirect if not authenticated

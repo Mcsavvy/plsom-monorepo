@@ -1,14 +1,10 @@
-import React from "react"
+import React from "react";
 import { PublicPageWrapper } from "@/components/wrappers";
 
-
 export default function DashboardLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-
-        <PublicPageWrapper>{children}</PublicPageWrapper>
-    );
+  return <PublicPageWrapper>{children}</PublicPageWrapper>;
 }

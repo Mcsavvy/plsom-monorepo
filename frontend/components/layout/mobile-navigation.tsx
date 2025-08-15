@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { Home, BookOpen, Calendar, Settings, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Avatar } from "@/components/ui/avatar";
 import { NetworkStatus, PWAInstallButton } from "@/components/pwa";
 import Link from "next/link";
@@ -67,8 +71,8 @@ export function MobileNavigation() {
       setLastScrollY(currentScrollY);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
   const handleLogout = async () => {
@@ -89,29 +93,36 @@ export function MobileNavigation() {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className={`fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t z-40 transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'
-        } lg:hidden`}>
-        <div className="flex items-center justify-around h-16 px-2">
-          {navigationItems.map((item) => (
+      <nav
+        className={`bg-background/95 fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur-md transition-transform duration-300 ${
+          isVisible ? "translate-y-0" : "translate-y-full"
+        } lg:hidden`}
+      >
+        <div className="flex h-16 items-center justify-around px-2">
+          {navigationItems.map(item => (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center space-y-1 p-2 rounded-lg transition-colors min-w-0 flex-1 ${isActive(item.href)
-                  ? 'text-primary bg-primary/10'
-                  : 'text-muted-foreground hover:text-foreground'
-                }`}
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center space-y-1 rounded-lg p-2 transition-colors ${
+                isActive(item.href)
+                  ? "text-primary bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               <item.icon className="h-5 w-5" />
-              <span className="text-xs font-medium truncate">{item.label}</span>
+              <span className="truncate text-xs font-medium">{item.label}</span>
             </Link>
           ))}
         </div>
       </nav>
 
       {/* Top Header for Mobile */}
-      <header className={`fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-md z-40 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'
-        } lg:hidden`}>
-        <div className="flex items-center justify-between h-14 px-4">
+      <header
+        className={`bg-background/95 fixed top-0 right-0 left-0 z-40 backdrop-blur-md transition-transform duration-300 ${
+          isVisible ? "translate-y-0" : "-translate-y-full"
+        } lg:hidden`}
+      >
+        <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center space-x-2">
             <PLSOMBranding size="sm" showName={false} />
           </div>
@@ -122,9 +133,13 @@ export function MobileNavigation() {
                 <button className="focus:outline-none">
                   <Avatar className="h-8 w-8">
                     {user?.profilePicture ? (
-                      <img src={user.profilePicture} alt="Profile" className="h-full w-full object-cover" />
+                      <img
+                        src={user.profilePicture}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
-                      <div className="flex items-center justify-center h-full w-full bg-primary text-primary-foreground font-semibold text-sm">
+                      <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-sm font-semibold">
                         {user?.initials}
                       </div>
                     )}
@@ -136,25 +151,39 @@ export function MobileNavigation() {
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-12 w-12">
                       {user?.profilePicture ? (
-                        <img src={user.profilePicture} alt="Profile" className="h-full w-full object-cover" />
+                        <img
+                          src={user.profilePicture}
+                          alt="Profile"
+                          className="h-full w-full object-cover"
+                        />
                       ) : (
-                        <div className="flex items-center justify-center h-full w-full bg-primary text-primary-foreground font-semibold">
+                        <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center font-semibold">
                           {user?.initials}
                         </div>
                       )}
                     </Avatar>
                     <div>
                       <p className="font-semibold">{user?.displayName}</p>
-                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                      <p className="text-muted-foreground text-sm">
+                        {user?.email}
+                      </p>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <User className="h-4 w-4 mr-2" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                    >
+                      <User className="mr-2 h-4 w-4" />
                       View Profile
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <Settings className="h-4 w-4 mr-2" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
                       Settings
                     </Button>
                     <Button
@@ -163,7 +192,7 @@ export function MobileNavigation() {
                       className="w-full justify-start text-red-600 hover:text-red-700"
                       onClick={handleLogout}
                     >
-                      <LogOut className="h-4 w-4 mr-2" />
+                      <LogOut className="mr-2 h-4 w-4" />
                       Logout
                     </Button>
                     <PWAInstallButton variant="card" />

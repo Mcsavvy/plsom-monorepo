@@ -11,10 +11,10 @@ interface NetworkStatusProps {
   showOnlineStatus?: boolean;
 }
 
-export function NetworkStatus({ 
+export function NetworkStatus({
   variant = "minimal",
   className = "",
-  showOnlineStatus = false 
+  showOnlineStatus = false,
 }: NetworkStatusProps) {
   const [isOnline, setIsOnline] = useState(true);
   const [wasOffline, setWasOffline] = useState(false);
@@ -23,7 +23,7 @@ export function NetworkStatus({
   useEffect(() => {
     const updateOnlineStatus = () => {
       const online = navigator.onLine;
-      
+
       if (!online && isOnline) {
         // Going offline
         setIsOnline(false);
@@ -40,12 +40,12 @@ export function NetworkStatus({
 
     setIsOnline(navigator.onLine);
 
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
 
     return () => {
-      window.removeEventListener('online', updateOnlineStatus);
-      window.removeEventListener('offline', updateOnlineStatus);
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
     };
   }, [isOnline]);
 
@@ -77,7 +77,7 @@ export function NetworkStatus({
   if (variant === "banner") {
     if (showReconnecting) {
       return (
-        <div className={`bg-yellow-500 text-white p-3 ${className}`}>
+        <div className={`bg-yellow-500 p-3 text-white ${className}`}>
           <div className="flex items-center justify-center space-x-2">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-sm font-medium">Reconnecting...</span>
@@ -88,18 +88,20 @@ export function NetworkStatus({
 
     if (!isOnline) {
       return (
-        <div className={`bg-red-500 text-white p-3 ${className}`}>
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
+        <div className={`bg-red-500 p-3 text-white ${className}`}>
+          <div className="mx-auto flex max-w-7xl items-center justify-between">
             <div className="flex items-center space-x-2">
               <WifiOff className="h-4 w-4" />
               <div>
-                <p className="font-medium text-sm">You're offline</p>
-                <p className="text-xs opacity-90">Some features may not be available</p>
+                <p className="text-sm font-medium">You're offline</p>
+                <p className="text-xs opacity-90">
+                  Some features may not be available
+                </p>
               </div>
             </div>
-            <Button 
+            <Button
               onClick={handleRetry}
-              variant="secondary" 
+              variant="secondary"
               size="sm"
               className="text-red-700 hover:text-red-800"
             >
@@ -112,7 +114,7 @@ export function NetworkStatus({
 
     if (isOnline && wasOffline) {
       return (
-        <div className={`bg-green-500 text-white p-3 ${className}`}>
+        <div className={`bg-green-500 p-3 text-white ${className}`}>
           <div className="flex items-center justify-center space-x-2">
             <Wifi className="h-4 w-4" />
             <span className="text-sm font-medium">Back online!</span>
@@ -126,7 +128,7 @@ export function NetworkStatus({
   if (variant === "toast") {
     if (showReconnecting) {
       return (
-        <Card className={`fixed bottom-4 right-4 z-50 ${className}`}>
+        <Card className={`fixed right-4 bottom-4 z-50 ${className}`}>
           <CardContent className="p-3">
             <div className="flex items-center space-x-2">
               <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
@@ -139,22 +141,26 @@ export function NetworkStatus({
 
     if (!isOnline) {
       return (
-        <Card className={`fixed bottom-4 right-4 z-50 border-red-200 ${className}`}>
+        <Card
+          className={`fixed right-4 bottom-4 z-50 border-red-200 ${className}`}
+        >
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
-              <WifiOff className="h-5 w-5 text-red-500 mt-0.5" />
+              <WifiOff className="mt-0.5 h-5 w-5 text-red-500" />
               <div className="flex-1">
-                <p className="font-medium text-sm text-red-700">You're offline</p>
-                <p className="text-xs text-red-600 mt-1">
+                <p className="text-sm font-medium text-red-700">
+                  You're offline
+                </p>
+                <p className="mt-1 text-xs text-red-600">
                   Check your connection and try again
                 </p>
-                <Button 
+                <Button
                   onClick={handleRetry}
-                  variant="outline" 
+                  variant="outline"
                   size="sm"
                   className="mt-2 w-full border-red-200 text-red-700 hover:bg-red-50"
                 >
-                  <Globe className="h-3 w-3 mr-1" />
+                  <Globe className="mr-1 h-3 w-3" />
                   Retry
                 </Button>
               </div>
@@ -166,11 +172,15 @@ export function NetworkStatus({
 
     if (isOnline && wasOffline) {
       return (
-        <Card className={`fixed bottom-4 right-4 z-50 border-green-200 ${className}`}>
+        <Card
+          className={`fixed right-4 bottom-4 z-50 border-green-200 ${className}`}
+        >
           <CardContent className="p-3">
             <div className="flex items-center space-x-2">
               <Wifi className="h-4 w-4 text-green-500" />
-              <span className="text-sm font-medium text-green-700">Back online!</span>
+              <span className="text-sm font-medium text-green-700">
+                Back online!
+              </span>
             </div>
           </CardContent>
         </Card>

@@ -11,7 +11,13 @@ import { useAuth } from "@/hooks/auth";
 import { LoginCredentials, loginCredentialsSchema } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { PLSOMBranding } from "@/components/ui/plsom-branding";
 
 interface LoginFormProps {
@@ -42,14 +48,17 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       await login(data);
       onSuccess?.();
     } catch (err: any) {
-      setError(err?.message || "Login failed. Please check your credentials and try again.");
+      setError(
+        err?.message ||
+          "Login failed. Please check your credentials and try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/20">
+    <div className="from-background to-secondary/20 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -57,13 +66,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         className="w-full max-w-md"
       >
         <Card className="shadow-lg">
-          <CardHeader className="text-center space-y-4">
+          <CardHeader className="space-y-4 text-center">
             <PLSOMBranding size="md" showName={false} />
             <div>
               <CardTitle className="text-2xl">Welcome Back</CardTitle>
-              <CardDescription>
-                Sign in to your PLSOM account
-              </CardDescription>
+              <CardDescription>Sign in to your PLSOM account</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
@@ -72,18 +79,21 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm dark:bg-red-950/20 dark:border-red-800 dark:text-red-300"
+                  className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/20 dark:text-red-300"
                 >
                   {error}
                 </motion.div>
               )}
 
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-foreground">
+                <label
+                  htmlFor="email"
+                  className="text-foreground text-sm font-medium"
+                >
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Mail className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
                   <Input
                     id="email"
                     type="email"
@@ -101,23 +111,26 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-foreground">
+                <label
+                  htmlFor="password"
+                  className="text-foreground text-sm font-medium"
+                >
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    className="pl-10 pr-10"
+                    className="pr-10 pl-10"
                     {...form.register("password")}
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground hover:text-foreground absolute top-3 right-3 transition-colors"
                     disabled={isLoading}
                   >
                     {showPassword ? (
@@ -145,11 +158,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -161,7 +170,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               </Button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
+            <div className="text-muted-foreground mt-6 text-center text-sm">
               <p>
                 Don't have an account?{" "}
                 <span className="text-primary">

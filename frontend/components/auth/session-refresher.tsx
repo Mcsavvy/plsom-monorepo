@@ -14,7 +14,7 @@ interface SessionRefresherProps {
 
 export function SessionRefresher({
   refreshBufferMs = 5 * 60 * 1000, // 5 minutes default
-  debug = process.env.NODE_ENV === "development"
+  debug = process.env.NODE_ENV === "development",
 }: SessionRefresherProps) {
   const { refreshLogin, logout } = useAuth();
   const { session } = useSession();
@@ -44,7 +44,9 @@ export function SessionRefresher({
     const timeUntilExpiration = expirationTime - currentTime;
     const timeUntilRefresh = timeUntilExpiration - refreshBufferMs;
 
-    log(`Token expires in ${Math.round(timeUntilExpiration / 1000)}s, will refresh in ${Math.round(timeUntilRefresh / 1000)}s`);
+    log(
+      `Token expires in ${Math.round(timeUntilExpiration / 1000)}s, will refresh in ${Math.round(timeUntilRefresh / 1000)}s`
+    );
 
     if (timeUntilRefresh <= 0) {
       // Token expires very soon, refresh immediately
@@ -137,7 +139,9 @@ export function SessionRefresher({
   // Effect to handle refresh buffer changes
   useEffect(() => {
     if (session) {
-      log(`Refresh buffer changed to ${refreshBufferMs}ms, rescheduling refresh`);
+      log(
+        `Refresh buffer changed to ${refreshBufferMs}ms, rescheduling refresh`
+      );
       scheduleNextRefresh();
     }
   }, [refreshBufferMs, session]);

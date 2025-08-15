@@ -5,15 +5,15 @@
   .safe-area-top {
     padding-top: max(1rem, env(safe-area-inset-top));
   }
-  
+
   .safe-area-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
-  
+
   .safe-area-left {
     padding-left: max(1rem, env(safe-area-inset-left));
   }
-  
+
   .safe-area-right {
     padding-right: max(1rem, env(safe-area-inset-right));
   }
@@ -25,7 +25,7 @@
   .ios-scroll-fix {
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Prevent zoom on input focus */
   input[type="text"],
   input[type="email"],
@@ -86,7 +86,7 @@ html {
   .pwa-standalone {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   /* Hide install prompts when already installed */
   .pwa-install-hidden {
     display: none !important;
@@ -135,10 +135,12 @@ html {
 
 /* Loading states optimized for mobile */
 .mobile-loading {
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.1) 50%, 
-    transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -174,7 +176,7 @@ html {
   .mobile-only {
     display: block;
   }
-  
+
   .mobile-hidden {
     display: none;
   }

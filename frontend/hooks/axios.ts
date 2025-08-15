@@ -74,7 +74,7 @@ export const parseError = (error: AxiosError<DRFErrorResponse>): HttpError => {
       const validationErrors: SimpleValidationErrors = {};
       let primaryMessage = "Validation failed";
 
-      drfError.errors.forEach((err) => {
+      drfError.errors.forEach(err => {
         if (err.attr && err.attr !== "non_field_errors") {
           // Field-specific error
           if (!validationErrors[err.attr]) {
@@ -117,7 +117,7 @@ export const parseError = (error: AxiosError<DRFErrorResponse>): HttpError => {
     const validationErrors: SimpleValidationErrors = {};
     let primaryMessage = "Validation failed";
 
-    Object.keys(responseData).forEach((field) => {
+    Object.keys(responseData).forEach(field => {
       const fieldErrors = responseData[field];
       if (Array.isArray(fieldErrors)) {
         validationErrors[field] = fieldErrors;
@@ -168,18 +168,18 @@ export function createAxiosInstance({
     headers,
   });
   axiosInstance.interceptors.request.use(
-    (config) => config,
-    (error) => {
+    config => config,
+    error => {
       return Promise.reject(error);
     }
   );
 
   // Response interceptor with DRF error handling
   axiosInstance.interceptors.response.use(
-    (response) => {
+    response => {
       return response;
     },
-    (error) => {
+    error => {
       const customError = parseError(error);
       console.log("CustomError", customError);
       if (
@@ -200,12 +200,12 @@ export function useClient() {
     session && clearSession();
   }, [clearSession, session]);
   const client = useMemo(() => {
-    if (!session) throw "No session is active"
+    if (!session) throw "No session is active";
     const axiosInstance = createAxiosInstance({
       token: session?.tokens.access,
       onAuthFail: handleAuthFail,
     });
-    return axiosInstance
+    return axiosInstance;
   }, [session]);
 
   return client;
