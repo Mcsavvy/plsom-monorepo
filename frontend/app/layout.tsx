@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/provider/theme-provider";
 import SessionProvider from "@/provider/session-provider";
 import { SessionRefresher } from "@/components/session-refresher";
+import { MobileLayout } from "@/components/layout/mobile-layout";
 import "./globals.css";
+import "./mobile.css";
 
 export const metadata: Metadata = {
   title: "PLSOM LMS - Perfect Love School of Ministry",
@@ -13,6 +15,25 @@ export const metadata: Metadata = {
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#6366f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#4f46e5" },
+  ],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PLSOM LMS",
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 
@@ -32,7 +53,9 @@ export default function RootLayout({
         >
           <SessionProvider>
             <SessionRefresher />
-            {children}
+            <MobileLayout>
+              {children}
+            </MobileLayout>
           </SessionProvider>
         </ThemeProvider>
       </body>
