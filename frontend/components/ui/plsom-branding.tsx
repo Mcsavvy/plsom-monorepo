@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { AnimationGeneratorType, Easing, motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 
 const containerVariants = {
@@ -20,7 +20,7 @@ const itemVariants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.8, ease: "easeOut" }
+    transition: { duration: 0.8, ease: "easeOut" as Easing }
   }
 }
 
@@ -30,7 +30,7 @@ const logoVariants = {
     scale: 1,
     rotate: 0,
     transition: {
-      type: "spring",
+      type: "spring" as AnimationGeneratorType,
       stiffness: 150,
       damping: 12,
       duration: 1.2

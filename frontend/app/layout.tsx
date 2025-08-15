@@ -1,3 +1,4 @@
+import React from "react"
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/provider/theme-provider";
 import "./globals.css";
@@ -6,9 +7,6 @@ export const metadata: Metadata = {
   title: "PLSOM LMS - Perfect Love School of Ministry",
   description:
     "Learning Management System for Perfect Love School of Ministry - Empowering Ministry Leaders Through Quality Education",
-  keywords:
-    "PLSOM, Perfect Love School of Ministry, LMS, Ministry Training, Theological Education",
-  authors: [{ name: "PLSOM Development Team" }],
   manifest: "/manifest.json",
   icons: {
     icon: "/logo.png",
