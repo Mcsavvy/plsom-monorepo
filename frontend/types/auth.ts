@@ -1,0 +1,87 @@
+import { z } from "zod";
+
+export const authUserSchema = z.object({
+  id: z.number(),
+  email: z.email(),
+  first_name: z.string(),
+  last_name: z.string(),
+  title: z.string().optional(),
+  role: z.string(),
+  whatsapp_number: z.string().optional(),
+  profile_picture: z.string().optional(),
+  is_setup_complete: z.boolean(),
+  is_active: z.boolean(),
+});
+
+export const authTokensSchema = z.object({
+  access: z.string(),
+  refresh: z.string(),
+  access_expires_at: z.string(),
+  refresh_expires_at: z.string(),
+});
+
+export type AuthUser = z.infer<typeof authUserSchema>;
+export type AuthTokens = z.infer<typeof authTokensSchema>;
+
+export interface User {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  title?: string;
+  whatsappNumber: string;
+  profilePicture: string;
+  isActive: boolean;
+  initials: string;
+  displayName: string;
+}
+
+export const loginCredentialsSchema = z.object({
+  email: z.email(),
+  password: z
+    .string()
+    .min(8)
+    .max(100)
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      {
+        message:
+          "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character",
+      }
+    ),
+});
+
+export const loginResponseSchema = z.object({
+  access: z.string(),
+  refresh: z.string(),
+  access_expires_at: z.string(),
+  refresh_expires_at: z.string(),
+  role: z.string(),
+});
+
+export const refreshTokenResponseSchema = z.object({
+  access: z.string(),
+  refresh: z.string(),
+  access_expires_at: z.string(),
+  refresh_expires_at: z.string(),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.email(),
+});
+
+export const changePasswordSchema = z.object({
+  uid: z.string(),
+  token: z.string(),
+  new_password: z.string(),
+  confirm_password: z.string(),
+})
+
+
+export type LoginCredentials = z.infer<typeof loginCredentialsSchema>;
+
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+
+export type RefreshTokenResponse = z.infer<typeof refreshTokenResponseSchema>;
+export type ForgotPasswordRequest = z.infer<typeof forgotPasswordSchema>;
+export type ChangePasswordRequest = z.infer<typeof changePasswordSchema>;

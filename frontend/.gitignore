@@ -39,5 +39,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-/Perfect Love School of Ministry (PLSOM) - Product Requirements Document.pdf
+openapi.json

@@ -1,6 +1,8 @@
 import React from "react"
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/provider/theme-provider";
+import SessionProvider from "@/provider/session-provider";
+import { SessionRefresher } from "@/components/session-refresher";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,7 +30,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SessionProvider>
+            <SessionRefresher />
+            {children}
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>
