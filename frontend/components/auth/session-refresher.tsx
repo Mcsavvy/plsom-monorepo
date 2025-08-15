@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/auth";
 import { useSession } from "@/hooks/session";
-import { HttpError } from "@/hooks/axios";
 
 interface SessionRefresherProps {
   // Buffer time in milliseconds before token expires to refresh (default: 5 minutes)
@@ -21,13 +20,13 @@ export function SessionRefresher({
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const log = (message: string, ...args: any[]) => {
+  const log = useCallback((message: string, ...args: any[]) => {
     if (debug) {
       console.log(`[SessionRefresher] ${message}`, ...args);
     }
-  };
+  }, [debug]);
 
-  const scheduleNextRefresh = () => {
+  const scheduleNextRefresh = useCallback(() => {
     if (!session?.tokens.access_expires_at) {
       log("No access token expiration time found");
       return;
@@ -59,9 +58,10 @@ export function SessionRefresher({
         handleRefresh();
       }, timeUntilRefresh);
     }
-  };
+  }, [session, refreshBufferMs, log]);
 
-  const handleRefresh = async () => {
+
+  const handleRefresh = useCallback(async () => {
     if (!session) {
       log("No active session to refresh");
       return;
@@ -89,9 +89,9 @@ export function SessionRefresher({
         handleRefresh();
       }, 60 * 1000);
     }
-  };
+  }, [session, refreshLogin, scheduleNextRefresh, log, logout]);
 
-  const startPeriodicCheck = () => {
+  const startPeriodicCheck = useCallback(() => {
     // Check every minute for any changes in session state
     refreshIntervalRef.current = setInterval(() => {
       if (session) {
@@ -105,9 +105,9 @@ export function SessionRefresher({
         }
       }
     }, 60 * 1000); // Check every minute
-  };
+  }, [session, log, scheduleNextRefresh]);
 
-  const clearAllTimeouts = () => {
+  const clearAllTimeouts = useCallback(() => {
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current);
       refreshTimeoutRef.current = null;
@@ -116,7 +116,7 @@ export function SessionRefresher({
       clearInterval(refreshIntervalRef.current);
       refreshIntervalRef.current = null;
     }
-  };
+  }, []);
 
   // Effect to handle session changes
   useEffect(() => {
@@ -134,7 +134,8 @@ export function SessionRefresher({
       log("Component unmounting, clearing timeouts");
       clearAllTimeouts();
     };
-  }, [session]);
+  }, [session, log, clearAllTimeouts, scheduleNextRefresh, startPeriodicCheck]);
+
 
   // Effect to handle refresh buffer changes
   useEffect(() => {
@@ -144,7 +145,7 @@ export function SessionRefresher({
       );
       scheduleNextRefresh();
     }
-  }, [refreshBufferMs, session]);
+  }, [refreshBufferMs, session, log, scheduleNextRefresh]);
 
   // This component doesn't render anything
   return null;

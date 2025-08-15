@@ -49,7 +49,6 @@ const navigationItems: NavigationItem[] = [
 ];
 
 export function MobileNavigation() {
-  const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();

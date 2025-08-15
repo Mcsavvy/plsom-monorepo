@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { PWAInstallButton, NetworkStatus, PWAPrompt } from "@/components/pwa";
+import { PWAInstallButton, NetworkStatus } from "@/components/pwa";
 import MobileNavigation from "./mobile-navigation";
 
 interface MobileLayoutProps {

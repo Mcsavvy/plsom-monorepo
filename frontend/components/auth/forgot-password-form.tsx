@@ -66,7 +66,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
         >
           <Card className="shadow-lg">
             <CardHeader className="space-y-4 text-center">
-              <PLSOMBranding compact />
+              <PLSOMBranding size="md" showName={false} />
               <div>
                 <div className="mb-4 flex items-center justify-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
@@ -126,7 +126,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
       >
         <Card className="shadow-lg">
           <CardHeader className="space-y-4 text-center">
-            <PLSOMBranding compact />
+            <PLSOMBranding size="md" showName={false} />
             <div>
               <CardTitle className="text-2xl">Reset Your Password</CardTitle>
               <CardDescription>

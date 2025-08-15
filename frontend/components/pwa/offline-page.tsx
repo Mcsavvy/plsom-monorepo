@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { WifiOff, RefreshCw, Home, BookOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ export function OfflinePage() {
       await fetch("/favicon.ico", { cache: "no-cache" });
       window.location.reload();
     } catch (error) {
+      console.error("Error checking connection:", error);
       setTimeout(() => setIsRetrying(false), 2000);
     }
   };

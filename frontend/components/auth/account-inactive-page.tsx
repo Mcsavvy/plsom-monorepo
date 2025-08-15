@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   UserX,
@@ -10,7 +9,6 @@ import {
   Clock,
   AlertTriangle,
   RefreshCw,
-  Home,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/auth";

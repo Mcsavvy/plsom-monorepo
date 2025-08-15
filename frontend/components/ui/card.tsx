@@ -1,181 +1,92 @@
-"use client";
+import * as React from "react"
 
-import { forwardRef, HTMLAttributes } from "react";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      onDrag,
-      onDragEnd,
-      onDragStart,
-      onAnimationStart,
-      onAnimationEnd,
-      ...safeProps
-    } = props;
-
-    return (
-      <motion.div
-        ref={ref}
-        className={cn(
-          "bg-card text-card-foreground rounded-lg border shadow-sm",
-          "transition-all duration-300 hover:shadow-md",
-          className
-        )}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        whileHover={{ scale: 1.02 }}
-        {...safeProps}
-      />
-    );
-  }
-);
-Card.displayName = "Card";
-
-const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      onDrag,
-      onDragEnd,
-      onDragStart,
-      onAnimationStart,
-      onAnimationEnd,
-      ...safeProps
-    } = props;
-
-    return (
-      <motion.div
-        ref={ref}
-        className={cn("flex flex-col space-y-1.5 p-6", className)}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
-        {...safeProps}
-      />
-    );
-  }
-);
-CardHeader.displayName = "CardHeader";
-
-const CardTitle = forwardRef<
-  HTMLParagraphElement,
-  HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {
-    onDrag,
-    onDragEnd,
-    onDragStart,
-    onAnimationStart,
-    onAnimationEnd,
-    ...safeProps
-  } = props;
-
+function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <motion.h3
-      ref={ref}
+    <div
+      data-slot="card"
       className={cn(
-        "text-2xl leading-none font-semibold tracking-tight",
-        "text-foreground font-heading",
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
         className
       )}
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.2, duration: 0.3 }}
-      {...safeProps}
+      {...props}
     />
-  );
-});
-CardTitle.displayName = "CardTitle";
+  )
+}
 
-const CardDescription = forwardRef<
-  HTMLParagraphElement,
-  HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {
-    onDrag,
-    onDragEnd,
-    onDragStart,
-    onAnimationStart,
-    onAnimationEnd,
-    ...safeProps
-  } = props;
-
+function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <motion.p
-      ref={ref}
-      className={cn("text-muted-foreground text-sm", className)}
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.3, duration: 0.3 }}
-      {...safeProps}
+    <div
+      data-slot="card-header"
+      className={cn(
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
+        className
+      )}
+      {...props}
     />
-  );
-});
-CardDescription.displayName = "CardDescription";
+  )
+}
 
-const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      onDrag,
-      onDragEnd,
-      onDragStart,
-      onAnimationStart,
-      onAnimationEnd,
-      ...safeProps
-    } = props;
+function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-title"
+      className={cn("leading-none font-semibold", className)}
+      {...props}
+    />
+  )
+}
 
-    return (
-      <motion.div
-        ref={ref}
-        className={cn("p-6 pt-0", className)}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.3 }}
-        {...safeProps}
-      />
-    );
-  }
-);
-CardContent.displayName = "CardContent";
+function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
+    />
+  )
+}
 
-const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      onDrag,
-      onDragEnd,
-      onDragStart,
-      onAnimationStart,
-      onAnimationEnd,
-      ...safeProps
-    } = props;
+function CardAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-action"
+      className={cn(
+        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
-    return (
-      <motion.div
-        ref={ref}
-        className={cn("flex items-center p-6 pt-0", className)}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.3 }}
-        {...safeProps}
-      />
-    );
-  }
-);
-CardFooter.displayName = "CardFooter";
+function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-content"
+      className={cn("px-6", className)}
+      {...props}
+    />
+  )
+}
+
+function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
+      {...props}
+    />
+  )
+}
 
 export {
   Card,
   CardHeader,
   CardFooter,
   CardTitle,
+  CardAction,
   CardDescription,
   CardContent,
-};
+}

@@ -1,28 +1,15 @@
 "use client";
 
-import { useSession } from "@/hooks/session";
 import { useAuth } from "@/hooks/auth";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 import {
-  LogOut,
-  Settings,
-  User,
   BookOpen,
-  Calendar,
   Clock,
   Play,
   AlertCircle,
@@ -31,16 +18,7 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
-  const { session } = useSession();
-  const { logout, user } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
+  const { user } = useAuth();
 
   // Mock data - replace with real data from API calls
   const coursesInProgress = 3;
