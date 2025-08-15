@@ -58,6 +58,7 @@ export default function SessionProvider({ children }: SessionProviderProps) {
 
     useEffect(() => {
         const s = loadSession();
+        console.log("session", JSON.stringify(s, null, 2));
         if (s) {
             handleSetSession(s);
         }

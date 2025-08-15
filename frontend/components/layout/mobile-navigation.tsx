@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Home, BookOpen, Users, Settings, Menu, X } from "lucide-react";
+import { Home, BookOpen, Calendar, Settings, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Avatar } from "@/components/ui/avatar";
 import { NetworkStatus, PWAInstallButton } from "@/components/pwa";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/auth";
-import { useSession } from "@/hooks/session";
+import { PLSOMBranding } from "../ui/plsom-branding";
 
 interface NavigationItem {
   href: string;
@@ -30,15 +31,15 @@ const navigationItems: NavigationItem[] = [
     protected: true,
   },
   {
-    href: "/profile",
-    label: "Profile",
-    icon: Users,
+    href: "/calendar",
+    label: "Calendar",
+    icon: Calendar,
     protected: true,
   },
   {
-    href: "/settings",
-    label: "Settings",
-    icon: Settings,
+    href: "/profile",
+    label: "Profile",
+    icon: User,
     protected: true,
   },
 ];
@@ -48,14 +49,13 @@ export function MobileNavigation() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
-  const { isAuthenticated } = useAuth();
-  const { session } = useSession();
+  const { logout, user } = useAuth();
 
   // Auto-hide navigation on scroll
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         // Scrolling down - hide nav
         setIsVisible(false);
@@ -63,7 +63,7 @@ export function MobileNavigation() {
         // Scrolling up - show nav
         setIsVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -71,10 +71,13 @@ export function MobileNavigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // Filter navigation items based on authentication
-  const filteredNavItems = navigationItems.filter(item => 
-    !item.protected || isAuthenticated
-  );
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -86,125 +89,88 @@ export function MobileNavigation() {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className={`fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t z-40 transition-transform duration-300 ${
-        isVisible ? 'translate-y-0' : 'translate-y-full'
-      } lg:hidden`}>
+      <nav className={`fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t z-40 transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'
+        } lg:hidden`}>
         <div className="flex items-center justify-around h-16 px-2">
-          {filteredNavItems.slice(0, 4).map((item) => (
+          {navigationItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center space-y-1 p-2 rounded-lg transition-colors min-w-0 flex-1 ${
-                isActive(item.href)
+              className={`flex flex-col items-center justify-center space-y-1 p-2 rounded-lg transition-colors min-w-0 flex-1 ${isActive(item.href)
                   ? 'text-primary bg-primary/10'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               <item.icon className="h-5 w-5" />
               <span className="text-xs font-medium truncate">{item.label}</span>
             </Link>
           ))}
-          
-          {/* More Menu */}
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex flex-col items-center justify-center space-y-1 p-2 rounded-lg min-w-0 flex-1"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="text-xs font-medium">More</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[80vh]">
-              <SheetHeader>
-                <SheetTitle className="flex items-center justify-between">
-                  <span>Navigation Menu</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </SheetTitle>
-              </SheetHeader>
-              
-              <div className="mt-6 space-y-6">
-                {/* All Navigation Items */}
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                    Navigation
-                  </h3>
-                  <div className="grid gap-1">
-                    {filteredNavItems.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                          isActive(item.href)
-                            ? 'text-primary bg-primary/10'
-                            : 'text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        <item.icon className="h-5 w-5" />
-                        <span className="font-medium">{item.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                {/* User Info */}
-                {isAuthenticated && session && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                      Account
-                    </h3>
-                    <div className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
-                      <div className="h-10 w-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        {session.user.first_name.charAt(0)}{session.user.last_name.charAt(0)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {session.user.first_name} {session.user.last_name}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {session.user.email}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Network Status */}
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm font-medium">Network Status</span>
-                  <NetworkStatus variant="minimal" showOnlineStatus />
-                </div>
-
-                {/* Install App */}
-                <div className="space-y-2">
-                  <PWAInstallButton variant="button" className="w-full" />
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
         </div>
       </nav>
 
       {/* Top Header for Mobile */}
-      <header className={`fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-md border-b z-40 transition-transform duration-300 ${
-        isVisible ? 'translate-y-0' : '-translate-y-full'
-      } lg:hidden`}>
+      <header className={`fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-md z-40 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'
+        } lg:hidden`}>
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center space-x-2">
-            <h1 className="font-bold text-lg">PLSOM LMS</h1>
+            <PLSOMBranding size="sm" showName={false} />
           </div>
           <div className="flex items-center space-x-2">
-            <NetworkStatus variant="minimal" />
-            <PWAInstallButton variant="button" />
+            <NetworkStatus variant="minimal" showOnlineStatus />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="focus:outline-none">
+                  <Avatar className="h-8 w-8">
+                    {user?.profilePicture ? (
+                      <img src={user.profilePicture} alt="Profile" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full w-full bg-primary text-primary-foreground font-semibold text-sm">
+                        {user?.initials}
+                      </div>
+                    )}
+                  </Avatar>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-12 w-12">
+                      {user?.profilePicture ? (
+                        <img src={user.profilePicture} alt="Profile" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full w-full bg-primary text-primary-foreground font-semibold">
+                          {user?.initials}
+                        </div>
+                      )}
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">{user?.displayName}</p>
+                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <User className="h-4 w-4 mr-2" />
+                      View Profile
+                    </Button>
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Settings
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-red-600 hover:text-red-700"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
+                    <PWAInstallButton variant="card" />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </header>

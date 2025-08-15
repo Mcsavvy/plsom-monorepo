@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/auth";
 import { useSession } from "@/hooks/session";
+import { HttpError } from "@/hooks/axios";
 
 interface SessionRefresherProps {
   // Buffer time in milliseconds before token expires to refresh (default: 5 minutes)
@@ -11,11 +12,11 @@ interface SessionRefresherProps {
   debug?: boolean;
 }
 
-export function SessionRefresher({ 
+export function SessionRefresher({
   refreshBufferMs = 5 * 60 * 1000, // 5 minutes default
-  debug = process.env.NODE_ENV === "development" 
+  debug = process.env.NODE_ENV === "development"
 }: SessionRefresherProps) {
-  const { refreshLogin } = useAuth();
+  const { refreshLogin, logout } = useAuth();
   const { session } = useSession();
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,12 +69,18 @@ export function SessionRefresher({
       log("Attempting to refresh session");
       await refreshLogin();
       log("Session refreshed successfully");
-      
+
       // Schedule next refresh after successful refresh
       scheduleNextRefresh();
-    } catch (error) {
+    } catch (error: any) {
       log("Failed to refresh session:", error);
-      
+
+      // If the error is a 401, logout the user
+      if (Object.hasOwn(error, "statusCode") && error.statusCode === 401) {
+        console.log("401 error, logging out");
+        logout();
+      }
+
       // If refresh fails, try again in 1 minute
       refreshTimeoutRef.current = setTimeout(() => {
         log("Retrying refresh after failure");

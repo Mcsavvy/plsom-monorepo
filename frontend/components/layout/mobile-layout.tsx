@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { PWAInstallButton, NetworkStatus, PWAPrompt } from "@/components/pwa";
-import { MobileNavigation } from "./mobile-navigation";
+import MobileNavigation from "./mobile-navigation";
 
 interface MobileLayoutProps {
   children: ReactNode;
@@ -10,9 +10,6 @@ interface MobileLayoutProps {
   installButtonVariant?: "button" | "banner" | "card";
   showNetworkStatus?: boolean;
   networkStatusVariant?: "minimal" | "banner" | "toast";
-  showNavigation?: boolean;
-  showInstallPrompt?: boolean;
-  installPromptDelay?: number;
 }
 
 export function MobileLayout({
@@ -21,12 +18,9 @@ export function MobileLayout({
   installButtonVariant = "banner",
   showNetworkStatus = true,
   networkStatusVariant = "toast",
-  showNavigation = true,
-  showInstallPrompt = true,
-  installPromptDelay = 30000 // 30 seconds
 }: MobileLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <>
       {/* PWA Install Banner */}
       {showInstallButton && installButtonVariant === "banner" && (
         <PWAInstallButton variant="banner" />
@@ -37,13 +31,14 @@ export function MobileLayout({
         <NetworkStatus variant="banner" />
       )}
 
-      {/* Mobile Navigation */}
-      {showNavigation && <MobileNavigation />}
-
       {/* Main Content */}
-      <main className={`relative ${showNavigation ? 'pb-20' : ''}`}>
+      <main className={`relative min-h-screen py-12 md:py-0`}>
         {children}
       </main>
+
+      <MobileNavigation />
+
+      {/* <PWAPrompt delay={1000} /> */}
 
       {/* Network Status Toast */}
       {showNetworkStatus && networkStatusVariant === "toast" && (
@@ -56,12 +51,7 @@ export function MobileLayout({
           <PWAInstallButton variant="card" />
         </div>
       )}
-
-      {/* PWA Install Prompt */}
-      {showInstallPrompt && (
-        <PWAPrompt delay={installPromptDelay} />
-      )}
-    </div>
+    </>
   );
 }
 

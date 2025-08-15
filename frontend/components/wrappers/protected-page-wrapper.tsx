@@ -4,6 +4,7 @@ import { ReactNode, useEffect } from "react";
 import { useAuth } from "@/hooks/auth";
 import { useSession } from "@/hooks/session";
 import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "../ui/loading-spinner";
 
 interface ProtectedPageWrapperProps {
   children: ReactNode;
@@ -25,15 +26,20 @@ export function ProtectedPageWrapper({
   loadingComponent
 }: ProtectedPageWrapperProps) {
   const { isAuthenticated } = useAuth();
-  const { loading } = useSession();
+  const { session, loading } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    // Only redirect if we're not loading and user is not authenticated
-    if (!loading && !isAuthenticated) {
+    if (loading) return; // Wait for session to load
+
+    if (!isAuthenticated) {
+      // User is not authenticated, redirect to login
       router.push(redirectTo);
+    } else if (session?.user && !session.user.is_active) {
+      // User is authenticated but inactive, redirect to inactive page
+      router.push("/account-inactive");
     }
-  }, [isAuthenticated, loading, router, redirectTo]);
+  }, [isAuthenticated, session, loading, router, redirectTo]);
 
   // Show loading state during session restoration
   if (loading && showLoading) {
@@ -42,12 +48,7 @@ export function ProtectedPageWrapper({
     }
     
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <LoadingSpinner/>
     );
   }
 
@@ -56,7 +57,12 @@ export function ProtectedPageWrapper({
     return fallback ? <>{fallback}</> : null;
   }
 
-  // User is authenticated, render the protected content
+  // Don't render content for inactive users (they'll be redirected)
+  if (session?.user && !session.user.is_active) {
+    return null;
+  }
+
+  // User is authenticated and active, render the protected content
   return <>{children}</>;
 }
 

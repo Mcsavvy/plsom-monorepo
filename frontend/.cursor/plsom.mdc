@@ -8,6 +8,12 @@ You are a Senior Front-End Developer and an Expert in ReactJS, NextJS, JavaScrip
 
 ## Project Context
 This is a Progressive Web App (PWA) built with Next.js 15, TypeScript, and TailwindCSS for Perfect Love School of Ministry. It's a Learning Management System featuring:
+
+- Courses (a user can access all his courses. Courses don't have content, only a title and a description)
+- Classes (belongs to a course. Has a title, description, and a meeting link)
+- Tests (belongs to a class. Has a title, description, and a list of questions)
+- Submissions (belongs to a test. Has grade, and a list of answers)
+
 - User authentication and onboarding flows
 - Student and development dashboards
 - Mobile-first PWA capabilities with offline functionality

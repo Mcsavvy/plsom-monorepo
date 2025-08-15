@@ -69,9 +69,17 @@ export function PWAInstallButton({
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
+      // Always capture the event for potential use
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
+      
+      // Only prevent default if we want to show custom UI immediately
+      if (variant === "banner" && !isDismissed) {
+        e.preventDefault();
+      } else if (variant === "card") {
+        e.preventDefault();
+      }
+      // For "button" variant, let the browser handle it unless user clicks our button
     };
 
     const handleAppInstalled = () => {
@@ -88,10 +96,15 @@ export function PWAInstallButton({
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, [checkIfInstalled, checkIfIOS, onInstall]);
+  }, [checkIfInstalled, checkIfIOS, onInstall, variant, isDismissed]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      // If no deferred prompt available, but user clicked install,
+      // show them manual instructions
+      console.log('No deferred prompt available');
+      return;
+    }
 
     try {
       await deferredPrompt.prompt();
@@ -115,6 +128,8 @@ export function PWAInstallButton({
 
   // Don't show if already installed or dismissed
   if (isInstalled || isDismissed) {
+    console.log("isInstalled", isInstalled);
+    console.log("isDismissed", isDismissed);
     return null;
   }
 
@@ -137,7 +152,7 @@ export function PWAInstallButton({
   // Banner variant
   if (variant === "banner" && (isInstallable || isIOS)) {
     return (
-      <div className={`bg-primary text-primary-foreground p-4 ${className}`}>
+      <div className={`absolute top-0 left-0 right-0 bg-primary text-primary-foreground p-4 z-50 ${className}`}>
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
             <Smartphone className="h-5 w-5" />

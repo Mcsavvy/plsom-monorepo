@@ -5,10 +5,10 @@ export const authUserSchema = z.object({
   email: z.email(),
   first_name: z.string(),
   last_name: z.string(),
-  title: z.string().optional(),
+  title: z.string().nullable(),
   role: z.string(),
-  whatsapp_number: z.string().optional(),
-  profile_picture: z.string().optional(),
+  whatsapp_number: z.string().nullable(),
+  profile_picture: z.string().nullable(),
   is_setup_complete: z.boolean(),
   is_active: z.boolean(),
 });
@@ -29,8 +29,8 @@ export interface User {
   firstName: string;
   lastName: string;
   title?: string;
-  whatsappNumber: string;
-  profilePicture: string;
+  whatsappNumber?: string;
+  profilePicture?: string;
   isActive: boolean;
   initials: string;
   displayName: string;
@@ -38,17 +38,7 @@ export interface User {
 
 export const loginCredentialsSchema = z.object({
   email: z.email(),
-  password: z
-    .string()
-    .min(8)
-    .max(100)
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      {
-        message:
-          "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character",
-      }
-    ),
+  password: z.string().min(1, { message: "Password is required" }),
 });
 
 export const loginResponseSchema = z.object({

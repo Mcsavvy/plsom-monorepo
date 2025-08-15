@@ -290,7 +290,7 @@ export default function LoginPage() {
   return (
     <PublicPageWrapper
       redirectIfAuthenticated={true}
-      redirectTo="/dashboard"
+      redirectTo="/"
     >
       <div>Login form here</div>
     </PublicPageWrapper>
