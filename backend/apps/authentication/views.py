@@ -8,6 +8,7 @@ from apps.authentication.serializers import (
     ForgotPasswordSerializer,
     ResetPasswordSerializer,
     ChangePasswordSerializer,
+    CustomTokenRefreshSerializer,
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView as BaseTokenObtainPairView,
@@ -25,7 +26,7 @@ class CustomTokenObtainPairView(BaseTokenObtainPairView):
 
 @extend_schema(tags=["Authentication"])
 class CustomTokenRefreshView(TokenRefreshView):
-    pass
+    serializer_class = CustomTokenRefreshSerializer  # type: ignore
 
 
 @extend_schema(tags=["Authentication"])

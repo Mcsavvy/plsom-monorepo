@@ -6,7 +6,10 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
+from django.utils import timezone
+from django.conf import settings
 from django_q.tasks import async_task
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
 User = get_user_model()
 
@@ -16,18 +19,43 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     access = serializers.CharField(read_only=True)
     refresh = serializers.CharField(read_only=True)
     role = serializers.CharField(read_only=True)
-
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        # Add custom claims
-        token["role"] = user.role
-        return token
+    access_expires_at = serializers.DateTimeField(read_only=True)
+    refresh_expires_at = serializers.DateTimeField(read_only=True)
 
     def validate(self, attrs):
         data = super().validate(attrs)
         user = self.user
         data["role"] = user.role
+        
+        # Calculate token expiry times
+        now = timezone.now()
+        access_lifetime = settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME")
+        refresh_lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME")
+        
+        data["access_expires_at"] = now + access_lifetime
+        data["refresh_expires_at"] = now + refresh_lifetime
+        
+        return data
+    
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    access = serializers.CharField(read_only=True)
+    refresh = serializers.CharField()
+    access_expires_at = serializers.DateTimeField(read_only=True)
+    refresh_expires_at = serializers.DateTimeField(read_only=True)
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = self.user
+        data["role"] = user.role
+        
+        # Calculate token expiry times
+        now = timezone.now()
+        access_lifetime = settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME")
+        refresh_lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME")
+        
+        data["access_expires_at"] = now + access_lifetime
+        data["refresh_expires_at"] = now + refresh_lifetime
+        
         return data
 
 

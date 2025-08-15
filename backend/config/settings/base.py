@@ -216,6 +216,7 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "USER_AUTHENTICATION_RULE": "utils.authentication.user_authentication_rule",
 }
 
 # Django Q2 Configuration
