@@ -20,7 +20,6 @@ urlpatterns = [
     path("api/", include("apps.classes.urls")),
     path("api/", include("apps.core.urls")),
     path("api/", include("apps.assessments.urls")),
-    path("", admin.site.urls),
 ]
 
 if settings.DJANGO_ENV == "production":
@@ -34,3 +33,5 @@ if settings.DEBUG:
         static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
         + urlpatterns
     )
+
+urlpatterns.append(path("", admin.site.urls))
