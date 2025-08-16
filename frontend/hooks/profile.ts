@@ -51,7 +51,8 @@ async function _uploadProfilePicture(
   
   if (response.status === 200) {
     const updatedUser = authUserSchema.parse(response.data);
-    return updatedUser;
+    const profilePicture = updatedUser.profile_picture?.replace("b2l/", "b2/");
+    return { ...updatedUser, profile_picture: profilePicture ?? null };
   }
   throw new Error("Failed to upload profile picture");
 }
