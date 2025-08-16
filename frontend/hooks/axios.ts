@@ -161,7 +161,7 @@ export function createAxiosInstance({
     "Content-Type": "application/json",
   };
   if (token) {
-    headers["Authorization"] = token;
+    headers["Authorization"] = `Bearer ${token}`;
   }
   const axiosInstance = axios.create({
     baseURL: config.apiUrl,

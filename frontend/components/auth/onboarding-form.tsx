@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PLSOMBranding } from "@/components/ui/plsom-branding";
+import { USER_TITLE_OPTIONS } from "@/lib/constants";
 
 interface OnboardingFormProps {
   token: string;
@@ -261,14 +262,10 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
                     <SelectValue placeholder="Select a title" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No title</SelectItem>
-                    <SelectItem value="Mr.">Mr.</SelectItem>
-                    <SelectItem value="Mrs.">Mrs.</SelectItem>
-                    <SelectItem value="Ms.">Ms.</SelectItem>
-                    <SelectItem value="Dr.">Dr.</SelectItem>
-                    <SelectItem value="Prof.">Prof.</SelectItem>
-                    <SelectItem value="Rev.">Rev.</SelectItem>
-                    <SelectItem value="Pastor">Pastor</SelectItem>
+                    <SelectItem value="none">No title</SelectItem>
+                    {USER_TITLE_OPTIONS.map(title => (
+                      <SelectItem key={title} value={title}>{title}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

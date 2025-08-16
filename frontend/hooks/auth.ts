@@ -94,6 +94,8 @@ async function _resetPassword(
   }
 }
 
+
+
 function _transformUser(user: AuthUser): User {
   const displayName = (
     user.title
@@ -156,8 +158,13 @@ export function useAuth() {
 
   const logout = useCallback(async () => {
     if (!session) throw "No session is active";
-    await _logout(client, session.tokens.access, session.tokens.refresh);
-    clearSession();
+    try {
+      await _logout(client, session.tokens.access, session.tokens.refresh);
+    } catch (error) {
+      console.error("Failed to logout", error);
+    } finally {
+      clearSession();
+    }
   }, [client, clearSession, session]);
 
   const isAuthenticated = useMemo(() => {
@@ -186,6 +193,8 @@ export function useAuth() {
     },
     [client]
   );
+
+
 
   return {
     login,
