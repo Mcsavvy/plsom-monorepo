@@ -97,7 +97,7 @@ async function _resetPassword(
 function _transformUser(user: AuthUser): User {
   const displayName = (
     user.title
-      ? `${user.first_name} ${user.title} ${user.last_name}`
+      ? `${user.title} ${user.first_name} ${user.last_name}`
       : `${user.first_name} ${user.last_name}`
   ).trim();
   const initials = user.first_name.charAt(0) + user.last_name.charAt(0);
