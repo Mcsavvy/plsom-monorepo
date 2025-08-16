@@ -9,6 +9,7 @@ import {
   Clock,
   AlertTriangle,
   RefreshCw,
+  Phone,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/auth";
@@ -25,23 +26,22 @@ import { PLSOMBranding } from "@/components/ui/plsom-branding";
 
 export function AccountInactivePage() {
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const { logout, refreshCurrentUser, isAuthenticated } = useAuth();
-  const { session } = useSession();
+  const { logout, refreshCurrentUser, isAuthenticated, user } = useAuth();
   const router = useRouter();
 
   // Check if user is actually inactive or if they shouldn't be here
   useEffect(() => {
-    if (isAuthenticated && session?.user?.is_active) {
+    if (isAuthenticated && user?.isActive) {
       // User is active, redirect to dashboard
       router.push("/");
     } else if (!isAuthenticated) {
       // User is not logged in, redirect to login
       router.push("/login");
     }
-  }, [isAuthenticated, session, router]);
+  }, [isAuthenticated, user, router]);
 
   const handleCheckStatus = async () => {
-    if (!isAuthenticated || !session) {
+    if (!isAuthenticated || !user) {
       router.push("/login");
       return;
     }
@@ -51,7 +51,7 @@ export function AccountInactivePage() {
       await refreshCurrentUser();
 
       // After refresh, check if user is now active
-      if (session.user.is_active) {
+      if (user.isActive) {
         router.push("/");
       }
     } catch (error) {
@@ -73,13 +73,13 @@ export function AccountInactivePage() {
   const contactInfo = [
     {
       title: "Email Support",
-      value: "support@plsom.org",
+      value: "contact@perfectloveschoolofministry.com",
       icon: Mail,
     },
     {
       title: "Phone",
-      value: "+1 (555) 123-4567",
-      icon: Mail,
+      value: "+447881765201",
+      icon: Phone,
     },
   ];
 
@@ -126,16 +126,16 @@ export function AccountInactivePage() {
             </div>
 
             {/* User Info (if available) */}
-            {session?.user && (
+            {user && (
               <div className="space-y-2 text-center">
                 <p className="text-muted-foreground text-sm">
                   Account:{" "}
-                  <span className="font-medium">{session.user.email}</span>
+                  <span className="font-medium">{user.email}</span>
                 </p>
                 <p className="text-muted-foreground text-sm">
                   Name:{" "}
                   <span className="font-medium">
-                    {session.user.first_name} {session.user.last_name}
+                    {user.firstName} {user.lastName}
                   </span>
                 </p>
               </div>

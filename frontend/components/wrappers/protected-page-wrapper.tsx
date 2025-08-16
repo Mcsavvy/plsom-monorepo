@@ -25,7 +25,7 @@ export function ProtectedPageWrapper({
   showLoading = true,
   loadingComponent,
 }: ProtectedPageWrapperProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { session, loading } = useSession();
   const router = useRouter();
 
@@ -35,11 +35,11 @@ export function ProtectedPageWrapper({
     if (!isAuthenticated) {
       // User is not authenticated, redirect to login
       router.push(redirectTo);
-    } else if (session?.user && !session.user.is_active) {
+    } else if (user && !user.isActive) {
       // User is authenticated but inactive, redirect to inactive page
       router.push("/account-inactive");
     }
-  }, [isAuthenticated, session, loading, router, redirectTo]);
+  }, [isAuthenticated, user, loading, router, redirectTo]);
 
   // Show loading state during session restoration
   if (loading && showLoading) {
@@ -56,7 +56,7 @@ export function ProtectedPageWrapper({
   }
 
   // Don't render content for inactive users (they'll be redirected)
-  if (session?.user && !session.user.is_active) {
+  if (user && !user.isActive) {
     return null;
   }
 

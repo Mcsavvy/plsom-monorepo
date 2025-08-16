@@ -108,7 +108,9 @@ function _transformUser(user: AuthUser): User {
     lastName: user.last_name,
     title: user.title ?? undefined,
     whatsappNumber: user.whatsapp_number ?? undefined,
-    profilePicture: user.profile_picture ?? undefined,
+    profilePicture: user.profile_picture
+      ? user.profile_picture.replace("b2l/", "b2/")
+      : undefined,
     isActive: user.is_active,
     initials: initials,
     displayName: displayName,

@@ -25,7 +25,7 @@ export function PublicPageWrapper({
   showLoading = true,
   loadingComponent,
 }: PublicPageWrapperProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { session, loading } = useSession();
   const router = useRouter();
 
@@ -39,15 +39,15 @@ export function PublicPageWrapper({
     if (
       !loading &&
       isAuthenticated &&
-      session?.user?.is_active &&
+      user?.isActive &&
       redirectIfAuthenticated
     ) {
       router.push(redirectTo);
     } else if (
       !loading &&
       isAuthenticated &&
-      session?.user &&
-      !session.user.is_active
+      user &&
+      !user.isActive
     ) {
       // Redirect inactive users to inactive page
       router.push("/account-inactive");
@@ -72,12 +72,12 @@ export function PublicPageWrapper({
 
   // If authenticated and redirect is enabled, don't render content
   // (the useEffect will handle the redirect)
-  if (isAuthenticated && session?.user?.is_active && redirectIfAuthenticated) {
+  if (isAuthenticated && user?.isActive && redirectIfAuthenticated) {
     return null;
   }
 
   // Don't render content for inactive users (they'll be redirected)
-  if (isAuthenticated && session?.user && !session.user.is_active) {
+  if (isAuthenticated && user && !user.isActive) {
     return null;
   }
 
