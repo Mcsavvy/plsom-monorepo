@@ -15,8 +15,22 @@ from apps.users.serializers import (
     ProfilePictureUploadSerializer,
     StudentEnrollmentActionSerializer,
 )
-from utils.permissions import IsAdmin, IsLecturer
+from utils.permissions import IsAdmin, IsLecturerOrAdmin, only_authenticated
+from rest_framework.permissions import BasePermission
 from apps.cohorts.models import Cohort, Enrollment
+
+@only_authenticated
+class IsMe(BasePermission):
+    """
+    Custom permission to:
+    - Allow user to read their own details.
+    - Prevent user from updating other user's details.
+    """
+    
+    def has_object_permission(self, request, view, obj):
+        return obj == request.user
+
+
 
 
 @extend_schema(tags=["Users"])
@@ -114,13 +128,26 @@ class StudentViewSet(
     """
 
     serializer_class = StudentSerializer
-    permission_classes = [IsAdmin, IsLecturer]
 
     def get_queryset(self):
         """
         Return only students.
         """
         return User.objects.filter(role="student")
+    
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action == "list":
+            permission_classes = [IsLecturerOrAdmin]
+        elif self.action == "retrieve":
+            permission_classes = [IsMe | IsLecturerOrAdmin] # type: ignore
+        elif self.action == "enroll":
+            permission_classes = [IsAdmin]
+        elif self.action == "unenroll":
+            permission_classes = [IsAdmin]
+        return [permission() for permission in permission_classes]
 
     @extend_schema(
         summary="List students",
