@@ -1,6 +1,8 @@
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -19,7 +21,7 @@ def send_password_reset_email(user_id: int, uid: str, token: str):
     """
     try:
         user = User.objects.get(id=user_id)
-        # TODO: Use a proper HTML template and sender address
+        
         # Use different URLs based on user role
         if user.role in ["admin", "lecturer"]:
             base_url = settings.ADMIN_DASHBOARD_URL
@@ -29,30 +31,25 @@ def send_password_reset_email(user_id: int, uid: str, token: str):
         # Create reset URL
         reset_url = f"{base_url}/reset-password?uid={uid}&token={token}"
 
-        # Email content
+        # Prepare email content context
+        context = {
+            "user": user,
+            "reset_url": reset_url,
+            "current_time": timezone.now(),
+        }
+
+        # Generate email content from templates
         subject = "Password Reset Request - PLSOM"
-        message = f"""
-        Hello {user.get_full_name()},
-
-        You have requested to reset your password for your PLSOM account.
-
-        Please click the following link to reset your password:
-        {reset_url}
-
-        If you did not request this password reset, please ignore this email.
-
-        This link will expire in 24 hours.
-
-        Best regards,
-        PLSOM Team
-        """
+        html_message = render_to_string("emails/password_reset.html", context)
+        plain_message = render_to_string("emails/password_reset.txt", context)
 
         # Send email
         send_mail(
             subject=subject,
-            message=message,
+            message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
+            html_message=html_message,
             fail_silently=False,
         )
 

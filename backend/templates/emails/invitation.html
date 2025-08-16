@@ -1,0 +1,90 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}You're Invited to Join PLSOM{% endblock %}
+
+{% block header_icon %}🎉{% endblock %}
+{% block header_title %}Welcome to PLSOM!{% endblock %}
+
+{% block accent_color %}#27ae60{% endblock %}
+{% block notice_bg %}#d5f4e6{% endblock %}
+{% block notice_border %}#27ae60{% endblock %}
+{% block button_color %}#27ae60{% endblock %}
+{% block button_hover %}#229954{% endblock %}
+
+{% block content %}
+    <p>Greetings and blessings!</p>
+    
+    <p>You have been invited to join the Perfect Love School of Ministry platform as a <strong>{{ invitation.get_role_display|default:invitation.role|title }}</strong>. We are excited to have you as part of our growing community of faith and learning.</p>
+    
+    <div class="notice-box success">
+        <h3>🌟 Your Journey Begins</h3>
+        <p>This is the beginning of an exciting spiritual and academic journey with PLSOM!</p>
+    </div>
+    
+    <div class="test-info">
+        <h2>Invitation Details</h2>
+        <p><strong>Email:</strong> {{ invitation.email }}</p>
+        <p><strong>Role:</strong> {{ invitation.get_role_display|default:invitation.role|title }}</p>
+        {% if invitation.cohort %}
+        <p><strong>Cohort:</strong> {{ invitation.cohort.name }}</p>
+        {% endif %}
+        <p><strong>Invited by:</strong> {{ invitation.created_by.get_full_name }}</p>
+        <p><strong>Invitation Date:</strong> {{ invitation.created_at|date:"F j, Y" }}</p>
+    </div>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ invite_link }}" class="cta-button">Complete Your Registration</a>
+    </div>
+    
+    <div class="deadline-alert">
+        <p><strong>⏰ Important:</strong> This invitation expires on <span class="time">{{ invitation.expires_at|date:"F j, Y g:i A" }}</span></p>
+    </div>
+    
+    <div class="details-list">
+        <h3>What to expect:</h3>
+        <ul>
+            {% if invitation.role == "student" %}
+            <li>Access to course materials and assessments</li>
+            <li>Participate in live classes and discussions</li>
+            <li>Connect with fellow students and instructors</li>
+            <li>Track your academic progress</li>
+            {% elif invitation.role == "lecturer" %}
+            <li>Create and manage courses</li>
+            <li>Conduct assessments and grade students</li>
+            <li>Schedule and host live classes</li>
+            <li>Access teaching resources and tools</li>
+            {% elif invitation.role == "admin" %}
+            <li>Full platform administration access</li>
+            <li>Manage users, courses, and cohorts</li>
+            <li>System configuration and oversight</li>
+            <li>Generate reports and analytics</li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <div class="notice-box">
+        <h3>📖 Our Mission</h3>
+        <p>At PLSOM, we are dedicated to building Kingdom leaders and advancing God's Kingdom through excellent theological education and spiritual formation.</p>
+    </div>
+    
+    <div class="details-list">
+        <h3>Getting Started:</h3>
+        <ul>
+            <li>Click the "Complete Your Registration" button above</li>
+            <li>Fill in your profile information</li>
+            <li>Create a secure password</li>
+            <li>Begin your PLSOM journey!</li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block blessing %}May the Lord bless you abundantly as you embark on this journey of learning and spiritual growth.{% endblock %}
+{% block closing %}Welcome to the PLSOM family{% endblock %}
+
+{% block footer_motto %}"Study to show yourself approved unto God, a workman that needs not to be ashamed, rightly dividing the word of truth." - 2 Timothy 2:15{% endblock %}
+
+{% block footer_extra %}
+    <div class="contact">
+        <p>Questions? Contact us at <strong>admissions@plsom.com</strong></p>
+    </div>
+{% endblock %}

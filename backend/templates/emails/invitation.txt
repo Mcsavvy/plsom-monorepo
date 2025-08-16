@@ -1,0 +1,53 @@
+PLSOM - You're Invited!
+Perfect Love School of Ministry
+
+Greetings and blessings!
+
+You have been invited to join the Perfect Love School of Ministry platform as a {{ invitation.get_role_display|default:invitation.role|title }}.
+
+INVITATION DETAILS:
+- Email: {{ invitation.email }}
+- Role: {{ invitation.get_role_display|default:invitation.role|title }}
+{% if invitation.cohort %}- Cohort: {{ invitation.cohort.name }}{% endif %}
+- Invited by: {{ invitation.created_by.get_full_name }}
+- Invitation Date: {{ invitation.created_at|date:"F j, Y" }}
+
+COMPLETE YOUR REGISTRATION:
+{{ invite_link }}
+
+IMPORTANT: This invitation expires on {{ invitation.expires_at|date:"F j, Y g:i A" }}
+
+WHAT TO EXPECT:
+{% if invitation.role == "student" %}• Access to course materials and assessments
+• Participate in live classes and discussions  
+• Connect with fellow students and instructors
+• Track your academic progress{% elif invitation.role == "lecturer" %}• Create and manage courses
+• Conduct assessments and grade students
+• Schedule and host live classes
+• Access teaching resources and tools{% elif invitation.role == "admin" %}• Full platform administration access
+• Manage users, courses, and cohorts
+• System configuration and oversight
+• Generate reports and analytics{% endif %}
+
+GETTING STARTED:
+1. Click the registration link above
+2. Fill in your profile information
+3. Create a secure password
+4. Begin your PLSOM journey!
+
+OUR MISSION:
+At PLSOM, we are dedicated to building Kingdom leaders and advancing God's Kingdom through excellent theological education and spiritual formation.
+
+May the Lord bless you abundantly as you embark on this journey of learning and spiritual growth.
+
+Welcome to the PLSOM family,
+{{ invitation.created_by.get_full_name }}
+PLSOM Academic Team
+
+"Study to show yourself approved unto God, a workman that needs not to be ashamed, rightly dividing the word of truth." - 2 Timothy 2:15
+
+---
+Perfect Love School of Ministry
+Building Kingdom Leaders | Advancing God's Kingdom
+
+Questions? Contact us at admissions@plsom.com
