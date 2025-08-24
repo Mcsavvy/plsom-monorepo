@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { User, Mail, Phone, Edit3, Camera, Trash2, Loader2 } from "lucide-react";
+import { User, Mail, Phone, Edit3, Camera, Trash2, Loader2, Lock } from "lucide-react";
 
 import { StudentProfile } from "@/types/auth";
 import { Button } from "@/components/ui/button";
@@ -87,15 +86,26 @@ export function ProfileView({
             <User className="h-5 w-5" />
             Profile Information
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onEdit}
-            disabled={isLoading}
-          >
-            <Edit3 className="h-4 w-4 mr-2" />
-            Edit Profile
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              disabled={isLoading}
+            >
+              <Edit3 className="h-4 w-4" />
+              <span className="sr-only">Edit Profile</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              disabled={isLoading}
+            >
+              <Lock className="h-4 w-4" />
+              <span className="sr-only">Change Password</span>
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -104,7 +114,7 @@ export function ProfileView({
           <div className="relative">
             <Avatar className="h-24 w-24">
               <AvatarImage className="object-fit" src={profile.profile_picture || undefined} />
-              <AvatarFallback className="text-lg">{initials}</AvatarFallback>
+              <AvatarFallback className="text-4xl bg-primary text-primary-foreground">{initials}</AvatarFallback>
             </Avatar>
             
             {/* Upload/Delete Picture Buttons */}

@@ -14,6 +14,7 @@ import { ProfileEditForm } from "@/components/profile/profile-edit-form";
 import { PasswordChangeForm } from "@/components/profile/password-change-form";
 import { EnrollmentsSection } from "@/components/profile/enrollments-section";
 import { Card, CardContent } from "@/components/ui/card";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
@@ -95,42 +96,20 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-center text-muted-foreground">
-                Loading user information...
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <LoadingSpinner />
     );
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-center text-muted-foreground">
-                Loading your profile...
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <LoadingSpinner />
     );
   }
 
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md shadow-none border-none">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/20">
@@ -164,7 +143,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md shadow-none border-none">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <p className="text-muted-foreground">Profile not found</p>
@@ -181,65 +160,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-                      <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push("/")}
-                          className="shrink-0"
-                      >
-                          <ArrowLeft className="h-4 w-4 md:mr-2" />
-                          <span className="hidden md:inline">Back</span>
-                      </Button>
-            <h1 className="text-lg md:text-2xl font-bold truncate">My Profile</h1>
-            
-            <div className="flex items-center gap-1 md:gap-2 shrink-0">
-              {!isEditing && !isChangingPassword ? (
-                <>
-                  {/* Mobile: Show icons only, Desktop: Show text + icons */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsChangingPassword(true)}
-                    disabled={isLoading}
-                    className="px-2 md:px-3"
-                  >
-                    <Lock className="h-4 w-4 md:mr-2" />
-                    <span className="hidden md:inline">Change Password</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={loadProfile}
-                    disabled={isLoading}
-                    className="px-2 md:px-3"
-                  >
-                    <RefreshCw className="h-4 w-4 md:mr-2" />
-                    <span className="hidden md:inline">Refresh</span>
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setIsChangingPassword(false);
-                    setIsEditing(false);
-                  }}
-                  disabled={isLoading}
-                  className="px-2 md:px-3"
-                >
-                  <X className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Cancel</span>
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Content */}
       <div className="container max-w-6xl mx-auto px-4 py-8">
