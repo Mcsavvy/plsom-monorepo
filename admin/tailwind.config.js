@@ -61,6 +61,11 @@ export default {
           ring: 'var(--sidebar-ring)',
         },
       },
+      fontFamily: {
+        poppins: ['Poppins', 'sans-serif'],
+        roboto: ['Roboto Slab', 'serif'],
+        open: ['Open Sans', 'sans-serif'],
+      },
       keyframes: {
         'accordion-down': {
           from: {
@@ -85,5 +90,6 @@ export default {
       },
     },
   },
+  // eslint-disable-next-line no-undef
   plugins: [require('tailwindcss-animate')],
 };
