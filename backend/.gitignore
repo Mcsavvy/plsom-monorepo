@@ -145,3 +145,4 @@ logs/
 
 # Mypy cache
 .mypy_cache/
+/seed/
