@@ -2,6 +2,7 @@
 Django Q tasks for assessment notifications.
 """
 
+import datetime
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -125,7 +126,7 @@ def schedule_deadline_reminder(test_id):
         # Calculate when to send the reminder (day of deadline, 9 AM)
         deadline_date = test.available_until.date()
         reminder_datetime = timezone.make_aware(
-            timezone.datetime.combine(deadline_date, timezone.time(9, 0))
+            timezone.datetime.combine(deadline_date, datetime.time(9, 0))
         )
 
         # Only schedule if the reminder is in the future
