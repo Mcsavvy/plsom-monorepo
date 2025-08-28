@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Home, BookOpen, Calendar, Settings, User, LogOut, ArrowLeft, FileText } from "lucide-react";
+import { Home, BookOpen, Calendar, Settings, User, LogOut, ArrowLeft, FileText, Presentation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -46,9 +46,9 @@ const navigationItems: NavigationItem[] = [
     protected: true,
   },
   {
-    href: "/calendar",
-    label: "Calendar",
-    icon: Calendar,
+    href: "/classes",
+    label: "Classes",
+    icon: Presentation,
     protected: true,
   },
   {
@@ -59,47 +59,69 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
-function ProfileHeader({ user }: DefaultHeaderProps) {
-  const router = useRouter();
-  return (
-    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="container max-w-6xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-            className="shrink-0"
-          >
-            <ArrowLeft className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Back</span>
-          </Button>
-          <h1 className="text-lg md:text-2xl font-bold truncate">My Profile</h1>
-          <Avatar className="h-8 w-8">
-            {user?.profilePicture ? (
-              <img
-                src={user.profilePicture}
-                alt="Profile"
-                className="h-full w-full object-fit"
-              />
-            ) : (
-              <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-sm font-semibold">
-                {user?.initials}
-              </div>
-            )}
-          </Avatar>
+function getGenericHeader(title: string) {
+  function GenericHeader({ user }: DefaultHeaderProps) {
+    const router = useRouter();
+    return (
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Back</span>
+            </Button>
+            <h1 className="text-lg md:text-2xl font-bold truncate">{title}</h1>
+            <Avatar className="h-8 w-8">
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt="Profile"
+                  className="h-full w-full object-fit"
+                />
+              ) : (
+                <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
+                  {user?.initials}
+                </div>
+              )}
+            </Avatar>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+  return GenericHeader;
 }
+
+// function TestDetailsHeader({ user }: DefaultHeaderProps) {
 
 // Header map - add your regex patterns and corresponding components here
 const headerMap: HeaderMapEntry[] = [
   {
     pattern: /^\/profile(\/.*)?$/,
-    component: ProfileHeader,
+    component: getGenericHeader("My Profile"),
   },
+  {
+    pattern: /^\/courses\/(\d+)$/,
+    component: getGenericHeader("Course Details"),
+  },
+  {
+    pattern: /^\/classes\/(\d+)$/,
+    component: getGenericHeader("Class Details"),
+  },
+  {
+    pattern: /^\/tests\/(\d+)$/,
+    component: getGenericHeader("Test Details"),
+  },
+  {
+    pattern: /^\/tests\/(\d+)\/take$/,
+    component: getGenericHeader("Take Test"),
+  },
+  
 ];
 
 // Default header component
@@ -122,7 +144,7 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
                     className="h-full w-full object-fit"
                   />
                 ) : (
-                  <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-sm font-semibold">
+                  <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
                     {user?.initials}
                   </div>
                 )}
@@ -140,7 +162,7 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
                       className="h-full w-full object-fit"
                     />
                   ) : (
-                    <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center font-semibold">
+                    <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
                       {user?.initials}
                     </div>
                   )}
