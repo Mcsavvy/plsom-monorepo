@@ -4,7 +4,7 @@
   "description": "Learning Management System for Perfect Love School of Ministry - Empowering Ministry Leaders Through Quality Education",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#ffffff",
   "theme_color": "#6366f1",
   "orientation": "portrait-primary",
   "categories": ["education", "productivity"],
