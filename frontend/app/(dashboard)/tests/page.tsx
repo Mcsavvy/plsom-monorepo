@@ -35,9 +35,10 @@ interface TestCardProps {
   onViewDetails: (testId: number) => void;
   onStartTest: (testId: number) => void;
   onContinueTest: (testId: number) => void;
+  onViewSubmission: (submissionId: number) => void;
 }
 
-function TestCard({ test, onViewDetails, onStartTest, onContinueTest }: TestCardProps) {
+function TestCard({ test, onViewDetails, onStartTest, onContinueTest, onViewSubmission }: TestCardProps) {
   const getStatusIcon = () => {
     switch (test.status) {
       case "not_started":
@@ -86,17 +87,27 @@ function TestCard({ test, onViewDetails, onStartTest, onContinueTest }: TestCard
           </Button>
         );
       case "submitted":
-        return (
-          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
+        return test.mySubmission ? (
+          <Button variant="outline" onClick={() => onViewSubmission(test.mySubmission!.id)} className="flex-1">
             <Clock className="h-4 w-4 mr-2" />
             View Submission
           </Button>
+        ) : (
+          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
+            <Clock className="h-4 w-4 mr-2" />
+            View Details
+          </Button>
         );
       case "graded":
-        return (
-          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
+        return test.mySubmission ? (
+          <Button variant="outline" onClick={() => onViewSubmission(test.mySubmission!.id)} className="flex-1">
             <Trophy className="h-4 w-4 mr-2" />
             View Results
+          </Button>
+        ) : (
+          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
+            <Trophy className="h-4 w-4 mr-2" />
+            View Details
           </Button>
         );
       case "overdue":
@@ -260,6 +271,10 @@ export default function TestsPage() {
     router.push(`/tests/${testId}/take`);
   };
 
+  const handleViewSubmission = (submissionId: number) => {
+    router.push(`/submissions/${submissionId}`);
+  };
+
   const filteredTests = useMemo(() => {
     if (statusFilter === "all") return tests;
     
@@ -384,6 +399,7 @@ export default function TestsPage() {
                 onViewDetails={handleViewDetails}
                 onStartTest={handleStartTest}
                 onContinueTest={handleContinueTest}
+                onViewSubmission={handleViewSubmission}
               />
             ))}
           </div>

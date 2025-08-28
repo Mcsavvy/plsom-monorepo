@@ -120,7 +120,7 @@ export default function TestDetailPage() {
     );
   }
 
-  const isAvailable = test.is_available === "true";
+  const isAvailable = test.is_available;
   const now = new Date();
   const availableFrom = test.available_from ? new Date(test.available_from) : null;
   const availableUntil = test.available_until ? new Date(test.available_until) : null;
@@ -176,17 +176,34 @@ export default function TestDetailPage() {
         );
       case "submitted":
         return (
-          <Button variant="outline" disabled className="flex-1">
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Submitted - Awaiting Grade
-          </Button>
+          <>
+          {test.my_submission && (
+            <Button 
+              variant="default" 
+              className="w-full"
+              onClick={() => router.push(`/submissions/${test.my_submission!.id}`)}
+            >
+                Submitted - Awaiting Grade
+              </Button>
+            )}
+          </>
         );
       case "graded":
         return (
-          <Button variant="outline" disabled className="flex-1">
-            <Trophy className="h-4 w-4 mr-2" />
-            Test Completed
-          </Button>
+          <div className="flex gap-2 flex-1">
+            <Button variant="outline" disabled className="flex-1">
+              <Trophy className="h-4 w-4 mr-2" />
+              Test Completed
+            </Button>
+            {test.my_submission && (
+              <Button 
+                variant="default" 
+                onClick={() => router.push(`/submissions/${test.my_submission!.id}`)}
+              >
+                View Results
+              </Button>
+            )}
+          </div>
         );
       case "overdue":
         return (
@@ -325,7 +342,7 @@ export default function TestDetailPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Progress:</span>
-                  <span className="font-medium">{test.my_submission.completion_percentage}</span>
+                  <span className="font-medium">{test.my_submission.completion_percentage}%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Started:</span>
