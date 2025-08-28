@@ -2,6 +2,8 @@
 
 import { ReactNode } from "react";
 import { PWAInstallButton, NetworkStatus } from "@/components/pwa";
+import { PageTransition, MobilePageTransition } from "@/components/ui/page-transition";
+import { useIsMobile } from "@/hooks/use-mobile";
 import MobileNavigation from "./mobile-navigation";
 
 interface MobileLayoutProps {
@@ -19,6 +21,10 @@ export function MobileLayout({
   showNetworkStatus = true,
   networkStatusVariant = "toast",
 }: MobileLayoutProps) {
+  const isMobile = useIsMobile();
+
+  const TransitionComponent = isMobile ? MobilePageTransition : PageTransition;
+
   return (
     <>
       {/* PWA Install Banner */}
@@ -31,8 +37,10 @@ export function MobileLayout({
         <NetworkStatus variant="banner" />
       )}
 
-      {/* Main Content */}
-      <main className={`relative min-h-screen py-12 md:py-0`}>{children}</main>
+      {/* Main Content with Page Transitions */}
+      <main className={`relative min-h-screen py-12 md:py-0`}>
+        <TransitionComponent>{children}</TransitionComponent>
+      </main>
 
       <MobileNavigation />
 

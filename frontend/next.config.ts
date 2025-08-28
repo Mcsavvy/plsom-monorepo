@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import withPWA from "@ducanh2912/next-pwa";
+import withSerwist from "@serwist/next";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -11,20 +11,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA({
-  dest: "public",
-  cacheOnFrontEndNav: false,
-  aggressiveFrontEndNavCaching: false,
+export default withSerwist({
+  // Note: This is only an example. If you use Pages Router,
+  // use something else such as "service-worker/index.ts" instead.
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  cacheOnNavigation: true,
   reloadOnOnline: true,
-  // swcMinify: true,
   disable: process.env.NODE_ENV === "development",
-  fallbacks: {
-    document: "/offline",
-  },
-  workboxOptions: {
-    disableDevLogs: true,
-    skipWaiting: true,
-    clientsClaim: true,
-    runtimeCaching: [],
-  },
 })(nextConfig);

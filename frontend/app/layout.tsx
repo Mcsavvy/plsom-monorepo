@@ -2,6 +2,8 @@ import React from "react";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/provider/theme-provider";
 import SessionProvider from "@/provider/session-provider";
+import { GlobalTransitions } from "@/components/ui/global-transitions";
+import { ServiceWorkerRegister } from "@/components/pwa/sw-register";
 import "./globals.css";
 import "./mobile.css";
 import { Toaster } from "sonner";
@@ -52,9 +54,14 @@ export default function RootLayout({
           attribute="data-theme"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
+          disableTransitionOnChange={false}
         >
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            <ServiceWorkerRegister />
+            <GlobalTransitions>
+              {children}
+            </GlobalTransitions>
+          </SessionProvider>
         </ThemeProvider>
         <Toaster />
       </body>

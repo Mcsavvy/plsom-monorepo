@@ -38,14 +38,33 @@ export function NetworkStatus({
       }
     };
 
+    // Handle service worker network status messages
+    const handleServiceWorkerMessage = (event: CustomEvent) => {
+      const { online } = event.detail;
+      if (online !== undefined) {
+        if (!online && isOnline) {
+          setIsOnline(false);
+          setWasOffline(true);
+        } else if (online && !isOnline) {
+          setShowReconnecting(true);
+          setTimeout(() => {
+            setIsOnline(true);
+            setShowReconnecting(false);
+          }, 1000);
+        }
+      }
+    };
+
     setIsOnline(navigator.onLine);
 
     window.addEventListener("online", updateOnlineStatus);
     window.addEventListener("offline", updateOnlineStatus);
+    window.addEventListener("networkstatuschange", handleServiceWorkerMessage as EventListener);
 
     return () => {
       window.removeEventListener("online", updateOnlineStatus);
       window.removeEventListener("offline", updateOnlineStatus);
+      window.removeEventListener("networkstatuschange", handleServiceWorkerMessage as EventListener);
     };
   }, [isOnline]);
 

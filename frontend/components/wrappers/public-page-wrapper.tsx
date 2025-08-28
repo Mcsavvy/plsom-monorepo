@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/auth";
 import { useSession } from "@/hooks/session";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "../ui/loading-spinner";
+import { PageTransition } from "../ui/page-transition";
 
 interface PublicPageWrapperProps {
   children: ReactNode;
@@ -59,6 +60,7 @@ export function PublicPageWrapper({
     router,
     redirectTo,
     redirectIfAuthenticated,
+    user
   ]);
 
   // Show loading state during session restoration
@@ -81,8 +83,8 @@ export function PublicPageWrapper({
     return null;
   }
 
-  // Render the public content
-  return <>{children}</>;
+  // Render the public content with page transitions
+  return <PageTransition>{children}</PageTransition>;
 }
 
 export default PublicPageWrapper;
