@@ -40,6 +40,7 @@ import {
   List,
   ToggleLeft,
 } from "lucide-react";
+import { toastError } from "@/lib/utils";
 
 // Icon mapping for question types
 const questionTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -74,7 +75,7 @@ export default function TestDetailPage() {
         const testData = await getTestDetailsForUI(testId);
         setTest(testData);
       } catch (err) {
-        console.error("Failed to fetch test:", err);
+        toastError(err, "Failed to load test details.");
         setError("Failed to load test details. Please try again.");
       } finally {
         setLoading(false);

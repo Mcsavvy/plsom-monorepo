@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { formatTime, formatDate, getDurationText } from "@/types/classes";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { toastError } from "@/lib/utils";
 
 export default function ClassDetailPage() {
   const params = useParams();
@@ -48,7 +49,7 @@ export default function ClassDetailPage() {
         const classDetails = await getClassDetailsForUI(classId);
         setClassData(classDetails);
       } catch (err) {
-        console.error("Failed to fetch class:", err);
+        toastError(err, "Failed to load class details");
         setError("Failed to load class details. Please try again.");
       } finally {
         setLoading(false);

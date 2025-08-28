@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/provider/theme-provider";
 import SessionProvider from "@/provider/session-provider";
 import "./globals.css";
 import "./mobile.css";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: {
@@ -55,6 +56,7 @@ export default function RootLayout({
         >
           <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );

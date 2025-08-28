@@ -25,6 +25,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { toastError } from "@/lib/utils";
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -43,7 +44,7 @@ export default function CourseDetailPage() {
         const courseData = await getCourseDetailsForUI(courseId);
         setCourse(courseData);
       } catch (err) {
-        console.error("Failed to fetch course:", err);
+        toastError(err, "Failed to load course details.");
         setError("Failed to load course details. Please try again.");
       } finally {
         setLoading(false);

@@ -25,6 +25,7 @@ import {
   Award,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { toastError } from "@/lib/utils";
 
 interface CourseCardProps {
   course: CourseCardData;
@@ -159,7 +160,7 @@ export default function CoursesPage() {
         const coursesData = await getMyCoursesForUI();
         setCourses(coursesData);
       } catch (err) {
-        console.error("Failed to fetch courses:", err);
+        toastError(err, "Failed to load courses.");
         setError("Failed to load courses. Please try again.");
       } finally {
         setLoading(false);

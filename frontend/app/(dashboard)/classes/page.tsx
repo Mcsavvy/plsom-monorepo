@@ -30,6 +30,7 @@ import {
   List,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { toastError } from "@/lib/utils";
 
 interface ClassCardProps {
   classData: ClassCardData;
@@ -312,7 +313,7 @@ export default function ClassesPage() {
         const classesData = await getMyClassesForUI();
         setClasses(classesData);
       } catch (err) {
-        console.error("Failed to fetch classes:", err);
+        toastError(err, "Failed to load classes.");
         setError("Failed to load classes. Please try again.");
       } finally {
         setLoading(false);

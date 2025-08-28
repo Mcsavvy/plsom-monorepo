@@ -19,6 +19,7 @@ import {
   BackendAnswerDetail,
   FrontendAnswer,
 } from "@/types/tests";
+import { toastError, toastSuccess } from "@/lib/utils";
 
 /**
  * Get all tests for the current student
@@ -291,7 +292,7 @@ async function _createSubmission(
     }
     throw new Error("Failed to create submission");
   } catch (error) {
-    console.error("Error creating submission:", error);
+    toastError(error, "Failed to create submission.");
     throw error;
   }
 }
@@ -312,9 +313,9 @@ async function _saveAnswers(
     if (response.status === 200) {
       return response.data;
     }
-    throw new Error("Failed to save answers");
+    throw new Error("Failed to save answers.");
   } catch (error) {
-    console.error("Error saving answers:", error);
+    toastError(error, "Failed to save answers.");
     throw error;
   }
 }
@@ -331,11 +332,12 @@ async function _submitTest(
       `/submissions/${submissionId}/submit/`
     );
     if (response.status === 200) {
+      toastSuccess("Test submitted successfully.");
       return response.data;
     }
-    throw new Error("Failed to submit test");
+    throw new Error("Failed to submit test.");
   } catch (error) {
-    console.error("Error submitting test:", error);
+    toastError(error, "Failed to submit test.");
     throw error;
   }
 }
@@ -365,11 +367,12 @@ async function _uploadFile(
     );
     
     if (response.status === 200) {
+      toastSuccess("File uploaded successfully.");
       return response.data;
     }
-    throw new Error("Failed to upload file");
+    throw new Error("Failed to upload file.");
   } catch (error) {
-    console.error("Error uploading file:", error);
+    toastError(error, "Failed to upload file.");
     throw error;
   }
 }
@@ -393,11 +396,12 @@ async function _deleteDocument(
     );
     
     if (response.status === 200) {
+      toastSuccess("Document deleted successfully.");
       return response.data;
     }
-    throw new Error("Failed to delete document");
+    throw new Error("Failed to delete document.");
   } catch (error) {
-    console.error("Error deleting document:", error);
+    toastError(error, "Failed to delete document.");
     throw error;
   }
 }
@@ -414,9 +418,9 @@ async function _getSubmissionDetail(
     if (response.status === 200) {
       return submissionDetailSchema.parse(response.data);
     }
-    throw new Error("Failed to fetch submission details");
+    throw new Error("Failed to fetch submission details.");
   } catch (error) {
-    console.error("Error fetching submission details:", error);
+    toastError(error, "Failed to fetch submission details.");
     throw error;
   }
 }

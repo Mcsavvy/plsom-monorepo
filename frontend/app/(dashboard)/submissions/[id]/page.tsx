@@ -49,7 +49,6 @@ export default function SubmissionDetailPage() {
         const submissionData = await getSubmissionDetail(submissionId);
         setSubmission(submissionData);
       } catch (err) {
-        console.error("Failed to fetch submission:", err);
         toastError(err, "Failed to load submission");
         setError("Failed to load submission details. Please try again.");
       } finally {

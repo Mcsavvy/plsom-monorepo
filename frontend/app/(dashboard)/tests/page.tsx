@@ -29,6 +29,7 @@ import {
   Target,
   Trophy,
 } from "lucide-react";
+import { toastError } from "@/lib/utils";
 
 interface TestCardProps {
   test: TestCardData;
@@ -249,7 +250,7 @@ export default function TestsPage() {
         const testsData = await getMyTestsForUI();
         setTests(testsData);
       } catch (err) {
-        console.error("Failed to fetch tests:", err);
+        toastError(err, "Failed to load tests.");
         setError("Failed to load tests. Please try again.");
       } finally {
         setLoading(false);

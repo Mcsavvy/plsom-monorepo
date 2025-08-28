@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge"
+import { toastError, toastSuccess } from "@/lib/utils";
 
 interface ProfileViewProps {
   profile: StudentProfile;
@@ -54,8 +55,9 @@ export function ProfileView({
     setIsUploadingPicture(true);
     try {
       await onUploadPicture(file);
+      toastSuccess("Profile picture uploaded successfully.");
     } catch (error) {
-      console.error("Failed to upload profile picture:", error);
+      toastError(error, "Failed to upload profile picture.");
     } finally {
       setIsUploadingPicture(false);
       // Reset file input
@@ -71,8 +73,9 @@ export function ProfileView({
     setIsDeletingPicture(true);
     try {
       await onDeletePicture();
+      toastSuccess("Profile picture deleted successfully.");
     } catch (error) {
-      console.error("Failed to delete profile picture:", error);
+      toastError(error, "Failed to delete profile picture.");
     } finally {
       setIsDeletingPicture(false);
     }
