@@ -12,7 +12,7 @@ from apps.classes.serializers import (
     AttendanceSerializer,
     StudentClassSerializer,
 )
-from utils.permissions import IsAdmin, IsStaff
+from utils.permissions import IsAdmin, IsStaff, IsStudent
 
 
 @extend_schema(tags=["Classes"])
@@ -31,36 +31,24 @@ class ClassViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action and user role"""
-        # Handle case when user is not authenticated (for schema generation)
-        if not hasattr(self.request, 'user') or not self.request.user.is_authenticated:
-            if self.action == "list":
-                return ClassSerializer
-            elif self.action in ["create", "update", "partial_update"]:
-                return ClassCreateUpdateSerializer
-            return ClassSerializer
-            
-        user = self.request.user
-        
         if self.action == "list":
-            if hasattr(user, 'role') and user.role == "student":
-                return StudentClassSerializer
             return ClassSerializer
         elif self.action in ["create", "update", "partial_update"]:
             return ClassCreateUpdateSerializer
-        elif self.action == "my_classes" and hasattr(user, 'role') and user.role == "student":
+        elif self.action in ["my_classes", "my_class"]:
             return StudentClassSerializer
         return ClassSerializer
 
     def get_queryset(self):
         """Filter classes based on user role and permissions"""
         # Handle case when user is not authenticated (for schema generation)
-        if not hasattr(self.request, 'user') or not self.request.user.is_authenticated:
+        if not hasattr(self.request, "user") or not self.request.user.is_authenticated:
             return Class.objects.select_related("course", "lecturer", "cohort").all()
-            
+
         user = self.request.user
         queryset = Class.objects.select_related("course", "lecturer", "cohort").all()
 
-        if hasattr(user, 'role') and user.role == "student":
+        if hasattr(user, "role") and user.role == "student":
             # Students can only see classes for cohorts they're enrolled in
             from apps.cohorts.models import Enrollment
 
@@ -89,7 +77,7 @@ class ClassViewSet(viewsets.ModelViewSet):
 
         # Special filtering for my_classes action
         if self.action == "my_classes":
-            if hasattr(user, 'role') and user.role in ["lecturer", "admin"]:
+            if hasattr(user, "role") and user.role in ["lecturer", "admin"]:
                 queryset = queryset.filter(lecturer=user)
 
         return queryset.distinct()
@@ -118,9 +106,21 @@ class ClassViewSet(viewsets.ModelViewSet):
         ],
         responses={200: ClassSerializer(many=True)},
     )
-    @action(detail=False, methods=["get"], url_path="my-classes")
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="my-classes",
+        permission_classes=[IsAuthenticated, IsStudent],
+        serializer_class=StudentClassSerializer,
+    )
     def my_classes(self, request):
         """Get classes for the current user"""
+        if request.user.role != "student":
+            return Response(
+                {"detail": "This endpoint is only available for students."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         classes = self.get_queryset()
         page = self.paginate_queryset(classes)
         if page is not None:
@@ -142,14 +142,19 @@ class ClassViewSet(viewsets.ModelViewSet):
                 location=OpenApiParameter.PATH,
             ),
         ],
-        responses={200: {"type": "object", "properties": {
-            "can_join": {"type": "boolean"},
-            "zoom_join_url": {"type": "string"},
-            "password_for_zoom": {"type": "string"},
-            "message": {"type": "string"},
-            "recording_url": {"type": "string"},
-            "password_for_recording": {"type": "string"},
-        }}},
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "can_join": {"type": "boolean"},
+                    "zoom_join_url": {"type": "string"},
+                    "password_for_zoom": {"type": "string"},
+                    "message": {"type": "string"},
+                    "recording_url": {"type": "string"},
+                    "password_for_recording": {"type": "string"},
+                },
+            }
+        },
     )
     @action(detail=True, methods=["get"], url_path="join")
     def join_class(self, request, pk=None):
@@ -158,7 +163,7 @@ class ClassViewSet(viewsets.ModelViewSet):
         class_obj = self.get_object()
 
         # Check permissions
-        if hasattr(user, 'role') and user.role == "student":
+        if hasattr(user, "role") and user.role == "student":
             from apps.cohorts.models import Enrollment
 
             if not Enrollment.objects.filter(
@@ -203,6 +208,45 @@ class ClassViewSet(viewsets.ModelViewSet):
             }
         )
 
+    @extend_schema(
+        summary="Get class details for student",
+        description="Get detailed information about a specific class for the current student.",
+        responses={200: StudentClassSerializer},
+    )
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="my-class",
+        serializer_class=StudentClassSerializer,
+        permission_classes=[IsAuthenticated, IsStudent],
+    )
+    def my_class(self, request, pk=None):
+        """
+        Get detailed class information for the current student.
+        Only available to students and only for classes in their enrolled cohorts.
+        """
+        if request.user.role != "student":
+            return Response(
+                {"detail": "This endpoint is only available for students."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        class_obj = self.get_object()
+
+        # Check if student can access this class (must be in their enrolled cohorts)
+        from apps.cohorts.models import Enrollment
+
+        if not Enrollment.objects.filter(
+            student=request.user, cohort=class_obj.cohort
+        ).exists():
+            return Response(
+                {"detail": "You don't have access to this class."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = StudentClassSerializer(class_obj, context={"request": request})
+        return Response(serializer.data)
+
 
 @extend_schema(tags=["Attendance"])
 class AttendanceViewSet(viewsets.ReadOnlyModelViewSet):
@@ -215,13 +259,13 @@ class AttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """Filter attendance based on user role"""
         # Handle case when user is not authenticated (for schema generation)
-        if not hasattr(self.request, 'user') or not self.request.user.is_authenticated:
+        if not hasattr(self.request, "user") or not self.request.user.is_authenticated:
             return Attendance.objects.select_related("student", "class_session").all()
-            
+
         user = self.request.user
         queryset = Attendance.objects.select_related("student", "class_session").all()
 
-        if hasattr(user, 'role'):
+        if hasattr(user, "role"):
             if user.role in ["lecturer", "admin"]:
                 queryset = queryset.filter(class_session__lecturer=user)
             elif user.role == "student":

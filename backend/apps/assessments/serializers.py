@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Test, Question, QuestionOption, Submission, Answer
+from drf_spectacular.utils import extend_schema_field
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -362,3 +363,115 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'ip_address': {'read_only': True},
             'user_agent': {'read_only': True}
         }
+
+class StudentSubmissionSerializer(serializers.ModelSerializer):
+    """Serializer for student submissions"""
+    
+    class Meta:
+        model = Submission
+        fields = [
+            'id', 'test', 'attempt_number', 'status',
+            'started_at', 'submitted_at', 'score', 'max_score',
+            'completion_percentage', 'time_spent_minutes'
+        ]
+
+
+class StudentTestSerializer(serializers.ModelSerializer):
+    """Serializer for tests viewed by students with submission information"""
+    
+    course_name = serializers.CharField(source='course.name', read_only=True)
+    cohort_name = serializers.CharField(source='cohort.name', read_only=True)
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    my_submission = serializers.SerializerMethodField()
+    my_latest_submission_id = serializers.SerializerMethodField()
+    my_submission_status = serializers.SerializerMethodField()
+    attempts_remaining = serializers.SerializerMethodField()
+    can_attempt = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Test
+        fields = [
+            'id', 'title', 'description', 'instructions',
+            'time_limit_minutes', 'max_attempts', 'allow_review_after_submission',
+            'status', 'available_from', 'available_until', 'is_available',
+            'course_name', 'cohort_name', 'created_by_name',
+            'total_questions', 'my_submission', 'my_latest_submission_id',
+            'my_submission_status', 'attempts_remaining', 'can_attempt',
+            'created_at', 'updated_at'
+        ]
+    
+    @extend_schema_field(StudentSubmissionSerializer)
+    def get_my_submission(self, obj):
+        """Get student's latest submission for this test"""
+        request = self.context.get("request")
+        if not request or not hasattr(request, "user"):
+            return None
+            
+        latest_submission = obj.submissions.filter(student=request.user).order_by('-created_at').first()
+        
+        if latest_submission:
+            return StudentSubmissionSerializer(latest_submission).data
+        return None
+    
+    @extend_schema_field(serializers.IntegerField)
+    def get_my_latest_submission_id(self, obj):
+        """Get the ID of student's latest submission"""
+        request = self.context.get("request")
+        if not request or not hasattr(request, "user"):
+            return None
+            
+        latest_submission = obj.submissions.filter(student=request.user).order_by('-created_at').first()
+        return latest_submission.id if latest_submission else None
+    
+    @extend_schema_field(serializers.CharField)
+    def get_my_submission_status(self, obj):
+        """Get status of student's latest submission"""
+        request = self.context.get("request")
+        if not request or not hasattr(request, "user"):
+            return None
+            
+        latest_submission = obj.submissions.filter(student=request.user).order_by('-created_at').first()
+        return latest_submission.status if latest_submission else None
+    
+    @extend_schema_field(serializers.IntegerField)
+    def get_attempts_remaining(self, obj):
+        """Get number of attempts remaining for this student"""
+        request = self.context.get("request")
+        if not request or not hasattr(request, "user"):
+            return obj.max_attempts
+            
+        attempts_used = obj.submissions.filter(student=request.user).count()
+        return max(0, obj.max_attempts - attempts_used)
+    
+    @extend_schema_field(serializers.BooleanField)
+    def get_can_attempt(self, obj):
+        """Check if student can start a new attempt"""
+        request = self.context.get("request")
+        if not request or not hasattr(request, "user"):
+            return False
+            
+        # Check if test is available
+        if not obj.is_available:
+            return False
+            
+        # Check attempts remaining
+        attempts_used = obj.submissions.filter(student=request.user).count()
+        if attempts_used >= obj.max_attempts:
+            return False
+            
+        # Check if there's an in-progress submission
+        in_progress = obj.submissions.filter(
+            student=request.user, 
+            status='in_progress'
+        ).exists()
+        
+        return not in_progress
+
+
+class StudentTestDetailSerializer(StudentTestSerializer):
+    """Detailed serializer for individual test view by students, includes questions"""
+    
+    questions = QuestionSerializer(many=True, read_only=True)
+    
+    class Meta(StudentTestSerializer.Meta):
+        fields = StudentTestSerializer.Meta.fields + ['questions']

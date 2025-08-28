@@ -12,8 +12,9 @@ from apps.courses.serializers import (
     LecturerAssignmentSerializer,
     LecturerCourseSerializer,
     CourseCreateUpdateSerializer,
+    StudentCourseSerializer,
 )
-from utils.permissions import IsAdmin, IsLecturer
+from utils.permissions import IsAdmin, IsLecturer, IsStudent
 
 
 @extend_schema(tags=["Courses"])
@@ -77,8 +78,8 @@ class CourseViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAdmin]
         elif self.action in ["assign_lecturer", "unassign_lecturer"]:
             permission_classes = [IsAdmin]
-        elif self.action == "my_courses":
-            permission_classes = [IsLecturer]
+        elif self.action in ["my_courses", "my_course"]:
+            permission_classes = [IsStudent]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -150,29 +151,85 @@ class CourseViewSet(viewsets.ModelViewSet):
     )
 
     @extend_schema(
-        summary="Get lecturer's courses",
-        description="Get all courses that the current lecturer is assigned to teach.",
-        responses={200: LecturerCourseSerializer(many=True)},
+        summary="Get student's curriculum courses",
+        description="Get all courses available to the student based on their program type from enrolled cohorts. Shows full curriculum, not just courses with scheduled classes.",
+        responses={200: StudentCourseSerializer(many=True)},
     )
-    @action(detail=False, methods=["get"], url_path="my-courses")
+    @action(detail=False, methods=["get"], url_path="my-courses", permission_classes=[IsAuthenticated])
     def my_courses(self, request):
         """
-        Get all courses that the current lecturer teaches.
-        Only available to lecturers.
+        Get all courses available to the student based on their enrolled cohorts' program types.
+        Shows the complete curriculum, including courses that may not have scheduled classes yet.
+        Only available to students.
         """
-        if request.user.role != "lecturer":
+        if request.user.role != "student":
             return Response(
-                {"detail": "This endpoint is only available for lecturers."},
+                {"detail": "This endpoint is only available for students."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        courses = self.get_queryset()
+        # Get all courses that match the student's program types from their enrolled cohorts
+        from apps.cohorts.models import Enrollment
+
+        # Get enrolled cohorts and their program types
+        enrolled_cohorts = Enrollment.objects.filter(student=request.user).select_related('cohort')
+        program_types = list(set(enrollment.cohort.program_type for enrollment in enrolled_cohorts))
+
+        # Get all courses that match the student's program types
+        courses = Course.objects.filter(program_type__in=program_types).select_related("lecturer")
+
+        # Apply filters if provided
+        program_type = request.query_params.get("program_type")
+        if program_type:
+            courses = courses.filter(program_type=program_type)
+
+        is_active = request.query_params.get("is_active")
+        if is_active is not None:
+            courses = courses.filter(is_active=is_active.lower() == "true")
+
+        # Order by name
+        courses = courses.order_by("name")
+
         page = self.paginate_queryset(courses)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = StudentCourseSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(courses, many=True)
+        serializer = StudentCourseSerializer(courses, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Get course details for student",
+        description="Get detailed information about a specific course for the current student, including class information from their cohorts.",
+        responses={200: StudentCourseSerializer},
+    )
+    @action(detail=True, methods=["get"], url_path="my-course", permission_classes=[IsAuthenticated])
+    def my_course(self, request, pk=None):
+        """
+        Get detailed course information for the current student.
+        Only available to students and only for courses in their program type.
+        """
+        if request.user.role != "student":
+            return Response(
+                {"detail": "This endpoint is only available for students."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        course = self.get_object()
+        
+        # Check if student can access this course (must match their program type)
+        from apps.cohorts.models import Enrollment
+
+        enrolled_cohorts = Enrollment.objects.filter(student=request.user).select_related('cohort')
+        program_types = list(set(enrollment.cohort.program_type for enrollment in enrolled_cohorts))
+
+        if course.program_type not in program_types:
+            return Response(
+                {"detail": "You don't have access to this course."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = StudentCourseSerializer(course, context={'request': request})
         return Response(serializer.data)
 
     @extend_schema(

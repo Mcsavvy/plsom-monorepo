@@ -9,8 +9,14 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from .models import Test, Question, QuestionOption, Submission
-from .serializers import TestSerializer, TestListSerializer, SubmissionSerializer
-from utils.permissions import IsLecturerOrAdmin
+from .serializers import (
+    TestSerializer,
+    TestListSerializer,
+    SubmissionSerializer,
+    StudentTestSerializer,
+    StudentTestDetailSerializer,
+)
+from utils.permissions import IsLecturerOrAdmin, IsStudent
 
 
 @extend_schema_view(
@@ -75,6 +81,8 @@ class TestViewSet(viewsets.ModelViewSet):
         """Return appropriate serializer based on action."""
         if self.action == "list":
             return TestListSerializer
+        elif self.action in ["my_tests", "my_test"]:
+            return StudentTestSerializer
         return TestSerializer
 
     def get_permissions(self):
@@ -96,8 +104,15 @@ class TestViewSet(viewsets.ModelViewSet):
 
         # Students can only see published tests from their cohorts
         if self.request.user.role == "student":
+            from apps.cohorts.models import Enrollment
+
+            # Get cohorts the student is enrolled in
+            enrolled_cohorts = Enrollment.objects.filter(
+                student=self.request.user
+            ).values_list("cohort_id", flat=True)
+
             queryset = queryset.filter(
-                status="published", cohort__students=self.request.user
+                status="published", cohort_id__in=enrolled_cohorts
             )
 
         return queryset
@@ -203,6 +218,7 @@ class TestViewSet(viewsets.ModelViewSet):
 
         # Trigger notification
         from .signals import trigger_test_published_notification
+
         trigger_test_published_notification(test.id)
 
         serializer = self.get_serializer(test)
@@ -230,34 +246,144 @@ class TestViewSet(viewsets.ModelViewSet):
 
         test.status = "archived"
         test.save()
-        
+
         serializer = self.get_serializer(test)
         return Response(serializer.data)
-    
+
     @extend_schema(
         description="Move a published or archived test back to draft status",
         summary="Unarchive test",
-        responses={200: TestSerializer}
+        responses={200: TestSerializer},
     )
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsLecturerOrAdmin])
+    @action(
+        detail=True,
+        methods=["post"],
+        permission_classes=[IsAuthenticated, IsLecturerOrAdmin],
+    )
     def unarchive(self, request, pk=None):
         """Move a published or archived test back to draft status."""
         test = self.get_object()
-        
-        if test.status == 'draft':
+
+        if test.status == "draft":
             return Response(
-                {'error': 'Test is already in draft status'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Test is already in draft status"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Allow moving back to draft regardless of submissions
         # This gives flexibility while our conservative update logic protects existing data
-        test.status = 'draft'
+        test.status = "draft"
         test.save()
-        
+
         serializer = self.get_serializer(test)
         return Response(serializer.data)
-    
+
+    @extend_schema(
+        description="Get tests available to the current student based on their enrolled cohorts with submission information",
+        summary="Get my tests",
+        responses={200: StudentTestSerializer(many=True)},
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="my-tests",
+        permission_classes=[IsAuthenticated, IsStudent],
+        serializer_class=StudentTestSerializer,
+    )
+    def my_tests(self, request):
+        """Get all available tests for the current student."""
+        if request.user.role != "student":
+            return Response(
+                {"detail": "This endpoint is only available for students."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        tests = self.get_queryset()
+
+        # Apply additional filters
+        course_id = request.query_params.get("course_id")
+        if course_id:
+            tests = tests.filter(course_id=course_id)
+
+        cohort_id = request.query_params.get("cohort_id")
+        if cohort_id:
+            tests = tests.filter(cohort_id=cohort_id)
+
+        # Filter by availability
+        available_only = request.query_params.get("available_only")
+        if available_only and available_only.lower() == "true":
+            tests = tests.filter(status="published")
+            # Additional filtering for time-based availability
+            from django.utils import timezone
+
+            now = timezone.now()
+            tests = tests.filter(
+                models.Q(available_from__isnull=True)
+                | models.Q(available_from__lte=now)
+            ).filter(
+                models.Q(available_until__isnull=True)
+                | models.Q(available_until__gte=now)
+            )
+
+        page = self.paginate_queryset(tests)
+        if page is not None:
+            serializer = StudentTestSerializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = StudentTestSerializer(
+            tests, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Get test details for student",
+        description="Get detailed information about a specific test for the current student, including submission status and questions.",
+        responses={200: StudentTestDetailSerializer},
+    )
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="my-test",
+        permission_classes=[IsAuthenticated, IsStudent],
+        serializer_class=StudentTestDetailSerializer,
+    )
+    def my_test(self, request, pk=None):
+        """
+        Get detailed test information for the current student.
+        Only available to students and only for published tests in their enrolled cohorts.
+        """
+        if request.user.role != "student":
+            return Response(
+                {"detail": "This endpoint is only available for students."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        test = self.get_object()
+
+        # Check if student can access this test (must be published and in their enrolled cohorts)
+        from apps.cohorts.models import Enrollment
+
+        # Check if test is published
+        if test.status != "published":
+            return Response(
+                {"detail": "This test is not available."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Check if student is enrolled in the test's cohort
+        if not Enrollment.objects.filter(
+            student=request.user, cohort=test.cohort
+        ).exists():
+            return Response(
+                {"detail": "You don't have access to this test."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = StudentTestDetailSerializer(test, context={"request": request})
+        return Response(serializer.data)
+
     @extend_schema(
         description="Get basic statistics for a test",
         summary="Get test statistics",

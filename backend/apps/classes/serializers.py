@@ -59,6 +59,7 @@ class ClassSerializer(serializers.ModelSerializer):
 
         return join_window_start <= now <= end_time and obj.zoom_join_url
 
+
 class ClassCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating and updating classes (admin/lecturer only)"""
 
@@ -393,6 +394,22 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
         return attendance
 
 
+class StudentAttendanceSerializer(serializers.ModelSerializer):
+    """Serializer for student attendance"""
+
+    class Meta:
+        model = Attendance
+        fields = [
+            "id",
+            "class_session",
+            "student",
+            "join_time",
+            "leave_time",
+            "duration_minutes",
+            "via_recording",
+        ]
+
+
 class StudentClassSerializer(serializers.ModelSerializer):
     """Serializer for classes viewed by students"""
 
@@ -430,7 +447,7 @@ class StudentClassSerializer(serializers.ModelSerializer):
 
         return join_window_start <= now <= end_time and obj.zoom_join_url
 
-    @extend_schema_field(serializers.DictField)
+    @extend_schema_field(StudentAttendanceSerializer)
     def get_my_attendance(self, obj):
         """Get student's attendance for this class"""
         request = self.context.get("request")
@@ -439,10 +456,5 @@ class StudentClassSerializer(serializers.ModelSerializer):
 
         attendance = obj.attendances.filter(student=request.user).first()
         if attendance:
-            return {
-                "joined_at": attendance.join_time,
-                "left_at": attendance.leave_time,
-                "duration_minutes": attendance.duration_minutes,
-                "via_recording": attendance.via_recording,
-            }
+            return StudentAttendanceSerializer(attendance).data
         return None
