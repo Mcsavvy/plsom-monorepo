@@ -83,7 +83,13 @@ export function useProfile() {
 
   const getStudentProfile = useCallback(
     async (userId: number): Promise<StudentProfile> => {
-      return await _getStudentProfile(client, userId);
+      const studentProfile = await _getStudentProfile(client, userId);
+      if (studentProfile.profile_picture) {
+        studentProfile.profile_picture = studentProfile.profile_picture.replace("b2l/", "b2/");
+      } else {
+        studentProfile.profile_picture = null;
+      }
+      return studentProfile;
     },
     [client]
   );
