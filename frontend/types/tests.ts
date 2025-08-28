@@ -1,5 +1,25 @@
 import { z } from "zod";
 
+// Answer from backend (detailed response)
+export const backendAnswerDetailSchema = z.object({
+  id: z.number(),
+  question: z.string().uuid(),
+  text_answer: z.string().optional(),
+  boolean_answer: z.boolean().nullable().optional(),
+  date_answer: z.string().nullable().optional(), // YYYY-MM-DD format
+  file_answer: z.string().nullable().optional(), // File URL
+  selected_options: z.array(z.string().uuid()).optional(),
+  answered_at: z.string(),
+  is_flagged: z.boolean(),
+  points_earned: z.number().nullable().optional(),
+  max_points: z.number().nullable().optional(),
+  feedback: z.string().optional(),
+  display_answer: z.string(),
+  has_answer: z.boolean(),
+  question_title: z.string(),
+  question_type: z.string(),
+});
+
 // Test submission schemas
 export const submissionSchema = z.object({
   id: z.number(),
@@ -10,13 +30,40 @@ export const submissionSchema = z.object({
   submitted_at: z.string().nullable(),
   score: z.number().nullable(),
   max_score: z.number().nullable(),
-  completion_percentage: z.string(),
+  completion_percentage: z.number(),
   time_spent_minutes: z.number().min(0).nullable(),
+});
+
+// Detailed submission schema (with answers)
+export const submissionDetailSchema = z.object({
+  id: z.number(),
+  test: z.number(),
+  student: z.number(),
+  attempt_number: z.number().min(0),
+  status: z.enum(["in_progress", "submitted", "graded", "returned"]),
+  started_at: z.string(),
+  submitted_at: z.string().nullable(),
+  time_spent_minutes: z.number().nullable(),
+  score: z.number().nullable(),
+  max_score: z.number().nullable(),
+  graded_by: z.number().nullable(),
+  graded_at: z.string().nullable(),
+  feedback: z.string(),
+  ip_address: z.string(),
+  user_agent: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  answers: z.array(backendAnswerDetailSchema),
+  is_submitted: z.boolean(),
+  completion_percentage: z.number(),
+  student_name: z.string(),
+  test_title: z.string(),
+  graded_by_name: z.string().nullable().optional(),
 });
 
 // Question option schema
 export const questionOptionSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   text: z.string().max(300),
   order: z.number(),
   is_correct: z.boolean(),
@@ -69,14 +116,14 @@ export const testDetailSchema = z.object({
   status: z.enum(["draft", "published", "archived"]),
   available_from: z.string().nullable(),
   available_until: z.string().nullable(),
-  is_available: z.string(),
+  is_available: z.boolean(),
   course_name: z.string(),
   cohort_name: z.string(),
   created_by_name: z.string(),
-  total_questions: z.string(),
+  total_questions: z.number(),
   my_submission: submissionSchema.nullable(),
-  my_latest_submission_id: z.number(),
-  my_submission_status: z.string(),
+  my_latest_submission_id: z.number().nullable(),
+  my_submission_status: z.string().nullable(),
   attempts_remaining: z.number(),
   can_attempt: z.boolean(),
   created_at: z.string(),
@@ -103,7 +150,16 @@ export const testsQuerySchema = z.object({
   search: z.string().optional(),
 });
 
-// Answer schemas for different question types
+// Backend-compatible answer schema that matches API specification
+export const backendAnswerSchema = z.object({
+  question: z.string().uuid(),
+  text_answer: z.string().optional(),
+  boolean_answer: z.boolean().optional(),
+  date_answer: z.string().optional(), // YYYY-MM-DD format
+  selected_options: z.array(z.string().uuid()).optional(),
+});
+
+// Frontend answer schemas for form handling (before submission)
 export const textAnswerSchema = z.object({
   question_id: z.string().uuid(),
   text_answer: z.string(),
@@ -114,9 +170,14 @@ export const choiceAnswerSchema = z.object({
   selected_options: z.array(z.string().uuid()),
 });
 
+export const booleanAnswerSchema = z.object({
+  question_id: z.string().uuid(),
+  boolean_answer: z.boolean(),
+});
+
 export const fileAnswerSchema = z.object({
   question_id: z.string().uuid(),
-  file_upload: z.instanceof(File).optional(),
+  file_answer: z.instanceof(File).optional(),
   file_url: z.string().optional(),
 });
 
@@ -131,16 +192,29 @@ export const scriptureAnswerSchema = z.object({
   })),
 });
 
-// Union type for all answer types
-export const answerSchema = z.union([
+// Union type for frontend answer handling
+export const frontendAnswerSchema = z.union([
   textAnswerSchema,
   choiceAnswerSchema,
+  booleanAnswerSchema,
   fileAnswerSchema,
   scriptureAnswerSchema,
 ]);
 
+// Submission creation schema
+export const createSubmissionSchema = z.object({
+  test: z.number(),
+});
+
+// Answer submission schema
+export const submitAnswersSchema = z.object({
+  answers: z.array(backendAnswerSchema),
+});
+
 // Type exports
+export type BackendAnswerDetail = z.infer<typeof backendAnswerDetailSchema>;
 export type Submission = z.infer<typeof submissionSchema>;
+export type SubmissionDetail = z.infer<typeof submissionDetailSchema>;
 export type QuestionOption = z.infer<typeof questionOptionSchema>;
 export type QuestionType = z.infer<typeof questionTypeSchema>;
 export type TestQuestion = z.infer<typeof testQuestionSchema>;
@@ -148,11 +222,15 @@ export type TestDetail = z.infer<typeof testDetailSchema>;
 export type TestListItem = z.infer<typeof testListItemSchema>;
 export type PaginatedTestsResponse = z.infer<typeof paginatedTestsResponseSchema>;
 export type TestsQuery = z.infer<typeof testsQuerySchema>;
-export type Answer = z.infer<typeof answerSchema>;
+export type BackendAnswer = z.infer<typeof backendAnswerSchema>;
+export type FrontendAnswer = z.infer<typeof frontendAnswerSchema>;
 export type TextAnswer = z.infer<typeof textAnswerSchema>;
 export type ChoiceAnswer = z.infer<typeof choiceAnswerSchema>;
+export type BooleanAnswer = z.infer<typeof booleanAnswerSchema>;
 export type FileAnswer = z.infer<typeof fileAnswerSchema>;
 export type ScriptureAnswer = z.infer<typeof scriptureAnswerSchema>;
+export type CreateSubmission = z.infer<typeof createSubmissionSchema>;
+export type SubmitAnswers = z.infer<typeof submitAnswersSchema>;
 
 // UI helper types
 export interface TestCardData {
@@ -318,16 +396,16 @@ export function transformTestToCardData(test: TestListItem): TestCardData {
     courseName: test.course_name,
     cohortName: test.cohort_name,
     createdByName: test.created_by_name,
-    totalQuestions: parseInt(test.total_questions),
+    totalQuestions: test.total_questions,
     timeLimit: test.time_limit_minutes,
     maxAttempts: test.max_attempts,
     attemptsRemaining: test.attempts_remaining,
     canAttempt: test.can_attempt,
-    isAvailable: test.is_available === "true",
+    isAvailable: test.is_available,
     availableFrom,
     availableUntil,
     mySubmission: test.my_submission,
-    submissionStatus: test.my_submission_status,
+    submissionStatus: test.my_submission_status || "Not Started",
     status,
     color: selectedColor.bg,
     textColor: selectedColor.text,
