@@ -45,8 +45,6 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        user = self.user
-        data["role"] = user.role
         
         # Calculate token expiry times
         now = timezone.now()
