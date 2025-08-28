@@ -121,7 +121,10 @@ const headerMap: HeaderMapEntry[] = [
     pattern: /^\/tests\/(\d+)\/take$/,
     component: getGenericHeader("Take Test"),
   },
-  
+  {
+    pattern: /^\/submissions\/(\d+)$/,
+    component: getGenericHeader("Submission Details"),
+  },
 ];
 
 // Default header component
