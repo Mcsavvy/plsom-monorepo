@@ -151,7 +151,7 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
               </Avatar>
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-80" align="end">
+          <PopoverContent className="w-80 z-50" align="end">
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-12 w-12">
@@ -178,10 +178,14 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full justify-start"
+                  className="w-full justify-start touch-manipulation"
                   asChild
                 >
-                  <Link href="/profile">
+                  <Link 
+                    href="/profile" 
+                    className="flex items-center w-full"
+                    style={{ pointerEvents: 'auto' }}
+                  >
                     <User className="mr-2 h-4 w-4" />
                     View Profile
                   </Link>
