@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 import uuid
+from django.core.exceptions import ValidationError
 
 from apps.users.models import User
 from apps.courses.models import Course
@@ -405,3 +406,53 @@ class Answer(models.Model):
             or self.file_answer
             or self.selected_options.exists()
         )
+
+    def validate_for_submission(self):
+        """
+        Validate answer meets all constraints for submission.
+        Raises ValidationError if validation fails.
+        """
+        if not self.has_answer:
+            return  # Empty answers are valid
+            
+        question_type = self.question.question_type
+        
+        # Validate text length for text-based questions
+        if question_type in ["text", "scripture_reference"]:
+            if self.question.text_max_length and len(self.text_answer) > self.question.text_max_length:
+                raise ValidationError(
+                    f"Text answer exceeds maximum length of {self.question.text_max_length} characters"
+                )
+        
+        elif question_type in [
+            "essay", "reflection", "ministry_plan", "theological_position", 
+            "case_study", "sermon_outline"
+        ]:
+            # Validate word count for essay-type questions
+            if self.question.min_word_count or self.question.max_word_count:
+                word_count = len(self.text_answer.split())
+                
+                if self.question.min_word_count and word_count < self.question.min_word_count:
+                    raise ValidationError(
+                        f"Essay answer must be at least {self.question.min_word_count} words (current: {word_count})"
+                    )
+                
+                if self.question.max_word_count and word_count > self.question.max_word_count:
+                    raise ValidationError(
+                        f"Essay answer must be no more than {self.question.max_word_count} words (current: {word_count})"
+                    )
+        
+        # Validate required questions have answers
+        if self.question.is_required and not self.has_answer:
+            raise ValidationError("This question is required")
+
+    def get_validation_errors(self):
+        """
+        Get validation errors without raising exceptions.
+        Returns a list of error messages, empty if valid.
+        """
+        try:
+            self.validate_for_submission()
+            return []
+        except ValidationError as e:
+            return e.messages

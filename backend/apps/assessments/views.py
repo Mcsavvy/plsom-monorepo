@@ -8,7 +8,7 @@ from django.db import transaction, models
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from .models import Test, Question, QuestionOption, Submission
+from .models import Test, Question, QuestionOption, Submission, Answer
 from .serializers import (
     TestSerializer,
     TestListSerializer,
@@ -551,6 +551,339 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             submission.time_spent_minutes = int(time_diff.total_seconds() / 60)
 
         submission.save()
+
+        serializer = self.get_serializer(submission)
+        return Response(serializer.data)
+
+    @extend_schema(
+        description="Create or update answers for an in-progress submission. Accepts a list of answer payloads.",
+        summary="Upsert answers",
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "answers": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "question": {"type": "string", "format": "uuid"},
+                                "text_answer": {"type": "string"},
+                                "boolean_answer": {"type": "boolean"},
+                                "date_answer": {"type": "string", "format": "date"},
+                                "selected_options": {
+                                    "type": "array",
+                                    "items": {"type": "string", "format": "uuid"}
+                                }
+                            },
+                            "required": ["question"]
+                        }
+                    }
+                },
+                "required": ["answers"]
+            }
+        },
+        responses={200: SubmissionSerializer},
+    )
+    @action(detail=True, methods=["post"], url_path="answers")
+    def upsert_answers(self, request, pk=None):
+        """
+        Upsert answers for a submission while it's in progress.
+
+        Expected payload:
+        {
+          "answers": [
+            {"question": "<uuid>", "text_answer": "..."},
+            {"question": "<uuid>", "boolean_answer": true},
+            {"question": "<uuid>", "date_answer": "2025-08-28"},
+            {"question": "<uuid>", "selected_options": ["<uuid>"]}
+          ]
+        }
+        """
+        submission = self.get_object()
+
+        # Only the owner (student) can modify their in-progress submission
+        if request.user.role == "student" and submission.student != request.user:
+            return Response(
+                {"error": "You can only modify your own submission"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if submission.status != "in_progress":
+            return Response(
+                {"error": "Only in-progress submissions can be edited"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        answers_payload = request.data.get("answers", [])
+        if not isinstance(answers_payload, list) or len(answers_payload) == 0:
+            return Response(
+                {"error": "'answers' must be a non-empty list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Cache questions for this test for quick lookup
+        questions_by_id = {str(q.id): q for q in submission.test.questions.all()}
+
+        # Process each answer in a transaction
+        with transaction.atomic():
+            for item in answers_payload:
+                question_id = str(item.get("question"))
+                if not question_id or question_id not in questions_by_id:
+                    raise ValidationError("Invalid question specified")
+
+                question = questions_by_id[question_id]
+
+                # Get or create the Answer object
+                answer, _created = Answer.objects.get_or_create(
+                    submission=submission, question=question
+                )
+
+                # Clear all answer fields first
+                answer.text_answer = ""
+                answer.boolean_answer = None
+                answer.date_answer = None
+                answer.file_answer = None
+
+                # Update based on question type
+                qtype = question.question_type
+                if qtype in [
+                    "text",
+                    "essay",
+                    "reflection",
+                    "ministry_plan",
+                    "theological_position",
+                    "case_study",
+                    "sermon_outline",
+                    "scripture_reference",
+                ]:
+                    answer.text_answer = item.get("text_answer", "") or ""
+                elif qtype == "yes_no":
+                    # Accept explicit boolean or null to clear
+                    if "boolean_answer" in item:
+                        answer.boolean_answer = item.get("boolean_answer")
+                elif qtype == "document_upload":
+                    # File uploads should be handled via a dedicated upload endpoint
+                    # Keep as is; no update here from JSON-only payload
+                    pass
+                elif qtype in ["single_choice", "multiple_choice"]:
+                    option_ids = item.get("selected_options", []) or []
+                    # Validate options belong to this question
+                    valid_options = list(
+                        question.options.filter(id__in=option_ids).values_list("id", flat=True)
+                    )
+                    if qtype == "single_choice" and len(valid_options) > 1:
+                        raise ValidationError(
+                            f"Question {question.id} expects a single option"
+                        )
+                    # Defer setting M2M until after saving
+                    answer.save()
+                    answer.selected_options.set(valid_options)
+                    continue  # Skip final save below since we already saved
+                else:
+                    # Unknown type; skip safely
+                    pass
+
+                answer.save()
+
+        serializer = self.get_serializer(submission)
+        return Response(serializer.data)
+
+    @extend_schema(
+        description="Upload a document for a document_upload question in an in-progress submission",
+        summary="Upload document",
+        request={
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {
+                    "question": {"type": "string", "format": "uuid"},
+                    "file": {"type": "string", "format": "binary"}
+                },
+                "required": ["question", "file"]
+            }
+        },
+        responses={200: SubmissionSerializer},
+    )
+    @action(detail=True, methods=["post"], url_path="upload")
+    def upload_document(self, request, pk=None):
+        """
+        Upload a document for a document_upload question.
+
+        Expected multipart form data:
+        - question: UUID of the document_upload question
+        - file: The file to upload
+        """
+        submission = self.get_object()
+
+        # Only the owner (student) can upload documents
+        if request.user.role == "student" and submission.student != request.user:
+            return Response(
+                {"error": "You can only upload documents to your own submission"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if submission.status != "in_progress":
+            return Response(
+                {"error": "Documents can only be uploaded to in-progress submissions"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        question_id = request.data.get("question")
+        uploaded_file = request.FILES.get("file")
+
+        if not question_id:
+            return Response(
+                {"error": "question field is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not uploaded_file:
+            return Response(
+                {"error": "file field is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            question = submission.test.questions.get(id=question_id)
+        except Question.DoesNotExist:
+            return Response(
+                {"error": "Question not found in this test"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if question.question_type != "document_upload":
+            return Response(
+                {"error": "This question does not accept file uploads"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate file size
+        if question.max_file_size_mb:
+            max_size_bytes = question.max_file_size_mb * 1024 * 1024
+            if uploaded_file.size > max_size_bytes:
+                return Response(
+                    {
+                        "error": f"File size exceeds maximum allowed size of {question.max_file_size_mb}MB"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Validate file type if restrictions are set
+        if question.allowed_file_types:
+            allowed_extensions = [
+                ext.strip().lower()
+                for ext in question.allowed_file_types.split(",")
+                if ext.strip()
+            ]
+            
+            file_extension = uploaded_file.name.split(".")[-1].lower()
+            if file_extension not in allowed_extensions:
+                return Response(
+                    {
+                        "error": f"File type not allowed. Allowed types: {', '.join(allowed_extensions)}"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Get or create the answer and save the file
+        answer, created = Answer.objects.get_or_create(
+            submission=submission, question=question
+        )
+
+        # Clear other answer fields
+        answer.text_answer = ""
+        answer.boolean_answer = None
+        answer.date_answer = None
+        answer.selected_options.clear()
+
+        # Save the file
+        answer.file_answer = uploaded_file
+        answer.save()
+
+        serializer = self.get_serializer(submission)
+        return Response(serializer.data)
+
+    @extend_schema(
+        description="Delete an uploaded document for a document_upload question in an in-progress submission",
+        summary="Delete document",
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "question": {"type": "string", "format": "uuid"}
+                },
+                "required": ["question"]
+            }
+        },
+        responses={200: SubmissionSerializer},
+    )
+    @action(detail=True, methods=["delete"], url_path="delete-document")
+    def delete_document(self, request, pk=None):
+        """
+        Delete an uploaded document for a document_upload question.
+
+        Expected JSON payload:
+        {
+          "question": "uuid-of-document-upload-question"
+        }
+        """
+        submission = self.get_object()
+
+        # Only the owner (student) can delete documents
+        if request.user.role == "student" and submission.student != request.user:
+            return Response(
+                {"error": "You can only delete documents from your own submission"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if submission.status != "in_progress":
+            return Response(
+                {"error": "Documents can only be deleted from in-progress submissions"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        question_id = request.data.get("question")
+
+        if not question_id:
+            return Response(
+                {"error": "question field is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            question = submission.test.questions.get(id=question_id)
+        except Question.DoesNotExist:
+            return Response(
+                {"error": "Question not found in this test"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if question.question_type != "document_upload":
+            return Response(
+                {"error": "This question does not accept file uploads"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get the answer for this question
+        try:
+            answer = submission.answers.get(question=question)
+        except Answer.DoesNotExist:
+            return Response(
+                {"error": "No answer found for this question"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if there's actually a file to delete
+        if not answer.file_answer:
+            return Response(
+                {"error": "No file uploaded for this question"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Delete the file and clear the field
+        answer.file_answer.delete(save=False)  # Delete the file from storage
+        answer.file_answer = None
+        answer.save()
 
         serializer = self.get_serializer(submission)
         return Response(serializer.data)

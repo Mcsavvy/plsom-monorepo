@@ -364,17 +364,6 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'user_agent': {'read_only': True}
         }
 
-class StudentSubmissionSerializer(serializers.ModelSerializer):
-    """Serializer for student submissions"""
-    
-    class Meta:
-        model = Submission
-        fields = [
-            'id', 'test', 'attempt_number', 'status',
-            'started_at', 'submitted_at', 'score', 'max_score',
-            'completion_percentage', 'time_spent_minutes'
-        ]
-
 
 class StudentTestSerializer(serializers.ModelSerializer):
     """Serializer for tests viewed by students with submission information"""
@@ -400,7 +389,7 @@ class StudentTestSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
     
-    @extend_schema_field(StudentSubmissionSerializer)
+    @extend_schema_field(SubmissionSerializer)
     def get_my_submission(self, obj):
         """Get student's latest submission for this test"""
         request = self.context.get("request")
@@ -410,7 +399,7 @@ class StudentTestSerializer(serializers.ModelSerializer):
         latest_submission = obj.submissions.filter(student=request.user).order_by('-created_at').first()
         
         if latest_submission:
-            return StudentSubmissionSerializer(latest_submission).data
+            return SubmissionSerializer(latest_submission).data
         return None
     
     @extend_schema_field(serializers.IntegerField)
