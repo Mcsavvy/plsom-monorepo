@@ -431,10 +431,22 @@ class TestViewSet(viewsets.ModelViewSet):
                 stats["average_completion_time"] = float(avg_time) if avg_time else None
 
             # Calculate average score
-            graded_submissions = submissions.exclude(score__isnull=True)
+            graded_submissions = submissions.filter(status__in=["graded", "returned"])
             if graded_submissions.exists():
-                avg_score = graded_submissions.aggregate(avg=models.Avg("score"))["avg"]
-                stats["average_score"] = float(avg_score) if avg_score else None
+                total_score = 0
+                submission_count = 0
+                
+                for submission in graded_submissions:
+                    if submission.score is not None:
+                        total_score += submission.score
+                        submission_count += 1
+                
+                if submission_count > 0:
+                    stats["average_score"] = round(total_score / submission_count, 2)
+                else:
+                    stats["average_score"] = None
+            else:
+                stats["average_score"] = None
 
         return Response(stats)
 
@@ -481,7 +493,7 @@ class SubmissionViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, OrderingFilter]
 
     search_fields = ["test__title", "student__first_name", "student__last_name"]
-    ordering_fields = ["created_at", "submitted_at", "score"]
+    ordering_fields = ["created_at", "submitted_at"]
     ordering = ["-created_at"]
 
     def get_queryset(self):
@@ -491,9 +503,16 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         if self.request.user.role == "student":
             # Students can only see their own submissions
             queryset = queryset.filter(student=self.request.user)
-        elif self.request.user.role == "lecturer":
+            return queryset
+        # staffs cannot see in-progress submissions
+        queryset = queryset.exclude(status="in_progress")
+        if self.request.user.role == "lecturer":
             # Lecturers can see submissions for tests they created
-            queryset = queryset.filter(test__created_by=self.request.user)
+            # and tests created for their courses
+            queryset = queryset.filter(
+                test__created_by=self.request.user,
+                test__course__lecturer=self.request.user,
+            )
 
         return queryset
 
@@ -573,14 +592,14 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                                 "date_answer": {"type": "string", "format": "date"},
                                 "selected_options": {
                                     "type": "array",
-                                    "items": {"type": "string", "format": "uuid"}
-                                }
+                                    "items": {"type": "string", "format": "uuid"},
+                                },
                             },
-                            "required": ["question"]
-                        }
+                            "required": ["question"],
+                        },
                     }
                 },
-                "required": ["answers"]
+                "required": ["answers"],
             }
         },
         responses={200: SubmissionSerializer},
@@ -670,7 +689,9 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                     option_ids = item.get("selected_options", []) or []
                     # Validate options belong to this question
                     valid_options = list(
-                        question.options.filter(id__in=option_ids).values_list("id", flat=True)
+                        question.options.filter(id__in=option_ids).values_list(
+                            "id", flat=True
+                        )
                     )
                     if qtype == "single_choice" and len(valid_options) > 1:
                         raise ValidationError(
@@ -697,9 +718,9 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                 "type": "object",
                 "properties": {
                     "question": {"type": "string", "format": "uuid"},
-                    "file": {"type": "string", "format": "binary"}
+                    "file": {"type": "string", "format": "binary"},
                 },
-                "required": ["question", "file"]
+                "required": ["question", "file"],
             }
         },
         responses={200: SubmissionSerializer},
@@ -775,7 +796,7 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                 for ext in question.allowed_file_types.split(",")
                 if ext.strip()
             ]
-            
+
             file_extension = uploaded_file.name.split(".")[-1].lower()
             if file_extension not in allowed_extensions:
                 return Response(
@@ -809,10 +830,8 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         request={
             "application/json": {
                 "type": "object",
-                "properties": {
-                    "question": {"type": "string", "format": "uuid"}
-                },
-                "required": ["question"]
+                "properties": {"question": {"type": "string", "format": "uuid"}},
+                "required": ["question"],
             }
         },
         responses={200: SubmissionSerializer},
@@ -886,4 +905,110 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         answer.save()
 
         serializer = self.get_serializer(submission)
+        return Response(serializer.data)
+
+    @extend_schema(
+        description="Grade a submission with individual answer scores and feedback (staff only)",
+        summary="Grade submission",
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "answers": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "answer_id": {"type": "string", "format": "uuid"},
+                                "points_earned": {"type": "number", "format": "float"},
+                                "feedback": {"type": "string"},
+                                "is_flagged": {"type": "boolean"},
+                            },
+                            "required": ["answer_id", "points_earned"],
+                        },
+                    },
+                    "feedback": {"type": "string"},
+                    "return": {"type": "boolean"},
+                },
+                "required": ["answers"],
+            }
+        },
+        responses={200: SubmissionSerializer},
+    )
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="grade",
+        permission_classes=[IsAuthenticated, IsLecturerOrAdmin],
+    )
+    def grade_submission(self, request, pk=None):
+        """
+        Grade a submission with individual answer scores and feedback.
+        Only available to staff (lecturers and admins).
+        """
+        submission = self.get_object()
+
+        # Check if submission is ready for grading
+        if submission.status not in ["submitted", "returned", "graded"]:
+            return Response(
+                {"error": "Only submitted or returned submissions can be graded"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        answers_data = request.data.get("answers", [])
+        general_feedback = request.data.get("feedback", "")
+        return_submission = request.data.get("return", False)
+        if not isinstance(answers_data, list):
+            return Response(
+                {"error": "'answers' must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Process grading in a transaction
+        with transaction.atomic():
+            for answer_data in answers_data:
+                answer_id = answer_data.get("answer_id")
+                points_earned = answer_data.get("points_earned")
+                feedback = answer_data.get("feedback", "")
+                is_flagged = answer_data.get("is_flagged", False)
+
+                if not answer_id:
+                    raise ValidationError("answer_id is required for each answer")
+
+                try:
+                    answer = submission.answers.get(id=answer_id)
+                except Answer.DoesNotExist:
+                    raise ValidationError(f"Answer with id {answer_id} not found")
+
+                # Validate points earned
+                if points_earned is None:
+                    raise ValidationError("points_earned is required for each answer")
+
+                if points_earned < 0:
+                    raise ValidationError("points_earned cannot be negative")
+
+                if (
+                    answer.question.max_points
+                    and points_earned > answer.question.max_points
+                ):
+                    raise ValidationError(
+                        f"points_earned cannot exceed max_points ({answer.question.max_points})"
+                    )
+
+                # Update answer
+                answer.points_earned = points_earned
+                answer.feedback = feedback
+                answer.is_flagged = is_flagged
+                answer.save()
+
+            # Update submission
+            submission.feedback = general_feedback
+            submission.graded_by = request.user
+            submission.graded_at = timezone.now()
+            submission.status = "graded"
+            if return_submission:
+                submission.status = "returned"
+            submission.save()
+
+        serializer = SubmissionSerializer(submission)
         return Response(serializer.data)

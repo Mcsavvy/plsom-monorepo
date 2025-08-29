@@ -93,7 +93,7 @@ class AnswerInline(admin.TabularInline):
 
 @admin.register(Submission)
 class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ['student', 'test', 'status', 'attempt_number', 'submitted_at', 'score']
+    list_display = ['student', 'test', 'status', 'attempt_number', 'submitted_at']
     list_filter = ['status', 'test__course', 'test__cohort', 'submitted_at']
     search_fields = ['student__email', 'student__first_name', 'student__last_name', 'test__title']
     readonly_fields = ['started_at', 'created_at', 'updated_at', 'completion_percentage']
@@ -107,7 +107,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             'fields': ('started_at', 'submitted_at', 'time_spent_minutes')
         }),
         ('Grading', {
-            'fields': ('score', 'max_score', 'graded_by', 'graded_at', 'feedback'),
+            'fields': ('graded_by', 'graded_at', 'feedback'),
             'classes': ('collapse',)
         }),
         ('Metadata', {
@@ -136,7 +136,7 @@ class AnswerAdmin(admin.ModelAdmin):
             'fields': ('text_answer', 'boolean_answer', 'date_answer', 'file_answer', 'selected_options')
         }),
         ('Grading', {
-            'fields': ('points_earned', 'max_points', 'feedback'),
+            'fields': ('points_earned', 'feedback'),
             'classes': ('collapse',)
         }),
         ('Metadata', {

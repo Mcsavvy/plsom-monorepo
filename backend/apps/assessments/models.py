@@ -54,6 +54,11 @@ class Test(models.Model):
         default=False, help_text="Randomize question order for each student"
     )
 
+    # Grading settings
+    total_points = models.FloatField(
+        default=0.0, help_text="Total possible points for this test"
+    )
+
     # Status and dates
     status = models.CharField(
         max_length=20, choices=SUBMISSION_STATUS_CHOICES, default="draft"
@@ -102,6 +107,13 @@ class Test(models.Model):
     def total_submissions(self):
         """Get total number of submissions for this test"""
         return self.submissions.count()
+
+    def calculate_total_points(self):
+        """Calculate total points from all questions"""
+        total = sum(question.max_points or 0 for question in self.questions.all())
+        self.total_points = total
+        self.save(update_fields=['total_points'])
+        return total
 
 
 class Question(models.Model):
@@ -170,6 +182,11 @@ class Question(models.Model):
     )
     text_placeholder = models.CharField(
         max_length=200, blank=True, help_text="Placeholder text for input fields"
+    )
+
+    # Grading settings
+    max_points = models.FloatField(
+        default=1.0, help_text="Maximum points possible for this question"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -255,13 +272,7 @@ class Submission(models.Model):
         null=True, blank=True, help_text="Total time spent on the test in minutes"
     )
 
-    # Grading (for future manual grading features)
-    score = models.FloatField(
-        null=True, blank=True, help_text="Overall score (if graded)"
-    )
-    max_score = models.FloatField(
-        null=True, blank=True, help_text="Maximum possible score"
-    )
+    # Grading tracking
     graded_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -311,6 +322,22 @@ class Submission(models.Model):
         ).count()
         return (answered_questions / total_questions) * 100
 
+    @property
+    def score(self):
+        """Calculate total score from all graded answers"""
+        if self.status not in ["graded", "returned"]:
+            return None
+        total_score = sum(
+            answer.points_earned or 0 
+            for answer in self.answers.filter(points_earned__isnull=False)
+        )
+        return total_score
+
+    @property
+    def max_score(self):
+        """Get maximum possible score for this test"""
+        return self.test.total_points
+
 
 class Answer(models.Model):
     """
@@ -345,9 +372,6 @@ class Answer(models.Model):
     # Individual question feedback (for manual grading)
     points_earned = models.FloatField(
         null=True, blank=True, help_text="Points earned for this answer"
-    )
-    max_points = models.FloatField(
-        null=True, blank=True, help_text="Maximum points possible for this question"
     )
     feedback = models.TextField(
         blank=True, help_text="Specific feedback for this answer"
@@ -406,6 +430,11 @@ class Answer(models.Model):
             or self.file_answer
             or self.selected_options.exists()
         )
+
+    @property
+    def max_points(self):
+        """Get maximum points from the question"""
+        return self.question.max_points
 
     def validate_for_submission(self):
         """

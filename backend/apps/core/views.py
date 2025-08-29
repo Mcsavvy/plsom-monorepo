@@ -384,12 +384,22 @@ class DashboardStatsView(generics.GenericAPIView):
         
         # Calculate average test score
         completed_submissions = submissions.filter(
-            status__in=["submitted", "graded"]
-        ).exclude(score__isnull=True)
+            status__in=["graded", "returned"]
+        )
         
         if completed_submissions.exists():
-            avg_score = completed_submissions.aggregate(avg=Avg("score"))["avg"]
-            assessment_stats["avg_test_score"] = round(float(avg_score), 2) if avg_score else 0
+            total_score = 0
+            submission_count = 0
+            
+            for submission in completed_submissions:
+                if submission.score is not None:
+                    total_score += submission.score
+                    submission_count += 1
+            
+            if submission_count > 0:
+                assessment_stats["avg_test_score"] = round(total_score / submission_count, 2)
+            else:
+                assessment_stats["avg_test_score"] = 0
         else:
             assessment_stats["avg_test_score"] = 0
         
