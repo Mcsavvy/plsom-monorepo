@@ -9,6 +9,7 @@ import {
   Layers,
   Presentation,
   FileText,
+  ClipboardCheck,
 } from 'lucide-react';
 import React from 'react';
 import {
@@ -20,8 +21,8 @@ import {
   transformCourse,
   transformClass,
   transformTestListItem,
-  transformTestDetail,
-  transformTestStatistics,
+  transformSubmissionListItem,
+  transformSubmission,
 } from '@/utils/dataTransformers';
 
 export const API_URL = import.meta.env.VITE_API_URL;
@@ -41,6 +42,26 @@ export const RESOURCES: ResourceProps[] = [
     meta: {
       canDelete: true,
       icon: React.createElement(Layers),
+    },
+  },
+  {
+    name: 'invitations',
+    list: '/invitations',
+    create: '/invitations/create',
+    edit: '/invitations/:id/edit',
+    show: '/invitations/:id',
+    meta: {
+      canDelete: true,
+      icon: React.createElement(MailPlus),
+    },
+  },
+  {
+    name: 'enrollments',
+    list: '/enrollments',
+    show: '/enrollments/:id',
+    meta: {
+      canDelete: false,
+      icon: React.createElement(ListCheck),
     },
   },
   {
@@ -64,26 +85,6 @@ export const RESOURCES: ResourceProps[] = [
     },
   },
   {
-    name: 'enrollments',
-    list: '/enrollments',
-    show: '/enrollments/:id',
-    meta: {
-      canDelete: false,
-      icon: React.createElement(ListCheck),
-    },
-  },
-  {
-    name: 'invitations',
-    list: '/invitations',
-    create: '/invitations/create',
-    edit: '/invitations/:id/edit',
-    show: '/invitations/:id',
-    meta: {
-      canDelete: true,
-      icon: React.createElement(MailPlus),
-    },
-  },
-  {
     name: 'courses',
     list: '/courses',
     create: '/courses/create',
@@ -92,6 +93,17 @@ export const RESOURCES: ResourceProps[] = [
     meta: {
       canDelete: true,
       icon: React.createElement(BookOpen),
+    },
+  },
+  {
+    name: 'classes',
+    list: '/classes',
+    create: '/classes/create',
+    edit: '/classes/:id/edit',
+    show: '/classes/:id',
+    meta: {
+      canDelete: true,
+      icon: React.createElement(Presentation),
     },
   },
   {
@@ -106,14 +118,13 @@ export const RESOURCES: ResourceProps[] = [
     },
   },
   {
-    name: 'classes',
-    list: '/classes',
-    create: '/classes/create',
-    edit: '/classes/:id/edit',
-    show: '/classes/:id',
+    name: 'submissions',
+    list: '/submissions',
+    show: '/submissions/:id',
+    edit: '/submissions/:id/grade',
     meta: {
-      canDelete: true,
-      icon: React.createElement(Presentation),
+      canDelete: false,
+      icon: React.createElement(ClipboardCheck),
     },
   },
   {
@@ -136,4 +147,6 @@ export const transformers: Record<string, (data: any) => any> = {
   courses: transformCourse,
   classes: transformClass,
   tests: transformTestListItem,
+  submissions: transformSubmissionListItem,
+  'submissions-show': transformSubmission,
 };

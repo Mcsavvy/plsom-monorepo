@@ -40,6 +40,11 @@ import {
   ClassesEdit,
 } from './pages/classes';
 import { TestsList, TestsShow, TestsCreate, TestsEdit } from './pages/tests';
+import {
+  SubmissionsList,
+  SubmissionShow,
+  SubmissionGrade,
+} from './pages/submissions';
 import { Onboard } from './pages/onboard';
 import PageNotFound from './pages/404';
 import { AuditLogsList, AuditLogsShow } from './pages/audit-logs';
@@ -109,6 +114,9 @@ const EnhancedTestsList = withErrorBoundary(TestsList);
 const EnhancedTestsShow = withErrorBoundary(TestsShow);
 const EnhancedTestsCreate = withErrorBoundary(TestsCreate);
 const EnhancedTestsEdit = withErrorBoundary(TestsEdit);
+const EnhancedSubmissionsList = withErrorBoundary(SubmissionsList);
+const EnhancedSubmissionsShow = withErrorBoundary(SubmissionShow);
+const EnhancedSubmissionGrade = withErrorBoundary(SubmissionGrade);
 const EnhancedLogin = withErrorBoundary(Login);
 const EnhancedForgotPassword = withErrorBoundary(ForgotPassword);
 const EnhancedResetPassword = withErrorBoundary(ResetPassword);
@@ -227,6 +235,18 @@ function App() {
                     element={<EnhancedTestsEdit />}
                   />
                   <Route path='tests/:id' element={<EnhancedTestsShow />} />
+                  <Route
+                    path='submissions'
+                    element={<EnhancedSubmissionsList />}
+                  />
+                  <Route
+                    path='submissions/:id'
+                    element={<EnhancedSubmissionsShow />}
+                  />
+                  <Route
+                    path='submissions/:id/grade'
+                    element={<EnhancedSubmissionGrade />}
+                  />
                   <Route
                     path='invitations'
                     element={<EnhancedInvitationsList />}

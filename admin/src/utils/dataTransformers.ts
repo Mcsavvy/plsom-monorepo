@@ -22,6 +22,13 @@ import {
   QuestionOptionResponse,
   QuestionOption,
 } from '@/types/test';
+import {
+  SubmissionListResponse,
+  SubmissionAnswerResponse,
+  Submission,
+  SubmissionListItem,
+  SubmissionAnswer,
+} from '@/types/submission';
 
 export function transformAuditLog(djangoLog: AuditLogResponse): AuditLog {
   return {
@@ -640,5 +647,88 @@ export function transformTestStatistics(
     formattedAverageTime: formatAverageTime(
       statsResponse.average_completion_time
     ),
+  };
+}
+
+export function transformSubmissionAnswer(
+  answerResponse: SubmissionAnswerResponse
+): SubmissionAnswer {
+  return {
+    id: answerResponse.id,
+    question: answerResponse.question,
+    textAnswer: answerResponse.text_answer,
+    booleanAnswer: answerResponse.boolean_answer,
+    dateAnswer: answerResponse.date_answer,
+    fileAnswer: answerResponse.file_answer,
+    selectedOptions: answerResponse.selected_options,
+    answeredAt: answerResponse.answered_at,
+    isFlagged: answerResponse.is_flagged,
+    pointsEarned: answerResponse.points_earned,
+    maxPoints: answerResponse.max_points,
+    feedback: answerResponse.feedback,
+    displayAnswer: answerResponse.display_answer,
+    hasAnswer: answerResponse.has_answer,
+    questionTitle: answerResponse.question_title,
+    questionType: answerResponse.question_type,
+    questionDescription: answerResponse.question_description,
+  };
+}
+
+export function transformSubmission(
+  submissionResponse: SubmissionListResponse
+): Submission {
+  return {
+    id: submissionResponse.id,
+    test: submissionResponse.test,
+    student: submissionResponse.student,
+    attemptNumber: submissionResponse.attempt_number,
+    status: submissionResponse.status,
+    startedAt: submissionResponse.started_at,
+    submittedAt: submissionResponse.submitted_at,
+    timeSpentMinutes: submissionResponse.time_spent_minutes,
+    score: submissionResponse.score,
+    maxScore: submissionResponse.max_score,
+    gradedBy: submissionResponse.graded_by,
+    gradedAt: submissionResponse.graded_at,
+    feedback: submissionResponse.feedback,
+    createdAt: submissionResponse.created_at,
+    updatedAt: submissionResponse.updated_at,
+    answers: submissionResponse.answers.map(transformSubmissionAnswer),
+    isSubmitted: submissionResponse.is_submitted,
+    completionPercentage: submissionResponse.completion_percentage,
+    studentName: submissionResponse.student_name,
+    studentEmail: submissionResponse.student_email,
+    testTitle: submissionResponse.test_title,
+    testTotalPoints: submissionResponse.test_total_points,
+    gradedByName: submissionResponse.graded_by_name,
+  };
+}
+
+export function transformSubmissionListItem(
+  submissionResponse: SubmissionListResponse
+): SubmissionListItem {
+  return {
+    id: submissionResponse.id,
+    test: submissionResponse.test,
+    student: submissionResponse.student,
+    attemptNumber: submissionResponse.attempt_number,
+    status: submissionResponse.status,
+    startedAt: submissionResponse.started_at,
+    submittedAt: submissionResponse.submitted_at,
+    timeSpentMinutes: submissionResponse.time_spent_minutes,
+    score: submissionResponse.score,
+    maxScore: submissionResponse.max_score,
+    gradedBy: submissionResponse.graded_by,
+    gradedAt: submissionResponse.graded_at,
+    feedback: submissionResponse.feedback,
+    createdAt: submissionResponse.created_at,
+    updatedAt: submissionResponse.updated_at,
+    isSubmitted: submissionResponse.is_submitted,
+    completionPercentage: submissionResponse.completion_percentage,
+    studentName: submissionResponse.student_name,
+    studentEmail: submissionResponse.student_email,
+    testTitle: submissionResponse.test_title,
+    testTotalPoints: submissionResponse.test_total_points,
+    gradedByName: submissionResponse.graded_by_name,
   };
 }
