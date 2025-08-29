@@ -247,7 +247,9 @@ export const CoursesCreate: React.FC = () => {
                     ) : (
                       <Select
                         onValueChange={value =>
-                          field.onChange(value ? parseInt(value) : undefined)
+                          field.onChange(
+                            value !== 'none' ? parseInt(value) : undefined
+                          )
                         }
                         value={field.value?.toString()}
                       >
@@ -257,7 +259,9 @@ export const CoursesCreate: React.FC = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value=''>No lecturer assigned</SelectItem>
+                          <SelectItem value='none'>
+                            No lecturer assigned
+                          </SelectItem>
                           {lecturers.map(lecturer => (
                             <SelectItem
                               key={lecturer.id}
