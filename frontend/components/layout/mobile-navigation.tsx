@@ -185,7 +185,8 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
                   asChild
                 >
                   <Link 
-                    href="/profile" 
+                    href="/profile"
+                    prefetch
                     className="flex items-center w-full"
                     style={{ pointerEvents: 'auto' }}
                   >
@@ -276,6 +277,7 @@ export function MobileNavigation() {
         <div className="flex h-16 items-center justify-around px-2">
           {navigationItems.map(item => (
             <Link
+              prefetch
               key={item.href}
               href={item.href}
               className={`flex min-w-0 flex-1 flex-col items-center justify-center space-y-1 rounded-lg p-2 transition-colors ${

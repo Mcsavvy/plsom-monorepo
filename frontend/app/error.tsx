@@ -68,7 +68,7 @@ export default function Error({
               Try Again
             </Button>
             <Button variant="outline" asChild className="w-full sm:w-auto">
-              <Link href="/" className="flex items-center gap-2">
+              <Link href="/" prefetch className="flex items-center gap-2">
                 <Home className="w-4 h-4" />
                 Go Home
               </Link>
@@ -80,15 +80,15 @@ export default function Error({
         <div className="text-sm text-muted-foreground space-y-2">
           <p>If this problem persists, please contact support.</p>
           <div className="flex flex-wrap justify-center gap-2 text-xs">
-            <Link href="/" className="hover:text-primary underline">
+            <Link href="/" prefetch className="hover:text-primary underline">
               Dashboard
             </Link>
             <span>•</span>
-            <Link href="/profile" className="hover:text-primary underline">
+            <Link href="/profile" prefetch className="hover:text-primary underline">
               Profile
             </Link>
             <span>•</span>
-            <Link href="/login" className="hover:text-primary underline">
+            <Link href="/login" prefetch className="hover:text-primary underline">
               Login
             </Link>
           </div>

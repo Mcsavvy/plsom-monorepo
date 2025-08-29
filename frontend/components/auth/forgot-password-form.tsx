@@ -92,7 +92,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
 
               <div className="flex flex-col space-y-3">
                 <Button asChild className="w-full">
-                  <Link href="/login">
+                  <Link href="/login" prefetch>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Sign In
                   </Link>
@@ -185,6 +185,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
 
             <div className="mt-6 text-center">
               <Link
+                prefetch
                 href="/login"
                 className="text-primary hover:text-primary/80 inline-flex items-center text-sm transition-colors"
               >

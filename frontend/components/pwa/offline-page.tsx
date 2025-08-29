@@ -120,19 +120,19 @@ export function OfflinePage() {
           <CardContent>
             <div className="grid gap-2 sm:grid-cols-2">
               <Button variant="outline" asChild className="justify-start">
-                <Link href="/">
+                <Link href="/" prefetch>
                   <Home className="mr-2 h-4 w-4" />
                   Home
                 </Link>
               </Button>
               <Button variant="outline" asChild className="justify-start">
-                <Link href="/courses">
+                <Link href="/courses" prefetch>
                   <BookOpen className="mr-2 h-4 w-4" />
                   Courses
                 </Link>
               </Button>
               <Button variant="outline" asChild className="justify-start">
-                <Link href="/profile">
+                <Link href="/profile" prefetch>
                   <Users className="mr-2 h-4 w-4" />
                   Profile
                 </Link>
