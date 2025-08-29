@@ -32,7 +32,7 @@ server {
         
         # Content Security Policy - allows API connections
         # Customize these domains for your environment
-        add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://api.plsom.com https://*.plsom.com https://localhost:* http://localhost:*; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;" always;
+        add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://api.plsom.com https://*.plsom.com https://localhost:* http://localhost:*; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com;" always;
     }
 
     # Static asset caching with versioning support
