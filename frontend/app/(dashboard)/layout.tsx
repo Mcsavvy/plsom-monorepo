@@ -1,7 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import { SessionRefresher } from "@/components/auth/session-refresher";
-import { MobileLayout } from "@/components/layout/mobile-layout";
+import { ResponsiveLayout } from "@/components/layout/responsive-layout";
 import { ProtectedPageWrapper } from "@/components/wrappers";
 
 export const metadata: Metadata = {
@@ -16,7 +16,13 @@ export default function DashboardLayout({
   return (
     <ProtectedPageWrapper>
       <SessionRefresher />
-      <MobileLayout installButtonVariant="banner">{children}</MobileLayout>
+      <ResponsiveLayout
+        showInstallButton={true}
+        showNetworkStatus={true}
+        sidebarDefaultOpen={true}
+      >
+        {children}
+      </ResponsiveLayout>
     </ProtectedPageWrapper>
   );
 }
