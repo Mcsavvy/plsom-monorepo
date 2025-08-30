@@ -1,7 +1,7 @@
 import { Refine, Authenticated } from '@refinedev/core';
 
 import routerBindings from '@refinedev/react-router';
-import { BrowserRouter, Route, Routes, Outlet, Navigate } from 'react-router';
+import { BrowserRouter, Route, Routes as ReactRoutes, Outlet, Navigate, useRoutes } from 'react-router';
 import './App.css';
 import { authProvider } from './providers/authProvider';
 import { dataProvider } from './providers/dataProvider';
@@ -56,6 +56,7 @@ import { Suspense } from 'react';
 import { FullPageLoader, InlineLoader } from './components/LoadingSpinner';
 import { DocumentTitleHandler } from './components/DocumentTitleHandler';
 import { ClassAttendance } from './pages/classes/attendance';
+import { withSentryReactRouterV7Routing } from '@sentry/react';
 
 // Authenticated layout wrapper with error boundary
 const AuthenticatedLayout = () => (
@@ -82,6 +83,8 @@ const UnauthenticatedLayout = () => (
     <Navigate to='/' replace />
   </Authenticated>
 );
+
+const Routes = withSentryReactRouterV7Routing(ReactRoutes);
 
 // Enhanced Dashboard with error boundary
 const EnhancedDashboard = withErrorBoundary(Dashboard);
@@ -128,11 +131,7 @@ function App() {
   return (
     <ErrorBoundary
       onError={(error, errorInfo) => {
-        // Log to monitoring service in production
         console.error('App-level error:', error, errorInfo);
-
-        // You can integrate with error monitoring services here
-        // Example: Sentry.captureException(error, { contexts: { errorInfo } });
       }}
     >
       <BrowserRouter>

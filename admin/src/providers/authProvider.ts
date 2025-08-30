@@ -3,6 +3,7 @@ import axiosInstance from '../axios';
 import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '../constants';
 import { UserResponse, UserIdentity } from '@/types/user';
 import { transformUser } from '@/utils/dataTransformers';
+import * as Sentry from "@sentry/react";
 
 interface LoginResponse {
   access: string;
@@ -188,6 +189,12 @@ export const authProvider: AuthProvider = {
 
       if (response.status === 200) {
         const user = transformUser(response.data);
+        Sentry.setUser({
+          id: user.id,
+          email: user.email,
+          username: user.email,
+          role: user.role,
+        });
         return user;
       }
     } catch (error) {
@@ -198,6 +205,7 @@ export const authProvider: AuthProvider = {
   },
 
   onError: async error => {
+    Sentry.captureException(error);
     if (error.status === 401) {
       // Try to refresh token
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
