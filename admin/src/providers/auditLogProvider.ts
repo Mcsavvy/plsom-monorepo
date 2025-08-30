@@ -83,7 +83,7 @@ export const auditLogProvider: AuditLogProvider = {
     try {
       const response = await axiosInstance.post('/audit-logs/', auditData);
       return {
-        data: transformAuditLog(response.data),
+        data: response.data,
         success: true,
       };
     } catch (error) {
