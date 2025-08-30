@@ -43,6 +43,7 @@ export interface CourseCreateRequest {
   name: string;
   description: string;
   program_type: 'certificate' | 'diploma';
+  module_count: number;
   is_active?: boolean;
 }
 
@@ -50,6 +51,7 @@ export interface CourseUpdateRequest {
   name?: string;
   description?: string;
   program_type?: 'certificate' | 'diploma';
+  module_count?: number;
   is_active?: boolean;
 }
 

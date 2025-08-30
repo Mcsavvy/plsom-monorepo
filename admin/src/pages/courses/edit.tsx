@@ -49,6 +49,10 @@ const formSchema = z.object({
   program_type: z.enum(['certificate', 'diploma'], {
     message: 'Please select a program type',
   }),
+  module_count: z
+    .number()
+    .min(1, 'Module count must be at least 1')
+    .max(50, 'Module count cannot exceed 50'),
   is_active: z.boolean(),
   lecturer_id: z.number().optional(),
 });
@@ -91,6 +95,7 @@ export const CoursesEdit: React.FC = () => {
       name: '',
       description: '',
       program_type: 'certificate',
+      module_count: 1,
       is_active: true,
       lecturer_id: undefined,
     },
@@ -102,6 +107,7 @@ export const CoursesEdit: React.FC = () => {
         name: course.name,
         description: course.description,
         program_type: course.programType,
+        module_count: course.moduleCount,
         is_active: course.isActive,
         lecturer_id: course.lecturer?.id,
       });
@@ -119,6 +125,7 @@ export const CoursesEdit: React.FC = () => {
         name: data.name,
         description: data.description,
         program_type: data.program_type,
+        module_count: data.module_count,
         is_active: data.is_active,
         ...(data.lecturer_id && { lecturer_id: data.lecturer_id }),
       };
@@ -254,6 +261,34 @@ export const CoursesEdit: React.FC = () => {
                     </Select>
                     <FormDescription>
                       Select the program type for this course
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='module_count'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Module Count</FormLabel>
+                    <FormControl>
+                      <Input
+                        type='number'
+                        min={1}
+                        max={50}
+                        placeholder='Enter module count'
+                        {...field}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          field.onChange(isNaN(value) ? 1 : value);
+                        }}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      The number of modules in this course (1-50)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
