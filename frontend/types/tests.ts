@@ -49,8 +49,8 @@ export const submissionDetailSchema = z.object({
   graded_by: z.number().nullable(),
   graded_at: z.string().nullable(),
   feedback: z.string(),
-  ip_address: z.string(),
-  user_agent: z.string(),
+  ip_address: z.string().nullable().optional(),
+  user_agent: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
   answers: z.array(backendAnswerDetailSchema),
@@ -250,7 +250,7 @@ export interface TestCardData {
   availableUntil: Date | null;
   mySubmission: Submission | null;
   submissionStatus: string;
-  status: "not_started" | "in_progress" | "submitted" | "graded" | "overdue";
+  status: "not_started" | "in_progress" | "submitted" | "graded" | "returned" | "overdue";
   color: string;
   textColor: string;
 }
@@ -368,8 +368,10 @@ export function transformTestToCardData(test: TestListItem): TestCardData {
         status = "submitted";
         break;
       case "graded":
-      case "returned":
         status = "graded";
+        break;
+      case "returned":
+        status = "returned";
         break;
     }
   } else if (availableUntil && now > availableUntil) {
@@ -441,6 +443,8 @@ export function getStatusColor(status: TestCardData["status"]): string {
       return "bg-blue-100 text-blue-800";
     case "graded":
       return "bg-green-100 text-green-800";
+    case "returned":
+      return "bg-orange-100 text-orange-800";
     case "overdue":
       return "bg-red-100 text-red-800";
     default:
@@ -459,6 +463,8 @@ export function getStatusText(status: TestCardData["status"]): string {
       return "Submitted";
     case "graded":
       return "Graded";
+    case "returned":
+      return "Returned for Revision";
     case "overdue":
       return "Overdue";
     default:

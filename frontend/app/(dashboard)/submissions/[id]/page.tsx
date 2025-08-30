@@ -160,37 +160,37 @@ export default function SubmissionDetailPage() {
       <Card className="overflow-hidden pt-0">
         <div className="h-32 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center relative rounded-t-xl">
           <div className="text-center px-6">
-            <h1 className="text-2xl font-bold text-white text-center">
+            <h1 className="text-xl md:text-2xl font-bold text-white text-center">
               {submission.test_title}
             </h1>
-            <p className="text-blue-100 mt-2">
+            <p className="text-blue-100 mt-2 text-sm md:text-base">
               Submission #{submission.id} - Attempt {submission.attempt_number}
             </p>
           </div>
           <div className="absolute top-4 right-4">
-            <Badge variant="outline" className={`${statusInfo.color} border-white`}>
+            <Badge variant="outline" className={`${statusInfo.color} border-white text-xs md:text-sm`}>
               <StatusIcon className="h-3 w-3 mr-1" />
               {statusInfo.text}
             </Badge>
           </div>
         </div>
         
-        <CardContent className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+        <CardContent className="p-4 md:p-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-primary" />
-              <span>{submission.student_name}</span>
+              <User className="h-4 w-4 text-primary flex-shrink-0" />
+              <span className="truncate">{submission.student_name}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-primary" />
+              <Target className="h-4 w-4 text-primary flex-shrink-0" />
               <span>{answeredQuestions.length} / {submission.answers.length} answered</span>
             </div>
             <div className="flex items-center gap-2">
-              <Timer className="h-4 w-4 text-primary" />
-              <span>{formatDuration(submission.time_spent_minutes)}</span>
+              <Timer className="h-4 w-4 text-primary flex-shrink-0" />
+              <span className="truncate">{formatDuration(submission.time_spent_minutes)}</span>
             </div>
             <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-primary" />
+              <BookOpen className="h-4 w-4 text-primary flex-shrink-0" />
               <span>{submission.completion_percentage.toFixed(0)}% complete</span>
             </div>
           </div>
@@ -199,10 +199,10 @@ export default function SubmissionDetailPage() {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-green-600" />
+                  <Trophy className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <span className="font-medium text-green-800">Score</span>
                 </div>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-xl md:text-2xl font-bold text-green-600">
                   {submission.score} / {submission.max_score}
                 </div>
               </div>
@@ -218,30 +218,30 @@ export default function SubmissionDetailPage() {
 
       {/* Timeline */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3 md:pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
             <Calendar className="h-5 w-5" />
             Timeline
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6">
           <div className="space-y-4">
-            <div className="flex items-center gap-4 text-sm">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <div>
+            <div className="flex items-start gap-4 text-sm">
+              <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+              <div className="min-w-0 flex-1">
                 <span className="font-medium">Started:</span>
-                <span className="ml-2 text-muted-foreground">
+                <span className="ml-2 text-muted-foreground break-words">
                   {formatDateTime(submission.started_at)}
                 </span>
               </div>
             </div>
             
             {submission.submitted_at && (
-              <div className="flex items-center gap-4 text-sm">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <div>
+              <div className="flex items-start gap-4 text-sm">
+                <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0 mt-1"></div>
+                <div className="min-w-0 flex-1">
                   <span className="font-medium">Submitted:</span>
-                  <span className="ml-2 text-muted-foreground">
+                  <span className="ml-2 text-muted-foreground break-words">
                     {formatDateTime(submission.submitted_at)}
                   </span>
                 </div>
@@ -249,11 +249,11 @@ export default function SubmissionDetailPage() {
             )}
             
             {submission.graded_at && (
-              <div className="flex items-center gap-4 text-sm">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <div>
+              <div className="flex items-start gap-4 text-sm">
+                <div className="w-3 h-3 bg-purple-500 rounded-full flex-shrink-0 mt-1"></div>
+                <div className="min-w-0 flex-1">
                   <span className="font-medium">Graded:</span>
-                  <span className="ml-2 text-muted-foreground">
+                  <span className="ml-2 text-muted-foreground break-words">
                     {formatDateTime(submission.graded_at)}
                   </span>
                 </div>
@@ -266,12 +266,12 @@ export default function SubmissionDetailPage() {
       {/* General Feedback */}
       {submission.feedback && (
         <Card>
-          <CardHeader>
-            <CardTitle>General Feedback</CardTitle>
+          <CardHeader className="pb-3 md:pb-4">
+            <CardTitle className="text-lg md:text-xl">General Feedback</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 md:p-6">
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-              <p className="text-blue-800">{submission.feedback}</p>
+              <p className="text-blue-800 break-words">{submission.feedback}</p>
             </div>
           </CardContent>
         </Card>
@@ -279,27 +279,27 @@ export default function SubmissionDetailPage() {
 
       {/* Answers */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3 md:pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
             <FileText className="h-5 w-5" />
             Your Answers ({answeredQuestions.length} of {submission.answers.length})
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
+        <CardContent className="p-4 md:p-6">
+          <div className="space-y-4 md:space-y-6">
             {submission.answers.map((answer, index) => {
               const typeInfo = questionTypeInfo[answer.question_type as keyof typeof questionTypeInfo];
               
               return (
-                <div key={answer.id} className="border rounded-lg p-4">
-                  <div className="space-y-3">
+                <div key={answer.id} className="border rounded-lg p-4 md:p-6">
+                  <div className="space-y-3 md:space-y-4">
                     {/* Question Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-medium text-primary">{index + 1}</span>
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-2 min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <Badge variant="outline" className="text-xs">
                               {typeInfo?.label || answer.question_type}
@@ -311,14 +311,14 @@ export default function SubmissionDetailPage() {
                               </Badge>
                             )}
                           </div>
-                          <h4 className="font-medium">{answer.question_title}</h4>
+                          <h4 className="font-medium text-sm md:text-base break-words">{answer.question_title}</h4>
                         </div>
                       </div>
                       
                       {/* Score */}
                       {answer.points_earned !== null && answer.max_points !== null && (
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-green-600">
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-lg md:text-xl font-semibold text-green-600">
                             {answer.points_earned} / {answer.max_points}
                           </div>
                           <div className="text-xs text-muted-foreground">points</div>
@@ -327,46 +327,46 @@ export default function SubmissionDetailPage() {
                     </div>
 
                     {/* Answer Content */}
-                    <div className="ml-11">
+                    <div className="ml-0 sm:ml-11 space-y-3">
                       {answer.has_answer ? (
                         <div className="space-y-3">
                           {/* Display Answer */}
-                          <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="bg-gray-50 rounded-lg p-3 md:p-4">
                             {answer.file_answer ? (
                               <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-primary" />
+                                <FileText className="h-4 w-4 text-primary flex-shrink-0" />
                                 <a
                                   href={answer.file_answer}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-primary hover:underline flex items-center gap-1"
+                                  className="text-primary hover:underline flex items-center gap-1 break-all"
                                 >
                                   View uploaded file
-                                  <ExternalLink className="h-3 w-3" />
+                                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
                                 </a>
                               </div>
                             ) : (
-                              <p className="whitespace-pre-wrap">{answer.display_answer}</p>
+                              <p className="whitespace-pre-wrap break-words text-sm md:text-base">{answer.display_answer}</p>
                             )}
                           </div>
                           
                           {/* Individual Feedback */}
                           {answer.feedback && (
-                            <div className="bg-blue-50 border-l-4 border-blue-400 p-3">
+                            <div className="bg-primary/10 border-l-4 border-primary p-3 md:p-4">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-sm font-medium text-blue-800">Feedback:</span>
                               </div>
-                              <p className="text-sm text-blue-700">{answer.feedback}</p>
+                              <p className="text-sm md:text-base text-blue-700 break-words">{answer.feedback}</p>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div className="text-muted-foreground italic bg-gray-50 rounded-lg p-4">
+                        <div className="text-muted-foreground italic bg-gray-50 rounded-lg p-3 md:p-4">
                           No answer provided
                         </div>
                       )}
                       
-                      <div className="text-xs text-muted-foreground mt-2">
+                      <div className="text-xs text-muted-foreground">
                         {answer.answered_at ? (
                           `Answered: ${formatDateTime(answer.answered_at)}`
                         ) : (

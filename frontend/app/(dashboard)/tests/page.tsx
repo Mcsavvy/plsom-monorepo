@@ -50,6 +50,8 @@ function TestCard({ test, onViewDetails, onStartTest, onContinueTest, onViewSubm
         return <CheckCircle className="h-4 w-4 text-blue-600" />;
       case "graded":
         return <Trophy className="h-4 w-4 text-green-600" />;
+      case "returned":
+        return <AlertCircle className="h-4 w-4 text-orange-600" />;
       case "overdue":
         return <XCircle className="h-4 w-4 text-red-600" />;
       default:
@@ -108,6 +110,18 @@ function TestCard({ test, onViewDetails, onStartTest, onContinueTest, onViewSubm
         ) : (
           <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
             <Trophy className="h-4 w-4 mr-2" />
+            View Details
+          </Button>
+        );
+      case "returned":
+        return test.mySubmission ? (
+          <Button variant="outline" onClick={() => onViewSubmission(test.mySubmission!.id)} className="flex-1">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            View Returned Submission
+          </Button>
+        ) : (
+          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
+            <AlertCircle className="h-4 w-4 mr-2" />
             View Details
           </Button>
         );
@@ -294,7 +308,7 @@ export default function TestsPage() {
   }, [tests, statusFilter]);
 
   const availableTests = tests.filter(t => t.isAvailable && t.status === "not_started" && t.canAttempt);
-  const inProgressTests = tests.filter(t => t.status === "in_progress");
+  const inProgressTests = tests.filter(t => t.status === "in_progress" || t.status === "returned");
   const completedTests = tests.filter(t => t.status === "submitted" || t.status === "graded");
 
   if (loading) {

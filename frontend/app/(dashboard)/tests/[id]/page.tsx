@@ -127,7 +127,7 @@ export default function TestDetailPage() {
   const availableUntil = test.available_until ? new Date(test.available_until) : null;
 
   // Determine test status
-  let status: "not_started" | "in_progress" | "submitted" | "graded" | "overdue" = "not_started";
+  let status: "not_started" | "in_progress" | "submitted" | "graded" | "returned" | "overdue" = "not_started";
   if (test.my_submission) {
     switch (test.my_submission.status) {
       case "in_progress":
@@ -137,8 +137,10 @@ export default function TestDetailPage() {
         status = "submitted";
         break;
       case "graded":
-      case "returned":
         status = "graded";
+        break;
+      case "returned":
+        status = "returned";
         break;
     }
   } else if (availableUntil && now > availableUntil) {
@@ -202,6 +204,23 @@ export default function TestDetailPage() {
                 onClick={() => router.push(`/submissions/${test.my_submission!.id}`)}
               >
                 View Results
+              </Button>
+            )}
+          </div>
+        );
+      case "returned":
+        return (
+          <div className="flex gap-2 flex-1">
+            <Button variant="outline" disabled className="flex-1">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Test Returned
+            </Button>
+            {test.my_submission && (
+              <Button 
+                variant="default" 
+                onClick={() => router.push(`/submissions/${test.my_submission!.id}`)}
+              >
+                View Returned Submission
               </Button>
             )}
           </div>
