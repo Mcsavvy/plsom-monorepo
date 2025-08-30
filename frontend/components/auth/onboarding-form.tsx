@@ -256,7 +256,13 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
                 </label>
                 <Select
                   value={form.watch("title") || ""}
-                  onValueChange={(value) => form.setValue("title", value)}
+                  onValueChange={(value) => {
+                    if (value === "none") {
+                      form.setValue("title", undefined);
+                    } else {
+                      form.setValue("title", value);
+                    }
+                  }}
                 >
                   <SelectTrigger disabled={isLoading}>
                     <SelectValue placeholder="Select a title" />

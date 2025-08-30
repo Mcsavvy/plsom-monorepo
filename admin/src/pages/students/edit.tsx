@@ -35,23 +35,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Student } from '@/types/student';
 import { getResourceIcon } from '@/utils/resourceUtils';
+import { USER_TITLE_OPTIONS } from '@/constants';
 
-const TITLE_OPTIONS = [
-  'Mr',
-  'Mrs',
-  'Dr',
-  'Prof',
-  'Ms',
-  'Miss',
-  'Rev',
-  'Min',
-  'Pastor',
-  'Apostle',
-  'Bishop',
-  'Evangelist',
-  'Deacon',
-  'Elder',
-];
+const TITLE_OPTIONS = USER_TITLE_OPTIONS;
 
 const formSchema = z.object({
   first_name: z.string().min(1, 'First name is required').max(150),

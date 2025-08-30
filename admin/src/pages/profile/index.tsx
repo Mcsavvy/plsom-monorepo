@@ -26,10 +26,18 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import { Loader2, Mail, Camera, Trash2, Phone } from 'lucide-react';
 import { HttpError } from '@refinedev/core';
 import { UserIdentity } from '@/types/user';
+import { USER_TITLE_OPTIONS } from '@/constants';
 
 // Profile update form schema
 const profileFormSchema = z.object({
@@ -496,13 +504,34 @@ export const Profile = () => {
                           name='title'
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Title</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder='Enter your title'
-                                  {...field}
-                                />
-                              </FormControl>
+                              <FormLabel>Title (Optional)</FormLabel>
+                              <Select
+                                value={field.value}
+                                onValueChange={value => {
+                                  if (value === 'none') {
+                                    field.onChange('');
+                                  } else {
+                                    field.onChange(value);
+                                  }
+                                }}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder='Select title' />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value='none'>No title</SelectItem>
+                                  {USER_TITLE_OPTIONS.map(title => (
+                                    <SelectItem key={title} value={title}>
+                                      {title}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Optional title for your profile
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}

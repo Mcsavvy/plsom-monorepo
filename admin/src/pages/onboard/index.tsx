@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { USER_TITLE_OPTIONS } from '@/constants';
 
 // Onboarding form schema based on OpenAPI
 const onboardingSchema = z
@@ -332,8 +333,14 @@ export const Onboard: React.FC = () => {
                   <FormItem>
                     <FormLabel>Title (Optional)</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
+                      onValueChange={value => {
+                        if (value === 'none') {
+                          field.onChange('');
+                        } else {
+                          field.onChange(value);
+                        }
+                      }}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -341,13 +348,12 @@ export const Onboard: React.FC = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='Mr'>Mr.</SelectItem>
-                        <SelectItem value='Mrs'>Mrs.</SelectItem>
-                        <SelectItem value='Ms'>Ms.</SelectItem>
-                        <SelectItem value='Dr'>Dr.</SelectItem>
-                        <SelectItem value='Prof'>Prof.</SelectItem>
-                        <SelectItem value='Rev'>Rev.</SelectItem>
-                        <SelectItem value='Pastor'>Pastor</SelectItem>
+                        <SelectItem value='none'>No title</SelectItem>
+                        {USER_TITLE_OPTIONS.map(title => (
+                          <SelectItem key={title} value={title}>
+                            {title}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -130,7 +130,13 @@ export function ProfileEditForm({
             </label>
             <Select
               value={form.watch("title") || ""}
-              onValueChange={(value) => form.setValue("title", value as UserTitle)}
+              onValueChange={(value) => {
+                if (value === "none") {
+                  form.setValue("title", undefined);
+                } else {
+                  form.setValue("title", value as UserTitle);
+                }
+              }}
             >
               <SelectTrigger disabled={isLoading}>
                 <SelectValue placeholder="Select a title" />

@@ -158,3 +158,23 @@ export const transformers: Record<string, (data: any) => any> = {
   submissions: transformSubmissionListItem,
   'submissions-show': transformSubmission,
 };
+
+// User title options matching backend
+export const USER_TITLE_OPTIONS = [
+  'Mr',
+  'Mrs',
+  'Dr',
+  'Prof',
+  'Ms',
+  'Miss',
+  'Rev',
+  'Min',
+  'Pastor',
+  'Apostle',
+  'Bishop',
+  'Evangelist',
+  'Deacon',
+  'Elder',
+] as const;
+
+export type UserTitle = typeof USER_TITLE_OPTIONS[number];
