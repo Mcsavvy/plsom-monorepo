@@ -270,7 +270,7 @@ export const ClassAttendance: React.FC = () => {
                 alt={row.original.student.name}
               />
               <AvatarFallback className='text-xs'>
-                {row.original.student.name.split(' ').slice(-2).map(n => n[0]).join('')}
+                {row.original.student.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             <div>
