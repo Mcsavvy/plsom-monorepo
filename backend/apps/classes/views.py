@@ -187,7 +187,9 @@ class ClassViewSet(viewsets.ModelViewSet):
         end_time = start_time + timezone.timedelta(minutes=class_obj.duration_minutes)
         join_window_start = start_time - timezone.timedelta(minutes=15)
 
-        can_join = join_window_start <= now <= end_time and class_obj.zoom_join_url
+        is_in_progress = join_window_start <= now <= end_time
+        is_in_past = now > end_time
+        can_join = (is_in_progress and class_obj.zoom_join_url) or (is_in_past and class_obj.recording_url)
 
         # Register attendance for students
         attendance_registered = False
@@ -198,7 +200,7 @@ class ClassViewSet(viewsets.ModelViewSet):
                 defaults={
                     "join_time": now,
                     "duration_minutes": 0,
-                    "via_recording": False,
+                    "via_recording": is_in_past,
                 }
             )
             if created:
@@ -209,116 +211,32 @@ class ClassViewSet(viewsets.ModelViewSet):
                 attendance.save(update_fields=["join_time"])
                 attendance_registered = True
 
-        if not can_join:
-            if now < join_window_start:
-                return Response(
-                    {
-                        "can_join": False,
-                        "message": "Class is not yet available for joining.",
-                        "attendance_registered": False,
-                    }
-                )
-            elif now > end_time:
-                return Response(
-                    {
-                        "can_join": False,
-                        "message": "Class has ended.",
-                        "recording_url": class_obj.recording_url,
-                        "password_for_recording": class_obj.password_for_recording,
-                        "attendance_registered": False,
-                    }
-                )
-
-        return Response(
-            {
-                "can_join": True,
-                "zoom_join_url": class_obj.zoom_join_url,
-                "password_for_zoom": class_obj.password_for_zoom,
-                "attendance_registered": attendance_registered,
-            }
-        )
-
-    @extend_schema(
-        summary="Register attendance via recording",
-        description="Register attendance for a student who watched the recording instead of joining live.",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                description="Class ID",
-                required=True,
-                type=int,
-                location=OpenApiParameter.PATH,
-            ),
-        ],
-        responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "message": {"type": "string"},
-                    "attendance": {"type": "object"},
-                },
-            }
-        },
-    )
-    @action(detail=True, methods=["post"], url_path="register-recording-attendance")
-    def register_recording_attendance(self, request, pk=None):
-        """Register attendance for a student who watched the recording"""
-        user = request.user
-        class_obj = self.get_object()
-
-        # Only students can register their own recording attendance
-        if not hasattr(user, "role") or user.role != "student":
+        if is_in_progress and class_obj.zoom_join_url:
             return Response(
-                {"error": "Only students can register recording attendance."},
-                status=status.HTTP_403_FORBIDDEN,
+                {
+                    "can_join": True,
+                    "zoom_join_url": class_obj.zoom_join_url,
+                    "password_for_zoom": class_obj.password_for_zoom,
+                    "attendance_registered": attendance_registered,
+                }
             )
-
-        # Check if class has ended
-        now = timezone.now()
-        end_time = class_obj.scheduled_at + timezone.timedelta(minutes=class_obj.duration_minutes)
-        
-        if now <= end_time:
+        elif is_in_past and class_obj.recording_url:
             return Response(
-                {"error": "Cannot register recording attendance for ongoing or upcoming classes."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "can_join": True,
+                    "recording_url": class_obj.recording_url,
+                    "password_for_recording": class_obj.password_for_recording,
+                    "attendance_registered": attendance_registered,
+                }
             )
-
-        # Check if student is enrolled
-        from apps.cohorts.models import Enrollment
-        if not Enrollment.objects.filter(student=user, cohort=class_obj.cohort).exists():
+        else:
             return Response(
-                {"error": "You are not enrolled in the cohort for this class."},
-                status=status.HTTP_403_FORBIDDEN,
+                {
+                    "can_join": False,
+                    "message": "Class is not available for joining.",
+                    "attendance_registered": False,
+                }
             )
-
-        # Check if recording URL exists
-        if not class_obj.recording_url:
-            return Response(
-                {"error": "No recording available for this class."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Create or update attendance record
-        attendance, created = Attendance.objects.get_or_create(
-            class_session=class_obj,
-            student=user,
-            defaults={
-                "join_time": class_obj.scheduled_at,  # Use class start time
-                "duration_minutes": class_obj.duration_minutes,
-                "via_recording": True,
-            }
-        )
-
-        if not created:
-            # Update existing record to mark as recording attendance
-            attendance.via_recording = True
-            attendance.save(update_fields=["via_recording"])
-
-        serializer = AttendanceSerializer(attendance)
-        return Response({
-            "message": "Recording attendance registered successfully.",
-            "attendance": serializer.data,
-        })
 
     @extend_schema(
         summary="Get class details for student",
@@ -695,70 +613,3 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             "attendance_list": attendance_list,
         })
 
-
-@method_decorator(csrf_exempt, name='dispatch')
-class ClassRedirectView(generics.GenericAPIView):
-    """View for handling class join redirect URLs"""
-    
-    def get(self, request, class_id):
-        """Handle class join redirect and register attendance"""
-        try:
-            class_obj = Class.objects.get(id=class_id)
-        except Class.DoesNotExist:
-            return HttpResponse("Class not found", status=404)
-
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            # Redirect to login with return URL
-            login_url = f"/auth/login/?next=/classes/redirect/{class_id}/"
-            return redirect(login_url)
-
-        # Check if user is a student
-        if not hasattr(request.user, "role") or request.user.role != "student":
-            return HttpResponse("Access denied. Only students can join classes.", status=403)
-
-        # Check if student is enrolled in the class cohort
-        from apps.cohorts.models import Enrollment
-        if not Enrollment.objects.filter(student=request.user, cohort=class_obj.cohort).exists():
-            return HttpResponse("You are not enrolled in the cohort for this class.", status=403)
-
-        # Check if class can be joined
-        now = timezone.now()
-        start_time = class_obj.scheduled_at
-        end_time = start_time + timezone.timedelta(minutes=class_obj.duration_minutes)
-        join_window_start = start_time - timezone.timedelta(minutes=15)
-
-        can_join = join_window_start <= now <= end_time and class_obj.zoom_join_url
-
-        # Register attendance for students
-        attendance_registered = False
-        if can_join:
-            attendance, created = Attendance.objects.get_or_create(
-                class_session=class_obj,
-                student=request.user,
-                defaults={
-                    "join_time": now,
-                    "duration_minutes": 0,
-                    "via_recording": False,
-                }
-            )
-            if created:
-                attendance_registered = True
-            elif not attendance.leave_time:
-                # Update join time if student rejoins
-                attendance.join_time = now
-                attendance.save(update_fields=["join_time"])
-                attendance_registered = True
-
-        if not can_join:
-            if now < join_window_start:
-                return HttpResponse("Class is not yet available for joining.", status=400)
-            elif now > end_time:
-                if class_obj.recording_url:
-                    # Redirect to recording
-                    return redirect(class_obj.recording_url)
-                else:
-                    return HttpResponse("Class has ended and no recording is available.", status=400)
-
-        # Redirect to Zoom meeting
-        return redirect(class_obj.zoom_join_url)

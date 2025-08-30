@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useClasses } from "@/hooks/classes";
+import { useClasses, useClassJoining } from "@/hooks/classes";
 import { ClassCardData, CalendarDay, formatTime, formatDate, getDurationText } from "@/types/classes";
 import {
   Card,
@@ -38,6 +38,8 @@ interface ClassCardProps {
 }
 
 function ClassCard({ classData, onViewDetails }: ClassCardProps) {
+  const { handleJoinClass, isJoining } = useClassJoining();
+  
   const getStatusIcon = () => {
     switch (classData.status) {
       case "ongoing":
@@ -74,6 +76,15 @@ function ClassCard({ classData, onViewDetails }: ClassCardProps) {
         return "bg-red-100 text-red-800";
       default:
         return "bg-orange-100 text-orange-800";
+    }
+  };
+
+  const handleJoinLive = async () => {
+    try {
+      await handleJoinClass(classData.id);
+    } catch (error) {
+      console.error("Failed to join class:", error);
+      // You can add error handling here (e.g., toast notification)
     }
   };
 
@@ -123,10 +134,11 @@ function ClassCard({ classData, onViewDetails }: ClassCardProps) {
             <Button
               size="sm"
               className="flex-1"
-              onClick={() => window.open(classData.zoomJoinUrl!, '_blank')}
+              onClick={handleJoinLive}
+              disabled={isJoining}
             >
               <Play className="h-4 w-4 mr-2" />
-              Join Live
+              {isJoining ? "Joining..." : "Join Live"}
             </Button>
           )}
           

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useClient } from "./axios";
 import {
   Class,
@@ -13,6 +13,8 @@ import {
   ClassCardData,
   transformClassToCardData,
 } from "@/types/classes";
+import { toast } from "sonner";
+import { toastError } from "@/lib/utils";
 
 /**
  * Get all classes for the current student
@@ -61,6 +63,86 @@ async function _getClassDetails(
   } catch (error) {
     throw error;
   }
+}
+
+/**
+ * Join a class and register attendance
+ */
+async function _joinClass(
+  client: ReturnType<typeof useClient>,
+  classId: number
+): Promise<{
+  can_join: boolean;
+  zoom_join_url?: string;
+  password_for_zoom?: string;
+  message?: string;
+  recording_url?: string;
+  password_for_recording?: string;
+  attendance_registered: boolean;
+}> {
+  try {
+    const response = await client.get(`/classes/${classId}/join/`);
+    if (response.status === 200) {
+      return response.data;
+    }
+    throw new Error("Failed to join class");
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Custom hook for handling class joining with attendance registration
+ */
+export function useClassJoining() {
+  const [isJoining, setIsJoining] = useState(false);
+  const { joinClass } = useClasses();
+
+  const handleJoinClass = useCallback(
+    async (classId: number) => {
+      setIsJoining(true);
+      try {
+        const result = await joinClass(classId);
+        
+        if (result.can_join && result.zoom_join_url) {
+          // Open the meeting link in a new tab
+          window.open(result.zoom_join_url, '_blank');
+          
+          // Show success message if attendance was registered
+          if (result.attendance_registered) {
+            toast.success("Attendance registered successfully");
+          }
+        } else if (result.can_join && result.recording_url) {
+          // Open the recording link in a new tab
+          window.open(result.recording_url, '_blank');
+          
+          // Show success message if attendance was registered
+          if (result.attendance_registered) {
+            toast.success("Attendance registered successfully");
+          }
+        } else {
+          // Handle cases where class cannot be joined
+          if (result.message) {
+            toast.error(result.message);
+          }
+        }
+        
+        return result;
+      } catch (error) {
+        console.error("Failed to join class:", error);
+        toastError(error, "Failed to join class");
+        throw error;
+      } finally {
+        setIsJoining(false);
+      }
+    },
+    [joinClass]
+  );
+
+  return {
+    handleJoinClass,
+    isJoining,
+  };
 }
 
 /**
@@ -121,11 +203,22 @@ export function useClasses() {
     [getClassDetails]
   );
 
+  /**
+   * Join a class and register attendance
+   */
+  const joinClass = useCallback(
+    async (classId: number) => {
+      return await _joinClass(client, classId);
+    },
+    [client]
+  );
+
   return {
     getMyClasses,
     getClassesByTimeFilter,
     getClassDetails,
     getMyClassesForUI,
     getClassDetailsForUI,
+    joinClass,
   };
 } 

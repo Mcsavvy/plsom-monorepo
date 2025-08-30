@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useClasses } from "@/hooks/classes";
+import { useClasses, useClassJoining } from "@/hooks/classes";
 import { ClassCardData } from "@/types/classes";
 import {
   Card,
@@ -40,6 +40,7 @@ export default function ClassDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { getClassDetailsForUI } = useClasses();
+  const { handleJoinClass: handleJoinClassForUI, isJoining } = useClassJoining();
 
   useEffect(() => {
     const fetchClass = async () => {
@@ -136,6 +137,16 @@ export default function ClassDetailPage() {
 
   const endTime = new Date(classData.scheduledAt.getTime() + classData.durationMinutes * 60000);
 
+  const handleJoinClass = async () => {
+    if (!classData) return;
+    
+    try {
+      await handleJoinClassForUI(classData.id);
+    } catch (error) {
+      toastError(error, "Failed to join class");
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 pt-8 space-y-6">
       {/* Class Hero Section */}
@@ -210,15 +221,16 @@ export default function ClassDetailPage() {
               </div>
             </div>
 
-            {classData.status === "ongoing" && classData.zoomJoinUrl && (
-              <Button
-                className="w-full"
-                onClick={() => window.open(classData.zoomJoinUrl!, '_blank')}
-              >
-                <Play className="h-4 w-4 mr-2" />
-                Join Live Class
-              </Button>
-            )}
+                          {classData.status === "ongoing" && classData.zoomJoinUrl && (
+                <Button
+                  className="w-full"
+                  onClick={handleJoinClass}
+                  disabled={isJoining}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  {isJoining ? "Joining..." : "Join Live Class"}
+                </Button>
+              )}
           </CardContent>
         </Card>
 
@@ -288,7 +300,9 @@ export default function ClassDetailPage() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => window.open(classData.recordingUrl!, '_blank')}
+                size="sm"
+                onClick={handleJoinClass}
+                disabled={isJoining}
               >
                 <Video className="h-4 w-4 mr-2" />
                 Watch Recording
@@ -314,7 +328,8 @@ export default function ClassDetailPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(classData.recordingUrl!, '_blank')}
+                  onClick={handleJoinClass}
+                  disabled={isJoining}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open Recording
@@ -336,14 +351,22 @@ export default function ClassDetailPage() {
       {/* Action Buttons */}
       <div className="flex gap-4">
         {classData.status === "ongoing" && classData.zoomJoinUrl && (
-          <Button className="flex-1">
+          <Button 
+            className="flex-1"
+            onClick={handleJoinClass}
+            disabled={isJoining}
+          >
             <Play className="h-4 w-4 mr-2" />
-            Join Live Class
+            {isJoining ? "Joining..." : "Join Live Class"}
           </Button>
         )}
         
         {classData.status === "completed" && classData.recordingUrl && (
-          <Button className="flex-1">
+          <Button 
+            className="flex-1"
+            onClick={handleJoinClass}
+            disabled={isJoining}
+          >
             <Video className="h-4 w-4 mr-2" />
             Watch Recording
           </Button>

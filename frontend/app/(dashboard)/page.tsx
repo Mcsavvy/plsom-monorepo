@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/auth";
 import { useCourses } from "@/hooks/courses";
-import { useClasses } from "@/hooks/classes";
+import { useClasses, useClassJoining } from "@/hooks/classes";
 import { useTests } from "@/hooks/tests";
 import { CourseCardData } from "@/types/courses";
 import { ClassCardData } from "@/types/classes";
@@ -45,6 +45,7 @@ export default function HomePage() {
   const { getMyCoursesForUI } = useCourses();
   const { getMyClassesForUI } = useClasses();
   const { getMyTestsForUI } = useTests();
+  const { handleJoinClass, isJoining } = useClassJoining();
 
   // State for data
   const [courses, setCourses] = useState<CourseCardData[]>([]);
@@ -107,6 +108,15 @@ export default function HomePage() {
     );
   }
 
+  const handleJoinLiveClass = async (classId: number) => {
+    try {
+      await handleJoinClass(classId);
+    } catch (error) {
+      console.error("Failed to join class:", error);
+      // You can add error handling here (e.g., toast notification)
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
       <div className="container mx-auto p-4 space-y-6">
@@ -162,10 +172,11 @@ export default function HomePage() {
                   <Button
                     size="sm"
                     className="bg-green-600 text-white hover:bg-green-700"
-                    onClick={() => window.open(ongoingClasses[0].zoomJoinUrl!, "_blank")}
+                    onClick={() => handleJoinLiveClass(ongoingClasses[0].id)}
+                    disabled={isJoining}
                   >
                     <Play className="mr-2 h-4 w-4" />
-                    Join
+                    {isJoining ? "Joining..." : "Join"}
                   </Button>
                 )}
               </div>

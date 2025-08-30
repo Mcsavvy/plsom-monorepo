@@ -26,15 +26,17 @@ import {
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { toastError } from "@/lib/utils";
+import { useClasses, useClassJoining } from "@/hooks/classes";
 
 export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = parseInt(params.id as string);
+  const { getCourseDetailsForUI } = useCourses();
+  const { handleJoinClass, isJoining } = useClassJoining();
   const [course, setCourse] = useState<CourseCardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { getCourseDetailsForUI } = useCourses();
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -108,6 +110,17 @@ export default function CourseDetailPage() {
   }
 
   const nextClassDate = formatNextClassDate(course.nextClass);
+
+  const handleJoinNextClass = async () => {
+    if (!course?.nextClass?.id) return;
+    
+    try {
+      await handleJoinClass(course.nextClass.id);
+    } catch (error) {
+      console.error("Failed to join class:", error);
+      // You can add error handling here (e.g., toast notification)
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 pt-8 space-y-6">
@@ -207,9 +220,10 @@ export default function CourseDetailPage() {
                     {course.nextClass?.meeting_link && (
                       <Button
                         className="w-full mt-3"
-                        onClick={() => window.open(course.nextClass?.meeting_link, '_blank')}
+                        onClick={handleJoinNextClass}
+                        disabled={isJoining}
                       >
-                        Join Class
+                        {isJoining ? "Joining..." : "Join Class"}
                         <ExternalLink className="h-4 w-4 ml-2" />
                       </Button>
                     )}
