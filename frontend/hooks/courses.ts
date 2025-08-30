@@ -36,81 +36,10 @@ async function _getMyCourses(
     }
     throw new Error("Failed to fetch courses");
   } catch (error) {
-    // Return mock data for development/demo purposes
-    console.warn("Using mock course data for development");
-    return getMockCourses();
+    throw error;
   }
 }
 
-/**
- * Mock courses data for development/demo purposes
- */
-function getMockCourses(): CoursesList {
-  return [
-    {
-      id: 1,
-      name: "Biblical Interpretation",
-      program_type: "certificate",
-      module_count: 8,
-      description: "Learn the principles and methods of biblical hermeneutics, including historical context, literary analysis, and theological interpretation.",
-      lecturer_name: "Dr. Caleb Stone",
-      is_active: true,
-      total_classes_in_my_cohorts: 16,
-      upcoming_classes_in_my_cohorts: 5,
-      next_class_in_my_cohorts: {
-        id: "101",
-        title: "Introduction to Hermeneutics",
-        scheduled_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        meeting_link: "https://zoom.us/j/123456789",
-      },
-      has_classes_in_my_cohorts: true,
-    },
-    {
-      id: 2,
-      name: "Systematic Theology",
-      program_type: "diploma",
-      module_count: 12,
-      description: "A comprehensive study of Christian doctrine, covering fundamental beliefs and theological frameworks.",
-      lecturer_name: "Prof. Miriam Hayes",
-      is_active: true,
-      total_classes_in_my_cohorts: 24,
-      upcoming_classes_in_my_cohorts: 8,
-      next_class_in_my_cohorts: {
-        id: "201",
-        title: "The Doctrine of God",
-        scheduled_at: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-        meeting_link: "https://zoom.us/j/987654321",
-      },
-      has_classes_in_my_cohorts: true,
-    },
-    {
-      id: 3,
-      name: "Ministry Leadership",
-      program_type: "certificate",
-      module_count: 6,
-      description: "Develop essential leadership skills for effective ministry, including team building, vision casting, and conflict resolution.",
-      lecturer_name: "Dr. Elizabeth Carter",
-      is_active: true,
-      total_classes_in_my_cohorts: 12,
-      upcoming_classes_in_my_cohorts: 3,
-      next_class_in_my_cohorts: null,
-      has_classes_in_my_cohorts: true,
-    },
-    {
-      id: 4,
-      name: "Church History",
-      program_type: "diploma",
-      module_count: 10,
-      description: "Explore the development of Christianity from the apostolic age to the modern era, including key figures and movements.",
-      lecturer_name: "Dr. Michael Thompson",
-      is_active: false,
-      total_classes_in_my_cohorts: 20,
-      upcoming_classes_in_my_cohorts: 0,
-      next_class_in_my_cohorts: null,
-      has_classes_in_my_cohorts: true,
-    },
-  ];
-}
 
 /**
  * Get detailed information about a specific course for the current student
@@ -127,14 +56,7 @@ async function _getCourseDetails(
     }
     throw new Error("Failed to fetch course details");
   } catch (error) {
-    // Return mock data for development/demo purposes
-    console.warn("Using mock course detail data for development");
-    const mockCourses = getMockCourses();
-    const course = mockCourses.find(c => c.id === courseId);
-    if (!course) {
-      throw new Error("Course not found");
-    }
-    return course;
+    throw error;
   }
 }
 
