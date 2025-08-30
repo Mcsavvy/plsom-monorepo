@@ -266,7 +266,7 @@ export const ClassAttendance: React.FC = () => {
           <div className='flex items-center space-x-3'>
             <Avatar className='h-8 w-8'>
               <AvatarImage
-                src={row.original.student.profile_picture || ''}
+                src={row.original.student.profile_picture?.replace("b2l/", "b2/") || ''}
                 alt={row.original.student.name}
               />
               <AvatarFallback className='text-xs'>
