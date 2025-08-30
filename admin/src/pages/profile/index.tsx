@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useCustomMutation, useGetIdentity, useUpdate } from '@refinedev/core';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,6 +84,19 @@ export const Profile = () => {
       whatsapp_number: user?.whatsappNumber || '',
     },
   });
+
+  // Refresh form values when user data is loaded/refreshed
+  useEffect(() => {
+    if (user) {
+      profileForm.reset({
+        first_name: user.firstName || '',
+        last_name: user.lastName || '',
+        title: user.title || '',
+        whatsapp_number: user.whatsappNumber || '',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordFormSchema),
