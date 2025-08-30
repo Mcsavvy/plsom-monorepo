@@ -10,6 +10,7 @@ import {
   Presentation,
   FileText,
   ClipboardCheck,
+  Users,
 } from 'lucide-react';
 import React from 'react';
 import {
@@ -105,6 +106,13 @@ export const RESOURCES: ResourceProps[] = [
       canDelete: true,
       icon: React.createElement(Presentation),
     },
+  },
+  {
+    name: "attendance",
+    list: "/classes/:id/attendance",
+    meta: {
+      icon: React.createElement(Users)
+    }
   },
   {
     name: 'tests',

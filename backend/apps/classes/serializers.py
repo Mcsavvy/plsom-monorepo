@@ -313,7 +313,6 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
 class AttendanceSerializer(serializers.ModelSerializer):
     """Serializer for Attendance model"""
 
-    student = UserSerializer(read_only=True)
     class_session = ClassSerializer(read_only=True)
     duration_display = serializers.SerializerMethodField()
 
@@ -322,7 +321,6 @@ class AttendanceSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "class_session",
-            "student",
             "join_time",
             "leave_time",
             "duration_minutes",

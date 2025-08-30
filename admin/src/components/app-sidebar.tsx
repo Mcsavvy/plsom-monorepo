@@ -113,7 +113,7 @@ export function AppSidebar() {
                     ))}
                   </div>
                 ) : menuItems.length > 0 ? (
-                  menuItems.map(item => {
+                  menuItems.filter(item => item.name != "attendance").map(item => {
                     const isActive =
                       selectedKey === item.key ||
                       isActiveRoute(item.route || '');

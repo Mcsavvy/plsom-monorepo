@@ -55,6 +55,7 @@ import { ErrorBoundary, withErrorBoundary } from './components/ErrorBoundary';
 import { Suspense } from 'react';
 import { FullPageLoader, InlineLoader } from './components/LoadingSpinner';
 import { DocumentTitleHandler } from './components/DocumentTitleHandler';
+import { ClassAttendance } from './pages/classes/attendance';
 
 // Authenticated layout wrapper with error boundary
 const AuthenticatedLayout = () => (
@@ -110,6 +111,7 @@ const EnhancedClassesList = withErrorBoundary(ClassesList);
 const EnhancedClassesShow = withErrorBoundary(ClassesShow);
 const EnhancedClassesCreate = withErrorBoundary(ClassesCreate);
 const EnhancedClassesEdit = withErrorBoundary(ClassesEdit);
+const EnhancedClassAttendance = withErrorBoundary(ClassAttendance);
 const EnhancedTestsList = withErrorBoundary(TestsList);
 const EnhancedTestsShow = withErrorBoundary(TestsShow);
 const EnhancedTestsCreate = withErrorBoundary(TestsCreate);
@@ -225,6 +227,7 @@ function App() {
                     element={<EnhancedClassesEdit />}
                   />
                   <Route path='classes/:id' element={<EnhancedClassesShow />} />
+                  <Route path='classes/:id/attendance' element={<EnhancedClassAttendance />} />
                   <Route path='tests' element={<EnhancedTestsList />} />
                   <Route
                     path='tests/create'

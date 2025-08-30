@@ -370,9 +370,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action"""
-        if self.action in ["create", "update", "partial_update"]:
+        if self.action in ["create"]:
             return AttendanceCreateSerializer
-        elif self.action in ["verify_attendance", "bulk_verify"]:
+        elif self.action in ["update", "partial_update", "bulk_verify"]:
             return AttendanceVerificationSerializer
         return AttendanceSerializer
 
@@ -397,192 +397,19 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Set permissions based on action"""
-        if self.action in ["create", "update", "partial_update", "destroy", "verify_attendance", "unverify_attendance", "bulk_verify", "add_manual_attendance"]:
+        if self.action in ["create", "update", "partial_update", "destroy", "bulk_verify"]:
             permission_classes = [IsStaff]  # Only staff can manage attendance
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-
-    @extend_schema(
-        summary="Verify attendance",
-        description="Mark attendance as verified by admin/lecturer",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                description="Attendance ID",
-                required=True,
-                type=int,
-                location=OpenApiParameter.PATH,
-            ),
-        ],
-        responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "message": {"type": "string"},
-                    "attendance": {"type": "object"},
-                },
-            }
-        },
-    )
-    @action(detail=True, methods=["post"], url_path="verify")
-    def verify_attendance(self, request, pk=None):
-        """Mark attendance as verified"""
-        attendance = self.get_object()
-        user = request.user
-
-        # Check if user has permission to verify this attendance
-        if not (user.role == "admin" or (user.role == "lecturer" and attendance.class_session.lecturer == user)):
-            return Response(
-                {"error": "You don't have permission to verify this attendance."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # Use the verification serializer to validate the request
-        verification_serializer = AttendanceVerificationSerializer(data=request.data)
-        verification_serializer.is_valid(raise_exception=True)
-        
-        # Update attendance with verified status
-        attendance.verified = verification_serializer.validated_data.get("verified", True)
-        attendance.save(update_fields=["verified"])
-
-        serializer = AttendanceSerializer(attendance)
-        return Response({
-            "message": "Attendance verified successfully.",
-            "attendance": serializer.data,
-        })
-
-    @extend_schema(
-        summary="Bulk verify attendance",
-        description="Verify multiple attendance records for a class",
-        parameters=[
-            OpenApiParameter(
-                name="class_id",
-                description="Class ID",
-                required=True,
-                type=int,
-                location=OpenApiParameter.QUERY,
-            ),
-        ],
-        responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "message": {"type": "string"},
-                    "verified_count": {"type": "integer"},
-                },
-            }
-        },
-    )
-    @action(detail=False, methods=["post"], url_path="bulk-verify")
-    def bulk_verify(self, request):
-        """Bulk verify attendance for a class"""
-        user = request.user
-        class_id = request.query_params.get("class_id")
-
-        if not class_id:
-            return Response(
-                {"error": "class_id parameter is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            class_obj = Class.objects.get(id=class_id)
-        except Class.DoesNotExist:
-            return Response(
-                {"error": "Class not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        # Check if user has permission to verify attendance for this class
-        if not (user.role == "admin" or (user.role == "lecturer" and class_obj.lecturer == user)):
-            return Response(
-                {"error": "You don't have permission to verify attendance for this class."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # Use the verification serializer to validate the request
-        verification_serializer = AttendanceVerificationSerializer(data=request.data)
-        verification_serializer.is_valid(raise_exception=True)
-        
-        # Verify all unverified attendance records for this class
-        unverified_attendances = Attendance.objects.filter(
-            class_session=class_obj,
-            verified=False
-        )
-        
-        verified_count = unverified_attendances.update(verified=True)
-
-        return Response({
-            "message": f"Successfully verified {verified_count} attendance records.",
-            "verified_count": verified_count,
-        })
-
-    @extend_schema(
-        summary="Unverify attendance",
-        description="Mark attendance as unverified by admin/lecturer",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                description="Attendance ID",
-                required=True,
-                type=int,
-                location=OpenApiParameter.PATH,
-            ),
-        ],
-        responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "message": {"type": "string"},
-                    "attendance": {"type": "object"},
-                },
-            }
-        },
-    )
-    @action(detail=True, methods=["post"], url_path="unverify")
-    def unverify_attendance(self, request, pk=None):
-        """Mark attendance as unverified"""
-        attendance = self.get_object()
-        user = request.user
-
-        # Check if user has permission to unverify this attendance
-        if not (user.role == "admin" or (user.role == "lecturer" and attendance.class_session.lecturer == user)):
-            return Response(
-                {"error": "You don't have permission to unverify this attendance."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # Use the verification serializer to validate the request
-        verification_serializer = AttendanceVerificationSerializer(data=request.data)
-        verification_serializer.is_valid(raise_exception=True)
-        
-        # Update attendance with verified status
-        attendance.verified = verification_serializer.validated_data.get("verified", False)
-        attendance.save(update_fields=["verified"])
-
-        serializer = AttendanceSerializer(attendance)
-        return Response({
-            "message": "Attendance unverified successfully.",
-            "attendance": serializer.data,
-        })
-
+    
     @extend_schema(
         summary="Add manual attendance",
-        description="Add attendance record for a student who attended without using the platform",
+        description="Add manual attendance record",
         request=AttendanceCreateSerializer,
-        responses={
-            201: {
-                "type": "object",
-                "properties": {
-                    "message": {"type": "string"},
-                    "attendance": {"type": "object"},
-                },
-            }
-        },
+        responses={201: AttendanceSerializer},
     )
-    @action(detail=False, methods=["post"], url_path="add-manual")
-    def add_manual_attendance(self, request):
+    def create(self, request):
         """Add manual attendance record"""
         user = request.user
         serializer = AttendanceCreateSerializer(data=request.data)
@@ -629,6 +456,121 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             "message": "Manual attendance added successfully.",
             "attendance": response_serializer.data,
         }, status=status.HTTP_201_CREATED)
+
+
+    @extend_schema(
+        summary="Verify attendance",
+        description="Mark attendance as verified by admin/lecturer",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                description="Attendance ID",
+                required=True,
+                type=int,
+                location=OpenApiParameter.PATH,
+            ),
+        ],
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "message": {"type": "string"},
+                    "attendance": {"type": "object"},
+                },
+            }
+        },
+    )
+    def update(self, request, pk=None, *args, **kwargs):
+        """Mark attendance as verified"""
+        attendance: Attendance = self.get_object()
+        user = request.user
+
+        # Check if user has permission to verify this attendance
+        if not (user.role == "admin" or (user.role == "lecturer" and attendance.class_session.lecturer == user)):
+            return Response(
+                {"error": "You don't have permission to verify this attendance."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Use the verification serializer to validate the request
+        verification_serializer = AttendanceVerificationSerializer(data=request.data)
+        verification_serializer.is_valid(raise_exception=True)
+        
+        # Update attendance with verified status
+        attendance.verified = verification_serializer.validated_data.get("verified", True)
+        attendance.save(update_fields=["verified"])
+
+        serializer = AttendanceSerializer(attendance)
+        return Response({
+            "message": "Attendance verified successfully.",
+            "attendance": serializer.data,
+        })
+
+    @extend_schema(
+        summary="Bulk verify attendance",
+        description="Verify multiple attendance records for a class",
+        parameters=[
+            OpenApiParameter(
+                name="class_id",
+                description="Class ID",
+                required=True,
+                type=int,
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "message": {"type": "string"},
+                    "verified_count": {"type": "integer"},
+                },
+            }
+        },
+    )
+    @action(detail=True, methods=["patch"], url_path="bulk-verify")
+    def bulk_verify(self, request, pk=None):
+        """Bulk verify attendance for a class"""
+        user = request.user
+        class_id = pk
+
+        if not class_id:
+            return Response(
+                {"error": "class_id parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            class_obj = Class.objects.get(id=class_id)
+        except Class.DoesNotExist:
+            return Response(
+                {"error": "Class not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if user has permission to verify attendance for this class
+        if not (user.role == "admin" or (user.role == "lecturer" and class_obj.lecturer == user)):
+            return Response(
+                {"error": "You don't have permission to verify attendance for this class."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Use the verification serializer to validate the request
+        verification_serializer = AttendanceVerificationSerializer(data=request.data)
+        verification_serializer.is_valid(raise_exception=True)
+        
+        # Verify all unverified attendance records for this class
+        unverified_attendances = Attendance.objects.filter(
+            class_session=class_obj,
+            verified=False
+        )
+        
+        verified_count = unverified_attendances.update(verified=True)
+
+        return Response({
+            "message": f"Successfully verified {verified_count} attendance records.",
+            "verified_count": verified_count,
+        })
 
     @extend_schema(
         summary="Get class attendance summary",

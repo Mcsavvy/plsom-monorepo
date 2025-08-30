@@ -35,6 +35,17 @@ const ACTION_DISPLAY_NAMES: Record<string, string> = {
   'show-many': 'View Many',
   import: 'Import',
   export: 'Export',
+  attendance: 'Attendance',
+  grades: 'Grades',
+  'grade-report': 'Grade Report',
+  assignments: 'Assignments',
+  submissions: 'Submissions',
+  schedule: 'Schedule',
+  calendar: 'Calendar',
+  announcements: 'Announcements',
+  discussions: 'Discussions',
+  materials: 'Materials',
+  resources: 'Resources',
 };
 
 /**
@@ -105,6 +116,7 @@ const parseRouteForMeta = (
       potentialId &&
       (/^\d+$/.test(potentialId) || potentialId === params.id || params.id)
     ) {
+      console.log(resource, potentialId, segments[2])
       return {
         resource,
         id: params.id || potentialId,
@@ -142,17 +154,20 @@ export const Breadcrumb = () => {
 
         if (routeMeta && routeMeta.action && routeMeta.action !== 'show') {
           // Add the item itself (clickable to show page)
-          items.push({
-            label: breadcrumb.label,
-            href: generateShowUrl(routeMeta.resource, routeMeta.id),
-            resource: routeMeta.resource,
-            id: routeMeta.id,
-            isLast: false,
-          });
+          if (routeMeta.id) {
+            items.push({
+              label: breadcrumb.label,
+              href: generateShowUrl(routeMeta.resource, routeMeta.id),
+              resource: routeMeta.resource,
+              id: routeMeta.id,
+              isLast: false,
+            });
+          }
 
           // Add the action as a separate breadcrumb item
           items.push({
-            label: ACTION_DISPLAY_NAMES[routeMeta.action] || routeMeta.action,
+            label: ACTION_DISPLAY_NAMES[routeMeta.action] || 
+                   routeMeta.action.charAt(0).toUpperCase() + routeMeta.action.slice(1),
             isLast: true,
             isAction: true,
           });
@@ -178,7 +193,8 @@ export const Breadcrumb = () => {
 
             // Add the action as a separate breadcrumb item
             items.push({
-              label: ACTION_DISPLAY_NAMES[currentAction] || currentAction,
+              label: ACTION_DISPLAY_NAMES[currentAction] || 
+                     currentAction.charAt(0).toUpperCase() + currentAction.slice(1),
               isLast: true,
               isAction: true,
             });

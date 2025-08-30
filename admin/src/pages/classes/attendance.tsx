@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useCustom, useUpdate, useCreate } from '@refinedev/core';
+import { useCustom, useUpdate, useCreate, useList } from '@refinedev/core';
+import { useParams } from 'react-router';
+import { useMeta } from '@/hooks/use-meta';
 import {
   CheckCircle,
   XCircle,
@@ -100,66 +102,36 @@ interface AttendanceSummary {
   }>;
 }
 
-interface Student {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  profile_picture?: string;
-}
-
 export const ClassAttendance: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [isAddAttendanceOpen, setIsAddAttendanceOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [students, setStudents] = useState<Student[]>([]);
   const { toast } = useToast();
+
+  // Enhanced title and metadata support for breadcrumb integration
+  const { meta: classMeta, isLoading: metaLoading } = useMeta('classes', id);
 
   const { mutate: updateAttendance } = useUpdate();
   const { mutate: createAttendance } = useCreate();
 
-  // Get attendance summary for selected class
+  // Get attendance summary for the class from URL
   const { data: attendanceData, isLoading, refetch } = useCustom<AttendanceSummary>({
-    url: 'attendance/class-summary',
+    url: 'attendance/class-summary/',
     method: 'get',
     config: {
       query: {
-        class_id: selectedClassId,
+        class_id: id,
       },
     },
     queryOptions: {
-      enabled: !!selectedClassId,
+      enabled: !!id,
     },
   });
 
-  // Get students for the selected class
-  const { data: studentsData } = useCustom<{ data: Student[] }>({
-    url: 'cohorts/enrollments',
-    method: 'get',
-    config: {
-      query: {
-        class_id: selectedClassId,
-      },
-    },
-    queryOptions: {
-      enabled: !!selectedClassId,
-    },
-  });
-
-  // Get all classes for selection
-  const { data: classesData } = useCustom<{ data: Array<{ id: number; title: string; course_name: string }> }>({
-    url: 'classes',
-    method: 'get',
-    config: {
-      query: {
-        time_filter: 'past',
-        per_page: 100,
-      },
-    },
-  });
+  const absentStudents = attendanceData?.data?.attendance_list?.filter(student => student.status === 'absent');
 
   const handleVerifyAttendance = useCallback(
     (attendanceId: number) => {
@@ -220,15 +192,15 @@ export const ClassAttendance: React.FC = () => {
   );
 
   const handleBulkVerify = useCallback(() => {
-    if (!selectedClassId) return;
+    if (!id) return;
 
     updateAttendance(
       {
         resource: 'attendance',
-        id: 'bulk-verify',
+        id:  `${id}/bulk-verify`,
         values: {},
         meta: {
-          query: { class_id: selectedClassId },
+          query: { class_id: id },
         },
       },
       {
@@ -248,18 +220,18 @@ export const ClassAttendance: React.FC = () => {
         },
       }
     );
-  }, [selectedClassId, updateAttendance, toast, refetch]);
+  }, [id, updateAttendance, toast, refetch]);
 
   const handleAddManualAttendance = useCallback(() => {
-    if (!selectedClassId || !selectedStudentId) return;
+    if (!id || !selectedStudentId) return;
 
     createAttendance(
       {
         resource: 'attendance',
         values: {
-          class_session_id: parseInt(selectedClassId),
+          class_session_id: parseInt(id),
           student_id: parseInt(selectedStudentId),
-          join_time: new Date().toISOString(),
+          join_time: attendanceData?.data?.class_info?.scheduled_at || new Date().toISOString(),
           duration_minutes: attendanceData?.data?.class_info?.duration_minutes || 90,
           via_recording: false,
         },
@@ -283,7 +255,7 @@ export const ClassAttendance: React.FC = () => {
         },
       }
     );
-  }, [selectedClassId, selectedStudentId, attendanceData, createAttendance, toast, refetch]);
+  }, [id, selectedStudentId, attendanceData, createAttendance, toast, refetch]);
 
   const columns: ColumnDef<AttendanceSummary['attendance_list'][0]>[] = useMemo(
     () => [
@@ -298,7 +270,7 @@ export const ClassAttendance: React.FC = () => {
                 alt={row.original.student.name}
               />
               <AvatarFallback className='text-xs'>
-                {row.original.student.name.split(' ').map(n => n[0]).join('')}
+                {row.original.student.name.split(' ').slice(-2).map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -365,7 +337,7 @@ export const ClassAttendance: React.FC = () => {
         header: 'Verification',
         cell: ({ row }) => {
           const attendance = row.original.attendance;
-          if (!attendance) return <span className='text-gray-400'>N/A</span>;
+          if (!attendance) return <span className='text-gray-400'>Not Attended</span>;
 
           return (
             <div className='flex items-center gap-2'>
@@ -436,26 +408,30 @@ export const ClassAttendance: React.FC = () => {
     <div className='space-y-6'>
       <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
         <div>
-          <h1 className='text-3xl font-bold tracking-tight flex items-center gap-2'>
+          <h1 className='text-2xl font-bold tracking-tight flex items-center gap-2'>
             <Users className='h-8 w-8' />
-            Class Attendance Management
+            {metaLoading ? (
+              <Skeleton className='h-8 w-64' />
+            ) : (
+              classMeta?.name ? `${classMeta.name} - Attendance` : 'Class Attendance Management'
+            )}
           </h1>
           <p className='text-muted-foreground'>
-            View and manage attendance for class sessions
+            {classMeta?.description || 'View and manage attendance for class sessions'}
           </p>
         </div>
         <div className='flex gap-2'>
           <Button
             variant='outline'
             onClick={() => refetch()}
-            disabled={!selectedClassId}
+            disabled={!id}
           >
             <RefreshCw className='h-4 w-4 mr-2' />
             Refresh
           </Button>
           <Dialog open={isAddAttendanceOpen} onOpenChange={setIsAddAttendanceOpen}>
             <DialogTrigger asChild>
-              <Button disabled={!selectedClassId}>
+              <Button disabled={!id}>
                 <Plus className='h-4 w-4 mr-2' />
                 Add Manual Attendance
               </Button>
@@ -475,9 +451,9 @@ export const ClassAttendance: React.FC = () => {
                       <SelectValue placeholder='Choose a student' />
                     </SelectTrigger>
                     <SelectContent>
-                      {studentsData?.data?.data?.map((student) => (
-                        <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.first_name} {student.last_name} ({student.email})
+                      {absentStudents?.map((student) => (
+                        <SelectItem key={student.student.id} value={student.student.id.toString()}>
+                          {student.student.name} ({student.student.email})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -497,31 +473,7 @@ export const ClassAttendance: React.FC = () => {
         </div>
       </div>
 
-      {/* Class Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Class</CardTitle>
-          <CardDescription>
-            Choose a class to view and manage attendance
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-            <SelectTrigger className='w-full max-w-md'>
-              <SelectValue placeholder='Select a class' />
-            </SelectTrigger>
-            <SelectContent>
-              {classesData?.data?.data?.map((classItem) => (
-                <SelectItem key={classItem.id} value={classItem.id.toString()}>
-                  {classItem.title} - {classItem.course_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      {selectedClassId && (
+      {id && (
         <>
           {/* Attendance Summary */}
           {summary && (
@@ -673,12 +625,12 @@ export const ClassAttendance: React.FC = () => {
         </>
       )}
 
-      {!selectedClassId && (
+      {!id && (
         <Card>
           <CardContent className='flex items-center justify-center h-32'>
             <div className='text-center'>
               <AlertTriangle className='h-8 w-8 text-muted-foreground mx-auto mb-2' />
-              <p className='text-muted-foreground'>Please select a class to view attendance</p>
+              <p className='text-muted-foreground'>Invalid class ID</p>
             </div>
           </CardContent>
         </Card>

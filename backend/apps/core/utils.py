@@ -1,7 +1,6 @@
 from typing import TypedDict
 from django.contrib.contenttypes.models import ContentType
 
-
 def get_content_type(resource: str) -> ContentType:
     from apps.invitations.models import Invitation
     from apps.cohorts.models import Cohort
@@ -11,6 +10,7 @@ def get_content_type(resource: str) -> ContentType:
     from apps.courses.models import Course
     from apps.classes.models import Class
     from apps.assessments.models import Test, Submission
+    from apps.classes.models import Attendance
 
     resource_map = {
         "users": User,
@@ -19,6 +19,7 @@ def get_content_type(resource: str) -> ContentType:
         "staff": User,
         "courses": Course,
         "classes": Class,
+        "attendance": Attendance,
         "enrollments": Enrollment,
         "invitations": Invitation,
         "audit-logs": AuditLog,
@@ -44,6 +45,8 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
     from apps.courses.models import Course
     from apps.classes.models import Class
     from apps.assessments.models import Test, Submission
+    from apps.classes.models import Attendance
+
     if resource == "invitations":
         invitation = Invitation.objects.get(id=id)
         return {
@@ -113,6 +116,12 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
         return {
             "name": class_session.title,
             "description": (class_session.title + " (" + class_session.course.name + ")"),
+        }
+    elif resource == "attendance":
+        attendance = Attendance.objects.get(id=id)
+        return {
+            "name": attendance.student.get_full_name() + " - " + attendance.class_session.title,
+            "description": (attendance.student.get_full_name() + " - " + attendance.class_session.title + " (" + attendance.class_session.course.name + ")"),
         }
     elif resource == "audit-logs":
         audit_log = AuditLog.objects.get(id=id)

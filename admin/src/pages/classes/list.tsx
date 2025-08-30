@@ -27,6 +27,7 @@ import {
   SortingState,
   ColumnFiltersState,
 } from '@tanstack/react-table';
+import { useNavigate } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -64,6 +65,7 @@ export const ClassesList: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+  const navigate = useNavigate()
 
   const { show, edit, create, list } = useNavigation();
   const { mutate: deleteRecord } = useDelete();
@@ -363,7 +365,7 @@ export const ClassesList: React.FC = () => {
                 </DropdownMenuItem>
                 {row.original.isPast && (
                   <DropdownMenuItem
-                    onClick={() => list('classes/attendance', { class_id: row.original.id })}
+                    onClick={() => navigate(`${row.original.id}/attendance`)}
                   >
                     <ClipboardCheck className='mr-2 h-4 w-4' />
                     Manage Attendance
@@ -386,7 +388,7 @@ export const ClassesList: React.FC = () => {
         ),
       },
     ],
-    [show, edit, handleDelete, handleClone]
+    [show, edit, handleDelete, handleClone, navigate]
   );
 
   const table = useReactTable({
