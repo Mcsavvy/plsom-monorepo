@@ -253,9 +253,10 @@ class RefineDataProviderFilter(filters.BaseFilterBackend):
         """
         Convert string values to appropriate Python types based on field type.
         """
+        from django.db import models
+        from django.core.exceptions import FieldDoesNotExist
         try:
             field = model._meta.get_field(field_name)
-            from django.db import models
 
             # Handle BooleanField
             if isinstance(field, models.BooleanField):
@@ -273,7 +274,7 @@ class RefineDataProviderFilter(filters.BaseFilterBackend):
             # elif isinstance(field, models.FloatField):
             #     return float(value)
 
-        except (models.FieldDoesNotExist, ValueError, TypeError):
+        except (FieldDoesNotExist, ValueError, TypeError):
             # If field doesn't exist or conversion fails, return original value
             pass
 
