@@ -9,6 +9,7 @@ import {
   TimeFilter,
   classSchema,
   classesListSchema,
+  paginatedClassesResponseSchema,
   ClassCardData,
   transformClassToCardData,
 } from "@/types/classes";
@@ -30,11 +31,12 @@ async function _getMyClasses(
     if (query?.time_filter) params.append("time_filter", query.time_filter);
 
     const url = `/classes/my-classes/${params.toString() ? `?${params.toString()}` : ""}`;
-    const response = await client.get<ClassesList>(url);
+    const response = await client.get(url);
     
     if (response.status === 200) {
-      const classes = classesListSchema.parse(response.data);
-      return classes;
+      // Handle paginated response
+      const paginatedResponse = paginatedClassesResponseSchema.parse(response.data);
+      return paginatedResponse.results;
     }
     throw new Error("Failed to fetch classes");
   } catch (error) {

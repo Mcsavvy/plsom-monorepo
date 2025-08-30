@@ -8,6 +8,7 @@ import {
   MyCoursesResponse,
   courseSchema,
   coursesListSchema,
+  paginatedCoursesResponseSchema,
   myCoursesResponseSchema,
   CourseCardData,
   transformCourseToCardData,
@@ -24,15 +25,9 @@ async function _getMyCourses(
   try {
     const response = await client.get("/courses/my-courses/");
     if (response.status === 200) {
-      // If the API returns a message, we'll return empty array for now
-      // This should be updated when the proper endpoint is available
-      if (response.data.message) {
-        console.warn("Courses endpoint returned message:", response.data.message);
-        return []; // Return empty array until proper endpoint is available
-      }
-      // If it returns actual courses data, parse it
-      const courses = coursesListSchema.parse(response.data);
-      return courses;
+      // Handle paginated response
+      const paginatedResponse = paginatedCoursesResponseSchema.parse(response.data);
+      return paginatedResponse.results;
     }
     throw new Error("Failed to fetch courses");
   } catch (error) {

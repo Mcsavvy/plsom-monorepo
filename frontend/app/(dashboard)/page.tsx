@@ -86,7 +86,7 @@ export default function HomePage() {
   const ongoingClasses = classes.filter(c => c.status === "ongoing");
   const todayClasses = classes.filter(c => c.isToday);
   const availableTests = tests.filter(t => t.isAvailable && t.status === "not_started" && t.canAttempt);
-  const inProgressTests = tests.filter(t => t.status === "in_progress");
+  const inProgressTests = tests.filter(t => t.status === "in_progress" || t.status === "returned");
   const urgentTests = tests.filter(t => 
     (t.isAvailable && t.status === "not_started" && t.canAttempt) || 
     t.status === "in_progress"

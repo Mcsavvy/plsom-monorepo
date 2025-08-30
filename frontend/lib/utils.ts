@@ -29,6 +29,8 @@ export function toastError(
 ): void {
   let message: string;
 
+  console.log("Error", error);
+
   // Handle custom HttpError type
   if (error && typeof error === "object" && "message" in error && "statusCode" in error) {
     const httpError = error as HttpError;

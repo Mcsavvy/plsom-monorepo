@@ -17,6 +17,14 @@ export const courseSchema = z.object({
 
 export const coursesListSchema = z.array(courseSchema);
 
+// Paginated response schema
+export const paginatedCoursesResponseSchema = z.object({
+  count: z.number(),
+  next: z.string().nullable(),
+  previous: z.string().nullable(),
+  results: coursesListSchema,
+});
+
 // Next class details schema (for when next_class_in_my_cohorts has data)
 export const nextClassSchema = z.object({
   id: z.number(),
@@ -39,6 +47,7 @@ export const myCoursesResponseSchema = z.object({
 
 export type Course = z.infer<typeof courseSchema>;
 export type CoursesList = z.infer<typeof coursesListSchema>;
+export type PaginatedCoursesResponse = z.infer<typeof paginatedCoursesResponseSchema>;
 export type NextClass = z.infer<typeof nextClassSchema>;
 export type EnhancedCourse = z.infer<typeof enhancedCourseSchema>;
 export type MyCoursesResponse = z.infer<typeof myCoursesResponseSchema>;
