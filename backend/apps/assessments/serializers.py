@@ -82,6 +82,8 @@ class TestSerializer(serializers.ModelSerializer):
     cohort_name = serializers.CharField(source="cohort.name", read_only=True)
     breaking_changes_detected = serializers.BooleanField(read_only=True, default=False)
     graded_submissions_returned = serializers.IntegerField(read_only=True, default=0)
+    available_from_timezone = serializers.CharField(write_only=True, required=False, default='UTC')
+    available_until_timezone = serializers.CharField(write_only=True, required=False, default='UTC')
 
     class Meta:
         model = Test
@@ -109,6 +111,8 @@ class TestSerializer(serializers.ModelSerializer):
             "is_available",
             "course_name",
             "cohort_name",
+            "available_from_timezone",
+            "available_until_timezone",
             "breaking_changes_detected",
             "graded_submissions_returned",
         ]
@@ -119,7 +123,62 @@ class TestSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        """Validate test data."""
+        """Validate test data with timezone handling."""
+        from django.utils import timezone
+        import pytz
+        from datetime import datetime
+        
+        # Handle timezone conversion for available_from
+        if 'available_from' in attrs and 'available_from_timezone' in attrs:
+            available_from = attrs['available_from']
+            timezone_name = attrs['available_from_timezone']
+            
+            if available_from and isinstance(available_from, str):
+                try:
+                    # If it's already a timezone-aware datetime, use it as is
+                    if available_from.endswith('Z') or '+' in available_from or available_from.endswith('UTC'):
+                        # Already timezone-aware, convert to UTC
+                        dt = timezone.datetime.fromisoformat(available_from.replace('Z', '+00:00'))
+                    else:
+                        # Assume it's in the specified timezone
+                        tz = pytz.timezone(timezone_name)
+                        dt = datetime.fromisoformat(available_from)
+                        dt = tz.localize(dt)
+                    
+                    # Convert to UTC for storage
+                    attrs['available_from'] = dt.astimezone(pytz.UTC)
+                except (ValueError, pytz.exceptions.UnknownTimeZoneError) as e:
+                    raise serializers.ValidationError(f"Invalid timezone or datetime format for available_from: {str(e)}")
+            
+            # Remove timezone from attrs since it's not a model field
+            del attrs['available_from_timezone']
+        
+        # Handle timezone conversion for available_until
+        if 'available_until' in attrs and 'available_until_timezone' in attrs:
+            available_until = attrs['available_until']
+            timezone_name = attrs['available_until_timezone']
+            
+            if available_until and isinstance(available_until, str):
+                try:
+                    # If it's already a timezone-aware datetime, use it as is
+                    if available_until.endswith('Z') or '+' in available_until or available_until.endswith('UTC'):
+                        # Already timezone-aware, convert to UTC
+                        dt = timezone.datetime.fromisoformat(available_until.replace('Z', '+00:00'))
+                    else:
+                        # Assume it's in the specified timezone
+                        tz = pytz.timezone(timezone_name)
+                        dt = datetime.fromisoformat(available_until)
+                        dt = tz.localize(dt)
+                    
+                    # Convert to UTC for storage
+                    attrs['available_until'] = dt.astimezone(pytz.UTC)
+                except (ValueError, pytz.exceptions.UnknownTimeZoneError) as e:
+                    raise serializers.ValidationError(f"Invalid timezone or datetime format for available_until: {str(e)}")
+            
+            # Remove timezone from attrs since it's not a model field
+            del attrs['available_until_timezone']
+
+        # Original validation logic
         available_from = attrs.get("available_from")
         available_until = attrs.get("available_until")
 

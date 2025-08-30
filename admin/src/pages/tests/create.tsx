@@ -46,6 +46,7 @@ import { Course } from '@/types/course';
 import { QUESTION_TYPES, TestFormData } from '@/types/test';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DateTimeInput } from '@/components/ui/datetime-input';
 
 const questionSchema = z.object({
   question_type: z.enum([
@@ -95,7 +96,9 @@ const formSchema = z.object({
   randomize_questions: z.boolean(),
   status: z.enum(['draft', 'published', 'archived']),
   available_from: z.string().optional(),
+  available_from_timezone: z.string().optional(),
   available_until: z.string().optional(),
+  available_until_timezone: z.string().optional(),
   questions: z
     .array(questionSchema)
     .min(1, 'At least one question is required'),
@@ -138,6 +141,8 @@ export const TestsCreate: React.FC = () => {
       allow_review_after_submission: true,
       randomize_questions: false,
       status: 'draft',
+      available_from_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      available_until_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       questions: [
         {
           question_type: 'text',
@@ -168,7 +173,9 @@ export const TestsCreate: React.FC = () => {
         ...data,
         instructions: data.instructions || '',
         available_from: data.available_from || undefined,
+        available_from_timezone: data.available_from_timezone,
         available_until: data.available_until || undefined,
+        available_until_timezone: data.available_until_timezone,
         questions: data.questions.map(q => ({
           ...q,
           description: q.description || '',
@@ -645,10 +652,16 @@ export const TestsCreate: React.FC = () => {
                         <FormItem>
                           <FormLabel>Available From</FormLabel>
                           <FormControl>
-                            <Input
-                              type='datetime-local'
-                              {...field}
-                              value={field.value || ''}
+                            <DateTimeInput
+                              value={field.value}
+                              onChange={(value, timezone) => {
+                                field.onChange(value);
+                                form.setValue('available_from_timezone', timezone);
+                              }}
+                              timezone={form.watch('available_from_timezone')}
+                              onTimezoneChange={(timezone) => {
+                                form.setValue('available_from_timezone', timezone);
+                              }}
                             />
                           </FormControl>
                           <FormDescription>
@@ -666,10 +679,16 @@ export const TestsCreate: React.FC = () => {
                         <FormItem>
                           <FormLabel>Available Until</FormLabel>
                           <FormControl>
-                            <Input
-                              type='datetime-local'
-                              {...field}
-                              value={field.value || ''}
+                            <DateTimeInput
+                              value={field.value}
+                              onChange={(value, timezone) => {
+                                field.onChange(value);
+                                form.setValue('available_until_timezone', timezone);
+                              }}
+                              timezone={form.watch('available_until_timezone')}
+                              onTimezoneChange={(timezone) => {
+                                form.setValue('available_until_timezone', timezone);
+                              }}
                             />
                           </FormControl>
                           <FormDescription>

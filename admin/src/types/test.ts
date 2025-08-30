@@ -194,7 +194,9 @@ export interface TestFormData {
   randomize_questions: boolean;
   status: 'draft' | 'published' | 'archived';
   available_from?: string;
+  available_from_timezone?: string;
   available_until?: string;
+  available_until_timezone?: string;
   questions: QuestionFormData[];
 }
 

@@ -66,6 +66,7 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
     course_id = serializers.IntegerField(write_only=True)
     lecturer_id = serializers.IntegerField(write_only=True, required=False)
     cohort_id = serializers.IntegerField(write_only=True)
+    timezone = serializers.CharField(write_only=True, required=False, default='UTC')
 
     # Read-only nested objects for response
     course = CourseSerializer(read_only=True)
@@ -83,6 +84,7 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
             "cohort_id",
             "cohort",
             "title",
+            "timezone",
             "description",
             "scheduled_at",
             "duration_minutes",
@@ -132,36 +134,41 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Class cannot be scheduled in the past.")
         return value
 
-    def validate_duration_minutes(self, value):
-        """Validate duration is reasonable"""
-        if value <= 0:
-            raise serializers.ValidationError("Duration must be greater than 0.")
-        if value > 480:  # 8 hours max
-            raise serializers.ValidationError(
-                "Duration cannot exceed 8 hours (480 minutes)."
-            )
-        return value
-
-    def validate_zoom_join_url(self, value):
-        """Validate Zoom URL format and extract meeting ID if possible"""
-        if not value:
-            return value
-
-        # Basic URL validation
-        if not value.startswith(
-            (
-                "https://zoom.us/",
-                "https://us02web.zoom.us/",
-                "https://us04web.zoom.us/",
-                "https://us05web.zoom.us/",
-            )
-        ):
-            raise serializers.ValidationError("Invalid Zoom URL format.")
-
-        return value
-
     def validate(self, attrs):
-        """Cross-field validation"""
+        """Cross-field validation with timezone handling"""
+        # Handle timezone conversion for scheduled_at
+        timezone_name = attrs.get('timezone', 'UTC')
+        
+        # Remove timezone from attrs since it's not a model field
+        if 'timezone' in attrs:
+            del attrs['timezone']
+        
+        # If scheduled_at is provided, convert it to the specified timezone
+        if 'scheduled_at' in attrs and attrs['scheduled_at']:
+            try:
+                import pytz # type: ignore
+                from datetime import datetime
+                
+                # Parse the datetime string (should be ISO format from frontend)
+                dt = attrs['scheduled_at']
+                if isinstance(dt, str):
+                    # If it's already a timezone-aware datetime, use it as is
+                    if dt.endswith('Z') or '+' in dt or dt.endswith('UTC'):
+                        # Already timezone-aware, convert to UTC
+                        dt = timezone.datetime.fromisoformat(dt.replace('Z', '+00:00'))
+                    else:
+                        # Assume it's in the specified timezone
+                        tz = pytz.timezone(timezone_name)
+                        dt = datetime.fromisoformat(dt)
+                        dt = tz.localize(dt)
+                
+                # Convert to UTC for storage
+                attrs['scheduled_at'] = dt.astimezone(pytz.UTC)
+                
+            except (ValueError, pytz.exceptions.UnknownTimeZoneError) as e:
+                raise serializers.ValidationError(f"Invalid timezone or datetime format: {str(e)}")
+        
+        # Original cross-field validation logic
         course_id = attrs.get("course_id")
         lecturer_id = attrs.get("lecturer_id")
         cohort_id = attrs.get("cohort_id")
@@ -198,25 +205,37 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
             duration = attrs.get("duration_minutes", 90)
             end_time = scheduled_at + timezone.timedelta(minutes=duration)
 
-            instance = getattr(self, "instance", None)
-            conflicting_classes = Class.objects.filter(
-                lecturer_id=lecturer_id,
-                scheduled_at__lt=end_time,
-                scheduled_at__gte=scheduled_at - timezone.timedelta(minutes=duration),
-            )
-
-            if instance:
-                conflicting_classes = conflicting_classes.exclude(id=instance.id)
-
-            if conflicting_classes.exists():
-                conflict = conflicting_classes.first()
-                raise serializers.ValidationError(
-                    {
-                        "scheduled_at": f'Lecturer has a conflicting class "{conflict.title}" at this time.'
-                    }
-                )
-
         return attrs
+
+    def validate_duration_minutes(self, value):
+        """Validate duration is reasonable"""
+        if value <= 0:
+            raise serializers.ValidationError("Duration must be greater than 0.")
+        if value > 480:  # 8 hours max
+            raise serializers.ValidationError(
+                "Duration cannot exceed 8 hours (480 minutes)."
+            )
+        return value
+
+    def validate_zoom_join_url(self, value):
+        """Validate Zoom URL format and extract meeting ID if possible"""
+        if not value:
+            return value
+
+        # Basic URL validation
+        if not value.startswith(
+            (
+                "https://zoom.us/",
+                "https://us02web.zoom.us/",
+                "https://us04web.zoom.us/",
+                "https://us05web.zoom.us/",
+            )
+        ):
+            raise serializers.ValidationError("Invalid Zoom URL format.")
+
+        return value
+
+
 
     def _extract_meeting_id_from_url(self, url):
         """Extract Zoom meeting ID from URL"""

@@ -41,6 +41,7 @@ import { Class } from '@/types/class';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DurationInput } from '@/components/ui/duration-input';
+import { DateTimeInput } from '@/components/ui/datetime-input';
 
 const formSchema = z.object({
   course_id: z.number().min(1, 'Course is required'),
@@ -55,6 +56,7 @@ const formSchema = z.object({
     .max(1000, 'Description must be 1000 characters or less')
     .optional(),
   scheduled_at: z.string().min(1, 'Scheduled date and time is required'),
+  timezone: z.string().min(1, 'Timezone is required'),
   duration_minutes: z
     .number()
     .min(15, 'Duration must be at least 15 minutes')
@@ -165,6 +167,7 @@ export const ClassesEdit: React.FC = () => {
       title: '',
       description: '',
       scheduled_at: '',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       duration_minutes: 60,
       zoom_join_url: '',
       recording_url: '',
@@ -188,6 +191,7 @@ export const ClassesEdit: React.FC = () => {
         title: classItem.title,
         description: classItem.description || '',
         scheduled_at: formattedDateTime,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         duration_minutes: classItem.durationMinutes,
         zoom_join_url: classItem.zoomJoinUrl || '',
         recording_url: classItem.recordingUrl || '',
@@ -228,6 +232,7 @@ export const ClassesEdit: React.FC = () => {
         title: data.title,
         description: data.description || '',
         scheduled_at: data.scheduled_at,
+        timezone: data.timezone,
         duration_minutes: data.duration_minutes,
         ...(data.lecturer_id && { lecturer_id: data.lecturer_id }),
         ...(data.zoom_join_url && { zoom_join_url: data.zoom_join_url }),
@@ -484,7 +489,17 @@ export const ClassesEdit: React.FC = () => {
                     <FormItem>
                       <FormLabel>Scheduled Date & Time</FormLabel>
                       <FormControl>
-                        <Input type='datetime-local' {...field} />
+                        <DateTimeInput
+                          value={field.value}
+                          onChange={(value, timezone) => {
+                            field.onChange(value);
+                            form.setValue('timezone', timezone);
+                          }}
+                          timezone={form.watch('timezone')}
+                          onTimezoneChange={(timezone) => {
+                            form.setValue('timezone', timezone);
+                          }}
+                        />
                       </FormControl>
                       <FormDescription>
                         When this class is scheduled to take place

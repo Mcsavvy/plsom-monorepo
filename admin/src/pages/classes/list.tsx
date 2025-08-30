@@ -14,6 +14,7 @@ import {
   Clock,
   Users,
   Calendar,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   useReactTable,
@@ -64,7 +65,7 @@ export const ClassesList: React.FC = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const { show, edit, create } = useNavigation();
+  const { show, edit, create, list } = useNavigation();
   const { mutate: deleteRecord } = useDelete();
   const { mutate: createClass } = useCreate();
 
@@ -360,6 +361,14 @@ export const ClassesList: React.FC = () => {
                   <Edit className='mr-2 h-4 w-4' />
                   Edit
                 </DropdownMenuItem>
+                {row.original.isPast && (
+                  <DropdownMenuItem
+                    onClick={() => list('classes/attendance', { class_id: row.original.id })}
+                  >
+                    <ClipboardCheck className='mr-2 h-4 w-4' />
+                    Manage Attendance
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => handleClone(row.original)}>
                   <Copy className='mr-2 h-4 w-4' />
                   Clone (No Meeting Link)
