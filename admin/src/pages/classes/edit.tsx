@@ -124,11 +124,6 @@ export const ClassesEdit: React.FC = () => {
       pagination: { mode: 'off' },
       filters: [
         {
-          field: 'role',
-          operator: 'eq',
-          value: 'lecturer',
-        },
-        {
           field: 'is_active',
           operator: 'eq',
           value: true,
