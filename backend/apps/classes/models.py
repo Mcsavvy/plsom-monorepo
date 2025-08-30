@@ -45,6 +45,7 @@ class Attendance(models.Model):
     leave_time = models.DateTimeField(null=True)
     duration_minutes = models.PositiveIntegerField(default=0)
     via_recording = models.BooleanField(default=False)
+    verified = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["join_time"]
