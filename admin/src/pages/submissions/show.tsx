@@ -1,6 +1,5 @@
 import { useOne, useNavigation } from '@refinedev/core';
 import {
-  ArrowLeft,
   Edit,
   User,
   GraduationCap,
@@ -33,9 +32,14 @@ import { transformSubmission } from '@/utils/dataTransformers';
 
 export const SubmissionShow: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { goBack, edit } = useNavigation();
+  const { edit } = useNavigation();
 
-  const { data: submission, isLoading, isError, error } = useOne<Submission>({
+  const {
+    data: submission,
+    isLoading,
+    isError,
+    error,
+  } = useOne<Submission>({
     resource: 'submissions',
     id,
     meta: {
@@ -215,7 +219,9 @@ export const SubmissionShow: React.FC = () => {
             <h1 className='text-2xl font-bold'>Submission Details</h1>
           </div>
         </div>
-        {['submitted', 'graded', 'returned'].includes(submissionData.status) && (
+        {['submitted', 'graded', 'returned'].includes(
+          submissionData.status
+        ) && (
           <Button onClick={() => edit('submissions', submissionData.id)}>
             <Edit className='h-4 w-4 mr-2' />
             Grade Submission

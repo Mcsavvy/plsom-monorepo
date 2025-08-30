@@ -51,7 +51,12 @@ export const SubmissionGrade: React.FC = () => {
     returnForRevision: false,
   });
 
-  const { data: submission, isLoading, isError, error } = useOne<Submission>({
+  const {
+    data: submission,
+    isLoading,
+    isError,
+    error,
+  } = useOne<Submission>({
     resource: 'submissions',
     id,
     meta: {

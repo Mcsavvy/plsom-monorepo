@@ -76,7 +76,10 @@ interface Insight {
   action?: string;
 }
 
-export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => {
+export const DashboardSummary = ({
+  stats,
+  userRole,
+}: DashboardSummaryProps) => {
   const generateInsights = (): Insight[] => {
     const insights: Insight[] = [];
 
@@ -84,15 +87,15 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
     if (stats.class_stats.avg_attendance_rate < 60) {
       insights.push({
         type: 'error',
-        icon: <TrendingDown className="h-4 w-4" />,
+        icon: <TrendingDown className='h-4 w-4' />,
         title: 'Low Attendance Rate',
         message: `Average attendance is ${stats.class_stats.avg_attendance_rate}%. Consider reviewing class schedules or engagement strategies.`,
-        action: 'Review Classes'
+        action: 'Review Classes',
       });
     } else if (stats.class_stats.avg_attendance_rate >= 85) {
       insights.push({
         type: 'success',
-        icon: <TrendingUp className="h-4 w-4" />,
+        icon: <TrendingUp className='h-4 w-4' />,
         title: 'Excellent Attendance',
         message: `Great job! Attendance rate is ${stats.class_stats.avg_attendance_rate}%.`,
       });
@@ -102,15 +105,15 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
     if (stats.assessment_stats.avg_test_score < 60) {
       insights.push({
         type: 'warning',
-        icon: <AlertTriangle className="h-4 w-4" />,
+        icon: <AlertTriangle className='h-4 w-4' />,
         title: 'Low Test Scores',
         message: `Average test score is ${stats.assessment_stats.avg_test_score}%. Students may need additional support.`,
-        action: 'Review Assessments'
+        action: 'Review Assessments',
       });
     } else if (stats.assessment_stats.avg_test_score >= 80) {
       insights.push({
         type: 'success',
-        icon: <CheckCircle className="h-4 w-4" />,
+        icon: <CheckCircle className='h-4 w-4' />,
         title: 'Strong Academic Performance',
         message: `Students are performing well with ${stats.assessment_stats.avg_test_score}% average score.`,
       });
@@ -120,10 +123,10 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
     if (stats.assessment_stats.avg_submission_rate < 70) {
       insights.push({
         type: 'warning',
-        icon: <ClipboardCheck className="h-4 w-4" />,
+        icon: <ClipboardCheck className='h-4 w-4' />,
         title: 'Low Submission Rate',
         message: `Only ${stats.assessment_stats.avg_submission_rate}% of tests are being submitted. Follow up with students.`,
-        action: 'Contact Students'
+        action: 'Contact Students',
       });
     }
 
@@ -133,10 +136,10 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
       if (stats.course_stats.courses_without_lecturers > 0) {
         insights.push({
           type: 'warning',
-          icon: <BookOpen className="h-4 w-4" />,
+          icon: <BookOpen className='h-4 w-4' />,
           title: 'Courses Need Lecturers',
           message: `${stats.course_stats.courses_without_lecturers} course(s) don't have assigned lecturers.`,
-          action: 'Assign Lecturers'
+          action: 'Assign Lecturers',
         });
       }
 
@@ -144,10 +147,10 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
       if (stats.invitation_stats.pending_invitations > 0) {
         insights.push({
           type: 'info',
-          icon: <Users className="h-4 w-4" />,
+          icon: <Users className='h-4 w-4' />,
           title: 'Pending Invitations',
           message: `${stats.invitation_stats.pending_invitations} invitation(s) are awaiting response.`,
-          action: 'Follow Up'
+          action: 'Follow Up',
         });
       }
 
@@ -155,10 +158,10 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
       if (stats.cohort_stats.active_cohorts === 0) {
         insights.push({
           type: 'error',
-          icon: <AlertTriangle className="h-4 w-4" />,
+          icon: <AlertTriangle className='h-4 w-4' />,
           title: 'No Active Cohorts',
           message: 'There are currently no active cohorts running.',
-          action: 'Start Cohort'
+          action: 'Start Cohort',
         });
       }
 
@@ -166,7 +169,7 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
       if (stats.user_stats.recent_registrations > 5) {
         insights.push({
           type: 'success',
-          icon: <TrendingUp className="h-4 w-4" />,
+          icon: <TrendingUp className='h-4 w-4' />,
           title: 'Growing User Base',
           message: `${stats.user_stats.recent_registrations} new users registered this month.`,
         });
@@ -177,14 +180,14 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
     if (stats.class_stats.classes_this_week > 0) {
       insights.push({
         type: 'info',
-        icon: <Calendar className="h-4 w-4" />,
+        icon: <Calendar className='h-4 w-4' />,
         title: 'Busy Week Ahead',
         message: `You have ${stats.class_stats.classes_this_week} class(es) scheduled this week.`,
       });
     } else if (userRole === 'lecturer') {
       insights.push({
         type: 'info',
-        icon: <Calendar className="h-4 w-4" />,
+        icon: <Calendar className='h-4 w-4' />,
         title: 'Light Schedule',
         message: 'No classes scheduled for this week.',
       });
@@ -199,13 +202,13 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
+          <CardTitle className='flex items-center gap-2'>
+            <CheckCircle className='h-5 w-5 text-green-600' />
             All Systems Running Smoothly
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
+          <p className='text-muted-foreground'>
             Everything looks great! Your platform is running optimally.
           </p>
         </CardContent>
@@ -216,12 +219,12 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Info className="h-5 w-5" />
+        <CardTitle className='flex items-center gap-2'>
+          <Info className='h-5 w-5' />
           Key Insights
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className='space-y-3'>
         {insights.map((insight, index) => (
           <Alert
             key={index}
@@ -230,36 +233,36 @@ export const DashboardSummary = ({ stats, userRole }: DashboardSummaryProps) => 
               insight.type === 'success'
                 ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
                 : insight.type === 'warning'
-                ? 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950'
-                : insight.type === 'info'
-                ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950'
-                : ''
+                  ? 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950'
+                  : insight.type === 'info'
+                    ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950'
+                    : ''
             }
           >
-            <div className="flex items-start gap-3">
+            <div className='flex items-start gap-3'>
               <div
                 className={
                   insight.type === 'success'
                     ? 'text-green-600 dark:text-green-400'
                     : insight.type === 'warning'
-                    ? 'text-yellow-600 dark:text-yellow-400'
-                    : insight.type === 'info'
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-red-600 dark:text-red-400'
+                      ? 'text-yellow-600 dark:text-yellow-400'
+                      : insight.type === 'info'
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-red-600 dark:text-red-400'
                 }
               >
                 {insight.icon}
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium text-sm">{insight.title}</h4>
+              <div className='flex-1'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <h4 className='font-medium text-sm'>{insight.title}</h4>
                   {insight.action && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant='outline' className='text-xs'>
                       {insight.action}
                     </Badge>
                   )}
                 </div>
-                <AlertDescription className="text-xs">
+                <AlertDescription className='text-xs'>
                   {insight.message}
                 </AlertDescription>
               </div>
