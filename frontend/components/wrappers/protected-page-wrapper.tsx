@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/auth";
 import { useSession } from "@/hooks/session";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "../ui/loading-spinner";
+import * as Sentry from "@sentry/nextjs";
 
 interface ProtectedPageWrapperProps {
   children: ReactNode;
@@ -26,16 +27,24 @@ export function ProtectedPageWrapper({
   loadingComponent,
 }: ProtectedPageWrapperProps) {
   const { isAuthenticated, user } = useAuth();
-  const { session, loading } = useSession();
+  const { loading } = useSession();
   const router = useRouter();
 
   useEffect(() => {
     if (loading) return; // Wait for session to load
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
+      Sentry.setUser(null);
       // User is not authenticated, redirect to login
       router.push(redirectTo);
-    } else if (user && !user.isActive) {
+      return;
+    }
+    Sentry.setUser({
+      id: user.id,
+      email: user.email,
+      username: user.displayName,
+    });
+    if (user && !user.isActive) {
       // User is authenticated but inactive, redirect to inactive page
       router.push("/account-inactive");
     }

@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { toast } from "sonner";
 import { HttpError } from "@/hooks/axios";
+import * as Sentry from "@sentry/nextjs";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,7 +30,7 @@ export function toastError(
 ): void {
   let message: string;
 
-  console.log("Error", error);
+  Sentry.captureException(error);
 
   // Handle custom HttpError type
   if (error && typeof error === "object" && "message" in error && "statusCode" in error) {

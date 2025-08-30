@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import withSerwist from "@serwist/next";
+import { SentryBuildOptions, withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -11,12 +12,31 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSerwist({
-  // Note: This is only an example. If you use Pages Router,
-  // use something else such as "service-worker/index.ts" instead.
+const serwistConfig = {
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
   cacheOnNavigation: true,
   reloadOnOnline: true,
   disable: process.env.NODE_ENV === "development",
-})(nextConfig);
+};
+
+
+const sentryConfig = {
+  org: "futurdevs",
+  project: "plsom",
+  // Only print logs for uploading source maps in CI
+  // Set to `true` to suppress logs
+  silent: !process.env.CI,
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+  // capture component names
+  reactComponentAnnotation: {
+    enabled: true,
+  }
+} as SentryBuildOptions
+
+
+export default withSentryConfig(
+  withSerwist(serwistConfig)(nextConfig),
+  sentryConfig
+);

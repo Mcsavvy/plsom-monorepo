@@ -3,6 +3,7 @@ import config from "@/lib/config";
 import axios, { AxiosError } from "axios";
 import { useSession } from "./session";
 import { useCallback, useMemo } from "react";
+import * as Sentry from "@sentry/nextjs";
 
 export interface ValidationErrors {
   [field: string]:
@@ -181,7 +182,7 @@ export function createAxiosInstance({
     },
     error => {
       const customError = parseError(error);
-      console.log("CustomError", customError);
+      Sentry.captureException(customError);
       if (
         customError.statusCode == 401 &&
         customError.message == "Given token not valid for any token type"
