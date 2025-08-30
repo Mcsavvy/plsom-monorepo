@@ -115,6 +115,18 @@ class Test(models.Model):
         self.save(update_fields=['total_points'])
         return total
 
+    def has_graded_submissions(self):
+        """Check if this test has any graded submissions"""
+        return self.submissions.filter(status="graded").exists()
+
+    def get_graded_submissions_count(self):
+        """Get the count of graded submissions for this test"""
+        return self.submissions.filter(status="graded").count()
+
+    def get_questions_with_answers(self):
+        """Get questions that have student answers"""
+        return self.questions.filter(answers__isnull=False).distinct()
+
 
 class Question(models.Model):
     """

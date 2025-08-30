@@ -1,0 +1,62 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Submission Returned - {{ test.title }}{% endblock %}
+
+{% block header_icon %}⚠️{% endblock %}
+{% block header_title %}Submission Returned{% endblock %}
+
+{% block accent_color %}#e74c3c{% endblock %}
+{% block notice_bg %}#fdeded{% endblock %}
+{% block notice_border %}#e74c3c{% endblock %}
+{% block button_color %}#e74c3c{% endblock %}
+{% block button_hover %}#c0392b{% endblock %}
+
+{% block content %}
+<div class="notice-box urgent">
+    <strong>IMPORTANT:</strong> Your graded submission has been returned for revision.
+</div>
+
+<p>Your submission for the test <strong>"{{ test.title }}"</strong> has been returned to you for revision. This is because the test has been updated with new questions or significant changes that affect the assessment.</p>
+
+<div class="test-info">
+    <h2>Test Details</h2>
+    <p><strong>Test:</strong> {{ test.title }}</p>
+    <p><strong>Course:</strong> {{ course.name }}</p>
+    <p><strong>Cohort:</strong> {{ cohort.name }}</p>
+    <p><strong>Instructor:</strong> {{ instructor.get_full_name }}</p>
+</div>
+
+<div class="details-list">
+    <h3>What this means:</h3>
+    <ul>
+        <li>Your previous submission is no longer valid</li>
+        <li>You will need to review the updated test and resubmit your answers</li>
+        <li>Your previous grade has been cleared</li>
+        <li>You have a new opportunity to complete the test</li>
+    </ul>
+</div>
+
+<div class="details-list">
+    <h3>Next steps:</h3>
+    <ol>
+        <li>Log into your account</li>
+        <li>Navigate to the test "{{ test.title }}"</li>
+        <li>Review any new or changed questions</li>
+        <li>Complete and submit your answers</li>
+    </ol>
+</div>
+
+<p>If you have any questions about the updated test, please contact your instructor: <strong>{{ instructor.get_full_name }}</strong></p>
+
+{% endblock %}
+
+{% block custom_message %}
+<div class="blessing">We understand this may be unexpected, but this ensures all students have a fair and consistent assessment experience.</div>
+{% endblock %}
+
+{% block footer_extra %}
+<div class="contact">
+    <p>This is an automated notification from the PLSOM Learning Management System.<br>
+    If you have any questions, please contact your instructor or the system administrator.</p>
+</div>
+{% endblock %}

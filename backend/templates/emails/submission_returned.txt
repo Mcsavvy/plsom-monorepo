@@ -1,0 +1,31 @@
+Submission Returned: {{ test.title }}
+
+Test: {{ test.title }}
+Course: {{ course.name }}
+Cohort: {{ cohort.name }}
+
+IMPORTANT: Your graded submission has been returned for revision.
+
+Dear {{ student.get_full_name }},
+
+Your submission for the test "{{ test.title }}" has been returned to you for revision. This is because the test has been updated with new questions or significant changes that affect the assessment.
+
+What this means:
+- Your previous submission is no longer valid
+- You will need to review the updated test and resubmit your answers
+- Your previous grade has been cleared
+- You have a new opportunity to complete the test
+
+Next steps:
+1. Log into your account
+2. Navigate to the test "{{ test.title }}"
+3. Review any new or changed questions
+4. Complete and submit your answers
+
+If you have any questions about the updated test, please contact your instructor: {{ instructor.get_full_name }}
+
+To view the updated test, visit: {{ request.scheme }}://{{ request.get_host }}/tests/{{ test.id }}/
+
+---
+This is an automated notification from the PLSOM Learning Management System.
+If you have any questions, please contact your instructor or the system administrator.

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Test, Question, QuestionOption, Submission, Answer
 from drf_spectacular.utils import extend_schema_field
+from django.db import transaction
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -79,6 +80,8 @@ class TestSerializer(serializers.ModelSerializer):
     is_available = serializers.BooleanField(read_only=True)
     course_name = serializers.CharField(source="course.name", read_only=True)
     cohort_name = serializers.CharField(source="cohort.name", read_only=True)
+    breaking_changes_detected = serializers.BooleanField(read_only=True, default=False)
+    graded_submissions_returned = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Test
@@ -106,6 +109,8 @@ class TestSerializer(serializers.ModelSerializer):
             "is_available",
             "course_name",
             "cohort_name",
+            "breaking_changes_detected",
+            "graded_submissions_returned",
         ]
         extra_kwargs = {
             "created_by": {"read_only": True},
@@ -141,7 +146,7 @@ class TestSerializer(serializers.ModelSerializer):
         return test
 
     def update(self, instance, validated_data):
-        """Update test with safe question management logic."""
+        """Update test with breaking change detection and handling."""
         questions_data = validated_data.pop("questions", None)
 
         # Store previous state for notification logic
@@ -156,9 +161,15 @@ class TestSerializer(serializers.ModelSerializer):
 
         # Handle questions if provided
         if questions_data is not None:
-            self._safe_update_questions(instance, questions_data)
+            breaking_changes, graded_submissions_returned = self._handle_question_updates_with_breaking_changes(
+                instance, questions_data
+            )
             # Recalculate total points after questions are updated
             instance.calculate_total_points()
+            
+            # Add breaking change info to the response
+            instance.breaking_changes_detected = breaking_changes
+            instance.graded_submissions_returned = graded_submissions_returned
 
         return instance
 
@@ -171,6 +182,206 @@ class TestSerializer(serializers.ModelSerializer):
 
             # Create options for choice questions
             self._create_options(question, options_data)
+
+    def _handle_question_updates_with_breaking_changes(self, test, questions_data):
+        """
+        Handle question updates with breaking change detection.
+        Returns (breaking_changes_detected, graded_submissions_returned_count)
+        """
+        breaking_changes = False
+        graded_submissions_returned = 0
+
+        # Check if test has any graded submissions
+        graded_submissions = test.submissions.filter(status="graded")
+        has_graded_submissions = graded_submissions.exists()
+
+        if has_graded_submissions:
+            # Detect breaking changes
+            breaking_changes = self._detect_breaking_changes(test, questions_data)
+            
+            if breaking_changes:
+                # Return graded submissions and create new question instances
+                graded_submissions_returned = self._handle_breaking_changes(
+                    test, questions_data, graded_submissions
+                )
+            else:
+                # No breaking changes, use safe update
+                self._safe_update_questions(test, questions_data)
+        else:
+            # No graded submissions, safe to use simple update
+            self._update_questions_simple(test, questions_data)
+
+        return breaking_changes, graded_submissions_returned
+
+    def _detect_breaking_changes(self, test, questions_data):
+        """
+        Detect if the question changes constitute breaking changes.
+        Breaking changes include:
+        - New questions added
+        - Question type changes
+        - Question deletion
+        - Option changes for questions with answers
+        """
+        existing_questions = {str(q.id): q for q in test.questions.all()}
+        incoming_question_ids = {q.get("id") for q in questions_data if q.get("id")}
+        
+        # Check for deleted questions
+        deleted_questions = set(existing_questions.keys()) - incoming_question_ids
+        if deleted_questions:
+            return True
+
+        # Check for new questions
+        new_questions = len(questions_data) - len(incoming_question_ids)
+        if new_questions > 0:
+            return True
+
+        # Check for question type changes or option changes
+        for question_data in questions_data:
+            question_id = question_data.get("id")
+            if question_id and question_id in existing_questions:
+                existing_question = existing_questions[question_id]
+                
+                # Check for question type change
+                if question_data.get("question_type") != existing_question.question_type:
+                    return True
+                
+                # Check for option changes in questions with answers
+                if existing_question.answers.exists():
+                    options_data = question_data.get("options", [])
+                    if self._has_option_changes(existing_question, options_data):
+                        return True
+
+        return False
+
+    def _has_option_changes(self, question, options_data):
+        """Check if options have changed for a question."""
+        existing_options = {str(opt.id): opt for opt in question.options.all()}
+        incoming_option_ids = {opt.get("id") for opt in options_data if opt.get("id")}
+        
+        # Check for deleted options
+        if set(existing_options.keys()) - incoming_option_ids:
+            return True
+            
+        # Check for new options
+        if len(options_data) != len(existing_options):
+            return True
+            
+        # Check for text changes in existing options
+        for option_data in options_data:
+            option_id = option_data.get("id")
+            if option_id and option_id in existing_options:
+                existing_option = existing_options[option_id]
+                if option_data.get("text") != existing_option.text:
+                    return True
+                    
+        return False
+
+    def _handle_breaking_changes(self, test, questions_data, graded_submissions):
+        """
+        Handle breaking changes by:
+        1. Returning graded submissions
+        2. Creating new question instances
+        3. Updating references
+        """
+        with transaction.atomic():
+            # Step 1: Return graded submissions
+            graded_submissions_returned = self._return_graded_submissions(graded_submissions)
+            
+            # Step 2: Create new question instances and update references
+            self._create_new_questions_and_update_references(test, questions_data)
+            
+            return graded_submissions_returned
+
+    def _return_graded_submissions(self, graded_submissions):
+        """Return graded submissions to 'returned' status."""
+        count = 0
+        for submission in graded_submissions:
+            submission.status = "returned"
+            submission.graded_by = None
+            submission.graded_at = None
+            submission.feedback = "Test has been updated with new questions. Please review and resubmit."
+            submission.save()
+            count += 1
+        return count
+
+    def _create_new_questions_and_update_references(self, test, questions_data):
+        """
+        Create new question instances and update all references to point to new instances.
+        This preserves the data integrity while allowing breaking changes.
+        """
+        # Store mapping of old question IDs to new question instances
+        question_mapping = {}
+        option_mapping = {}
+        
+        # Step 1: Create new questions and options
+        for order, question_data in enumerate(questions_data):
+            options_data = question_data.pop("options", [])
+            old_question_id = question_data.get("id")
+            
+            # Create new question (remove old ID to let Django generate new one)
+            question_data.pop("id", None)
+            new_question = Question.objects.create(test=test, order=order, **question_data)
+            
+            # Store mapping if this was an existing question
+            if old_question_id:
+                question_mapping[old_question_id] = new_question
+            
+            # Create new options and store mappings
+            new_options = self._create_options_with_mapping(new_question, options_data)
+            if old_question_id:
+                option_mapping[old_question_id] = new_options
+        
+        # Step 2: Update all references to point to new instances
+        self._update_references_to_new_instances(test, question_mapping, option_mapping)
+        
+        # Step 3: Clean up old questions and options (after references are updated)
+        self._cleanup_old_instances(test, question_mapping.keys())
+
+    def _create_options_with_mapping(self, question, options_data):
+        """Create options and return mapping of old to new option IDs."""
+        option_mapping = {}
+        
+        for order, option_data in enumerate(options_data):
+            old_option_id = option_data.get("id")
+            
+            # Create new option (remove old ID to let Django generate new one)
+            option_data.pop("id", None)
+            new_option = QuestionOption.objects.create(
+                question=question, order=order, **option_data
+            )
+            
+            # Store mapping if this was an existing option
+            if old_option_id:
+                option_mapping[old_option_id] = new_option
+                
+        return option_mapping
+
+    def _update_references_to_new_instances(self, test, question_mapping, option_mapping):
+        """Update all references from old instances to new instances."""
+        # Update Answer references
+        for old_question_id, new_question in question_mapping.items():
+            # Update question references in answers
+            Answer.objects.filter(question_id=old_question_id).update(
+                question=new_question
+            )
+            
+            # Update option references in answers
+            if old_question_id in option_mapping:
+                old_to_new_options = option_mapping[old_question_id]
+                for old_option_id, new_option in old_to_new_options.items():
+                    # Update selected_options in answers
+                    answers = Answer.objects.filter(
+                        question=new_question,
+                        selected_options__id=old_option_id
+                    )
+                    for answer in answers:
+                        answer.selected_options.remove(old_option_id)
+                        answer.selected_options.add(new_option)
+
+    def _cleanup_old_instances(self, test, old_question_ids):
+        """Clean up old question and option instances after references are updated."""
+        # Delete old questions (this will cascade to old options)
+        Question.objects.filter(id__in=old_question_ids).delete()
 
     def _safe_update_questions(self, test, questions_data):
         """Safely update questions, protecting existing answers from being deleted."""
@@ -232,15 +443,20 @@ class TestSerializer(serializers.ModelSerializer):
                 # Update existing question if it exists
                 try:
                     question = test.questions.get(id=question_id)
-                    # Only update safe fields, preserve core structure
+                    # Only update safe fields
                     safe_fields = [
                         "title",
+                        "max_points",
                         "description",
                         "is_required",
-                        "text_placeholder",
                         "min_word_count",
                         "max_word_count",
                         "text_max_length",
+                        "text_placeholder",
+                        "required_translation",
+                        "allow_multiple_verses",
+                        "max_file_size_mb",
+                        "allowed_file_types",
                     ]
                     for field in safe_fields:
                         if field in question_data:

@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django_q.tasks import async_task
 import logging
 
-from .models import Test
+from .models import Test, Submission
 from .tasks import schedule_deadline_reminder, cancel_deadline_reminder
 
 logger = logging.getLogger(__name__)
@@ -80,6 +80,27 @@ def handle_test_saved(sender, instance, created, **kwargs):
         logger.error(f"Error in test save signal handler: {str(e)}")
 
 
+@receiver(post_save, sender=Submission)
+def handle_submission_returned(sender, instance, created, **kwargs):
+    """
+    Handle submission status changes.
+    Send notifications when submissions are returned due to breaking changes.
+    """
+    try:
+        if not created and instance.status == 'returned':
+            # Check if this was returned due to breaking changes
+            if instance.feedback and "Test has been updated with new questions" in instance.feedback:
+                # Send notification to student about returned submission
+                async_task(
+                    'apps.assessments.tasks.send_submission_returned_notification',
+                    instance.id
+                )
+                logger.info(f"Scheduled 'returned' notification for submission {instance.id}")
+                
+    except Exception as e:
+        logger.error(f"Error in submission save signal handler: {str(e)}")
+
+
 @receiver(pre_delete, sender=Test)
 def handle_test_deleted(sender, instance, **kwargs):
     """
@@ -133,4 +154,15 @@ def trigger_test_updated_notification(test_id):
         'apps.assessments.tasks.send_test_notification_email',
         test_id,
         'updated'
+    )
+
+
+def trigger_submission_returned_notification(submission_id):
+    """
+    Manually trigger a submission returned notification.
+    Used when a submission is returned due to breaking changes.
+    """
+    async_task(
+        'apps.assessments.tasks.send_submission_returned_notification',
+        submission_id
     )

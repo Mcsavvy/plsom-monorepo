@@ -10,7 +10,7 @@ from django_q.tasks import schedule
 from django.utils import timezone
 import logging
 
-from .models import Test
+from .models import Test, Submission
 from apps.users.models import User
 
 logger = logging.getLogger(__name__)
@@ -110,6 +110,63 @@ def send_test_notification_email(test_id, notification_type, user_ids=None):
         logger.error(f"Test {test_id} not found for notification")
     except Exception as e:
         logger.error(f"Error sending test notification: {str(e)}")
+
+
+def send_submission_returned_notification(submission_id):
+    """
+    Send notification to student when their submission is returned due to breaking changes.
+    
+    Args:
+        submission_id: ID of the submission that was returned
+    """
+    try:
+        submission = Submission.objects.select_related(
+            "test", "test__course", "test__cohort", "test__created_by", "student"
+        ).get(id=submission_id)
+        
+        if submission.status != "returned":
+            logger.info(f"Submission {submission_id} is not returned, skipping notification")
+            return
+            
+        # Prepare email content
+        context = {
+            "submission": submission,
+            "test": submission.test,
+            "course": submission.test.course,
+            "cohort": submission.test.cohort,
+            "instructor": submission.test.created_by,
+            "student": submission.student,
+        }
+        
+        subject = f"Submission Returned: {submission.test.title}"
+        html_template = "emails/submission_returned.html"
+        text_template = "emails/submission_returned.txt"
+        
+        # Generate email content
+        html_message = render_to_string(html_template, context)
+        plain_message = render_to_string(text_template, context)
+        
+        # Send to student
+        if submission.student.email:
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[submission.student.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            
+            logger.info(
+                f"Sent submission returned notification for submission {submission_id} to {submission.student.email}"
+            )
+        else:
+            logger.warning(f"No email address found for student {submission.student.id}")
+            
+    except Submission.DoesNotExist:
+        logger.error(f"Submission {submission_id} not found for notification")
+    except Exception as e:
+        logger.error(f"Error sending submission returned notification: {str(e)}")
 
 
 def schedule_deadline_reminder(test_id):
