@@ -57,7 +57,9 @@ class ClassSerializer(serializers.ModelSerializer):
         end_time = start_time + timezone.timedelta(minutes=obj.duration_minutes)
         join_window_start = start_time - timezone.timedelta(minutes=15)
 
-        return join_window_start <= now <= end_time and obj.zoom_join_url
+        if join_window_start <= now <= end_time and obj.zoom_join_url:
+            return True
+        return False
 
 
 class ClassCreateUpdateSerializer(serializers.ModelSerializer):
@@ -326,6 +328,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
             "duration_minutes",
             "duration_display",
             "via_recording",
+            "verified",
         ]
 
     @extend_schema_field(serializers.CharField)
@@ -413,6 +416,12 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
         return attendance
 
 
+class AttendanceVerificationSerializer(serializers.Serializer):
+    """Serializer for attendance verification"""
+    
+    verified = serializers.BooleanField(default=True)
+    notes = serializers.CharField(max_length=500, required=False, allow_blank=True)
+
 class StudentAttendanceSerializer(serializers.ModelSerializer):
     """Serializer for student attendance"""
 
@@ -464,7 +473,9 @@ class StudentClassSerializer(serializers.ModelSerializer):
         end_time = start_time + timezone.timedelta(minutes=obj.duration_minutes)
         join_window_start = start_time - timezone.timedelta(minutes=15)
 
-        return join_window_start <= now <= end_time and obj.zoom_join_url
+        if join_window_start <= now <= end_time and obj.zoom_join_url:
+            return True
+        return False
 
     @extend_schema_field(StudentAttendanceSerializer)
     def get_my_attendance(self, obj):

@@ -75,3 +75,6 @@ class User(AbstractUser):
         if self.title:
             return f"{self.title} {self.first_name} {self.last_name}"
         return f"{self.first_name} {self.last_name}"
+
+    class Meta:
+        ordering = ["first_name", "last_name"]

@@ -1,5 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
+from django.utils.html import format_html
+from django.contrib import messages
 from .models import Class, Attendance
 
 
@@ -74,11 +76,14 @@ class AttendanceAdmin(ModelAdmin):
         "leave_time", 
         "duration_minutes",
         "via_recording",
+        "verification_status",
+        "verified",
     ]
     list_filter = [
         "class_session__course",
         "class_session__cohort",
         "via_recording",
+        "verified",
         "join_time",
     ]
     search_fields = [
@@ -87,6 +92,51 @@ class AttendanceAdmin(ModelAdmin):
         "class_session__title",
     ]
     ordering = ["-join_time"]
+    list_editable = ["verified"]
+    actions = ["verify_selected_attendances", "unverify_selected_attendances"]
+
+    fieldsets = (
+        (
+            "Attendance Information",
+            {"fields": ("class_session", "student", "join_time", "leave_time", "duration_minutes")},
+        ),
+        (
+            "Attendance Details",
+            {"fields": ("via_recording", "verified")},
+        ),
+    )
+
+    def verification_status(self, obj):
+        """Display verification status with color coding"""
+        if obj.verified:
+            return format_html(
+                '<span style="color: green; font-weight: bold;">✓ Verified</span>'
+            )
+        else:
+            return format_html(
+                '<span style="color: orange; font-weight: bold;">⚠ Pending</span>'
+            )
+    verification_status.short_description = "Verification Status" # type: ignore
+
+    def verify_selected_attendances(self, request, queryset):
+        """Bulk action to verify selected attendances"""
+        updated = queryset.update(verified=True)
+        self.message_user(
+            request,
+            f"Successfully verified {updated} attendance record(s).",
+            messages.SUCCESS,
+        )
+    verify_selected_attendances.short_description = "Verify selected attendances" # type: ignore
+
+    def unverify_selected_attendances(self, request, queryset):
+        """Bulk action to unverify selected attendances"""
+        updated = queryset.update(verified=False)
+        self.message_user(
+            request,
+            f"Successfully unverified {updated} attendance record(s).",
+            messages.SUCCESS,
+        )
+    unverify_selected_attendances.short_description = "Unverify selected attendances" # type: ignore
 
     def get_queryset(self, request):
         """Optimize queryset for admin listing"""
