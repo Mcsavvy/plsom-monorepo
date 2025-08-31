@@ -23,6 +23,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     refresh_expires_at = serializers.DateTimeField(read_only=True)
 
     def validate(self, attrs):
+        # Normalize email before validation
+        if 'email' in attrs:
+            attrs['email'] = User.objects.normalize_email(attrs['email'])
+        
         data = super().validate(attrs)
         user = self.user
         data["role"] = user.role
@@ -61,15 +65,18 @@ class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate_email(self, value):
+        # Normalize email before validation
+        normalized_email = User.objects.normalize_email(value)
+        
         try:
-            user = User.objects.get(email=value)
+            user = User.objects.get(email=normalized_email)
             if not user.is_active:
                 raise serializers.ValidationError("User account is not active.")
         except User.DoesNotExist:
             raise serializers.ValidationError(
                 "No user found with this email address."
             )
-        return value
+        return normalized_email
 
     def save(self):
         email = self.validated_data["email"]

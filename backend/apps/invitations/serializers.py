@@ -45,27 +45,31 @@ class InvitationSerializer(serializers.ModelSerializer):
         cohort: Optional[Cohort] = data.get("cohort")
         email: str = data.get("email", "")
 
+        # Normalize email before validation
+        normalized_email = User.objects.normalize_email(email)
+        data["email"] = normalized_email
+
         # Only check for existing invitations during creation, not updates
         if self.instance is None:  # Creating a new instance
-            if Invitation.objects.filter(email=email).exists():
+            if Invitation.objects.filter(email=normalized_email).exists():
                 raise serializers.ValidationError(
                     {"email": "User already invited."}
                 )
-            if User.objects.filter(email=email).exists():
+            if User.objects.filter(email=normalized_email).exists():
                 raise serializers.ValidationError(
                     {"email": "User already exists."}
                 )
         else:  # Updating existing instance
             # Check if email conflicts with other invitations (excluding current one)
             if (
-                Invitation.objects.filter(email=email)
+                Invitation.objects.filter(email=normalized_email)
                 .exclude(pk=self.instance.pk)
                 .exists()
             ):
                 raise serializers.ValidationError(
                     {"email": "User already invited."}
                 )
-            if User.objects.filter(email=email).exists():
+            if User.objects.filter(email=normalized_email).exists():
                 raise serializers.ValidationError(
                     {"email": "User already exists."}
                 )
@@ -136,8 +140,9 @@ class OnboardingSerializer(serializers.Serializer):
                 "Invitation has already been used."
             )
 
-        # Check if user already exists
-        if User.objects.filter(email=invitation.email).exists():
+        # Check if user already exists (normalize email for comparison)
+        normalized_email = User.objects.normalize_email(invitation.email)
+        if User.objects.filter(email=normalized_email).exists():
             raise serializers.ValidationError(
                 "User with this email already exists."
             )

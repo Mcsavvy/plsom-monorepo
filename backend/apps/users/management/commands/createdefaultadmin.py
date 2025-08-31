@@ -21,7 +21,10 @@ class Command(BaseCommand):
             )
             return
 
-        user = User.objects.filter(email=email, is_superuser=True).first()
+        # Normalize email
+        normalized_email = User.objects.normalize_email(email)
+
+        user = User.objects.filter(email=normalized_email, is_superuser=True).first()
 
         if user:
             user.role = "admin"
@@ -31,13 +34,13 @@ class Command(BaseCommand):
             user.save()
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Admin with email {email} already exists and is updated."
+                    f"Admin with email {normalized_email} already exists and is updated."
                 )
             )
             return
 
         user = User.objects.create_superuser(
-            email=email,
+            email=normalized_email,
             password=password,
             first_name=first_name,
             last_name=last_name,
@@ -47,5 +50,5 @@ class Command(BaseCommand):
         user.is_staff = True
         user.save()
         self.stdout.write(
-            self.style.SUCCESS(f"Successfully created admin {email}")
+            self.style.SUCCESS(f"Successfully created admin {normalized_email}")
         )

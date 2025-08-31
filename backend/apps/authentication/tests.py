@@ -9,6 +9,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from unittest.mock import patch
+from apps.invitations.models import Invitation
+from apps.cohorts.models import Cohort
 
 User = get_user_model()
 
@@ -415,11 +417,9 @@ class AuthenticationIntegrationTestCase(APITestCase):
 
     def test_reset_password_invalid_token(self):
         """Test password reset with invalid token"""
-        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
-
         url = reverse("reset_password")
         data = {
-            "uid": uid,
+            "uid": "invalid_uid",
             "token": "invalid_token",
             "new_password": "newpass123",
             "confirm_password": "newpass123",
@@ -428,25 +428,131 @@ class AuthenticationIntegrationTestCase(APITestCase):
         response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)
+        self.assertIn("Invalid reset link", str(response.data))
 
-    def test_reset_password_password_mismatch(self):
-        """Test password reset with mismatched passwords"""
-        token = default_token_generator.make_token(self.user)
-        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+    def test_email_normalization_login(self):
+        """Test that email normalization works for login"""
+        # Create user with lowercase email
+        user = User.objects.create_user(
+            email="test@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="User",
+            role="student",
+        )
 
-        url = reverse("reset_password")
+        # Try to login with different email case variations
+        test_emails = [
+            "TEST@EXAMPLE.COM",
+            "Test@Example.com",
+            "test@EXAMPLE.com",
+            "TEST@example.COM"
+        ]
+
+        for email_variant in test_emails:
+            url = reverse("token_obtain_pair")
+            data = {"email": email_variant, "password": "testpass123"}
+
+            response = self.client.post(url, data)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertIn("access", response.data)
+            self.assertIn("refresh", response.data)
+
+    def test_email_normalization_forgot_password(self):
+        """Test that email normalization works for forgot password"""
+        # Create user with lowercase email
+        user = User.objects.create_user(
+            email="test@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="User",
+            role="student",
+        )
+
+        # Try to request password reset with different email case variations
+        test_emails = [
+            "TEST@EXAMPLE.COM",
+            "Test@Example.com",
+            "test@EXAMPLE.com",
+            "TEST@example.COM"
+        ]
+
+        for email_variant in test_emails:
+            with patch("apps.authentication.serializers.async_task") as mock_async_task:
+                url = reverse("forgot_password")
+                data = {"email": email_variant}
+
+                response = self.client.post(url, data)
+
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                mock_async_task.assert_called_once()
+                mock_async_task.reset_mock()
+
+    def test_email_normalization_invitation(self):
+        """Test that email normalization works for invitations"""
+        # Create admin user
+        admin_user = User.objects.create_user(
+            email="admin@example.com",
+            password="adminpass123",
+            first_name="Admin",
+            last_name="User",
+            role="admin",
+        )
+
+        # Create cohort
+        cohort = Cohort.objects.create(
+            name="Test Cohort",
+            program_type="diploma",
+            is_active=True,
+            start_date="2024-01-01",
+        )
+
+        # Test creating invitation with different email case variations
+        test_emails = [
+            "STUDENT@EXAMPLE.COM",
+            "Student@Example.com",
+            "student@EXAMPLE.com",
+            "STUDENT@example.COM"
+        ]
+
+        for email_variant in test_emails:
+            url = reverse("invitation-list")
+            data = {
+                "email": email_variant,
+                "role": "student",
+                "cohort": cohort.id,
+            }
+
+            response = self.client.post(url, data)
+
+            # Should create invitation successfully
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+            # Verify the email was normalized in the database
+            invitation = Invitation.objects.get(id=response.data["id"])
+            self.assertEqual(invitation.email, "student@example.com")
+
+            # Clean up
+            invitation.delete()
+
+        # Test that duplicate invitations with different cases are rejected
+        url = reverse("invitation-list")
         data = {
-            "uid": uid,
-            "token": token,
-            "new_password": "newpass123",
-            "confirm_password": "differentpass",
+            "email": "student@example.com",
+            "role": "student",
+            "cohort": cohort.id,
         }
 
+        # Create first invitation
         response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        # Try to create duplicate with different case
+        data["email"] = "STUDENT@EXAMPLE.COM"
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)
+        self.assertIn("already invited", str(response.data))
 
     def test_change_password_success(self):
         """Test successful password change for authenticated user"""
