@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Bug, MessageSquare } from "lucide-react";
-import { showFeedbackWidget } from "../../instrumentation-client";
+import { FeedbackForm, useFeedbackForm } from "./feedback-form";
 
 interface FeedbackButtonProps {
   variant?: "default" | "outline" | "ghost";
@@ -19,28 +19,7 @@ export function FeedbackButton({
   showIcon = true,
   children
 }: FeedbackButtonProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Check if Sentry feedback is available
-    const checkFeedbackAvailability = () => {
-      // Small delay to ensure Sentry is initialized
-      setTimeout(() => {
-        setIsVisible(true);
-      }, 1000);
-    };
-
-    checkFeedbackAvailability();
-  }, []);
-
-  const handleClick = () => {
-    showFeedbackWidget();
-    setIsVisible(false)
-  };
-
-  if (!isVisible) {
-    return null;
-  }
+  const { isOpen, openForm, closeForm, handleSubmit, isLoading } = useFeedbackForm();
 
   const baseClasses = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background";
   
@@ -59,17 +38,26 @@ export function FeedbackButton({
   const iconSize = size === "sm" ? 16 : size === "lg" ? 20 : 18;
 
   return (
-    <button
-      onClick={handleClick}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
-      aria-label="Report an issue or provide feedback"
-      title="Report an issue or provide feedback"
-    >
-      {showIcon && (
-        <Bug className="mr-2 h-4 w-4" size={iconSize} />
-      )}
-      {children || "Report Issue"}
-    </button>
+    <>
+      <button
+        onClick={openForm}
+        className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+        aria-label="Report an issue or provide feedback"
+        title="Report an issue or provide feedback"
+      >
+        {showIcon && (
+          <Bug className="mr-2 h-4 w-4" size={iconSize} />
+        )}
+        {children || "Report Issue"}
+      </button>
+
+      <FeedbackForm
+        isOpen={isOpen}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+      />
+    </>
   );
 }
 
@@ -80,21 +68,7 @@ export function FeedbackMessageButton({
   className = "",
   children
 }: FeedbackButtonProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setIsVisible(true);
-    }, 1000);
-  }, []);
-
-  const handleClick = () => {
-    showFeedbackWidget();
-  };
-
-  if (!isVisible) {
-    return null;
-  }
+  const { isOpen, openForm, closeForm, handleSubmit, isLoading } = useFeedbackForm();
 
   const baseClasses = "inline-flex items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background";
   
@@ -113,15 +87,24 @@ export function FeedbackMessageButton({
   const iconSize = size === "sm" ? 16 : size === "lg" ? 20 : 18;
 
   return (
-    <button
-      onClick={handleClick}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
-      aria-label="Report an issue or provide feedback"
-      title="Report an issue or provide feedback"
-    >
-      <MessageSquare size={iconSize} />
-      {children}
-    </button>
+    <>
+      <button
+        onClick={openForm}
+        className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+        aria-label="Report an issue or provide feedback"
+        title="Report an issue or provide feedback"
+      >
+        <MessageSquare size={iconSize} />
+        {children}
+      </button>
+
+      <FeedbackForm
+        isOpen={isOpen}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+      />
+    </>
   );
 }
 
@@ -133,21 +116,7 @@ export function FloatingFeedbackButton({
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   className?: string;
 }) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setIsVisible(true);
-    }, 1000);
-  }, []);
-
-  const handleClick = () => {
-    showFeedbackWidget();
-  };
-
-  if (!isVisible) {
-    return null;
-  }
+  const { isOpen, openForm, closeForm, handleSubmit, isLoading } = useFeedbackForm();
 
   const positionClasses = {
     "top-left": "top-4 left-4",
@@ -157,13 +126,22 @@ export function FloatingFeedbackButton({
   };
 
   return (
-    <button
-      onClick={handleClick}
-      className={`fixed ${positionClasses[position]} z-50 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${className}`}
-      aria-label="Report an issue or provide feedback"
-      title="Report an issue or provide feedback"
-    >
-      <Bug className="h-5 w-5" />
-    </button>
+    <>
+      <button
+        onClick={openForm}
+        className={`fixed ${positionClasses[position]} z-50 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${className}`}
+        aria-label="Report an issue or provide feedback"
+        title="Report an issue or provide feedback"
+      >
+        <Bug className="h-5 w-5" />
+      </button>
+
+      <FeedbackForm
+        isOpen={isOpen}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+      />
+    </>
   );
 }
