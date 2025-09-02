@@ -60,12 +60,11 @@
       "description": ""
     }
   ],
-  "screenshots": [
-    {
-      "src": "/splash-ios.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
+  "dir": "ltr",
+  "scope": "https://app.plsom.com",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "browser"
   ]
 }
