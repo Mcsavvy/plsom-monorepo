@@ -4,10 +4,13 @@
   "description": "Learning Management System for Perfect Love School of Ministry - Empowering Ministry Leaders Through Quality Education",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1e1b4b",
-  "theme_color": "#1e1b4b",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
   "orientation": "portrait-primary",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "lang": "en",
   "icons": [
     {
@@ -35,9 +38,34 @@
       "purpose": "maskable any"
     }
   ],
-  "splash": {
-    "image": "/logo-transparent.png",
-    "resize_mode": "contain",
-    "background_color": "#1e1b4b"
-  }
+  "shortcuts": [
+    {
+      "name": "Courses",
+      "url": "/courses",
+      "description": ""
+    },
+    {
+      "name": "Classes",
+      "url": "/classes",
+      "description": ""
+    },
+    {
+      "name": "Tests",
+      "url": "/tests",
+      "description": ""
+    },
+    {
+      "name": "My Profile",
+      "url": "/profile",
+      "description": ""
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/splash-ios.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
 }
