@@ -65,6 +65,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { getInitials } from '@/utils/dataTransformers';
 
 interface AttendanceSummary {
   class_info: {
@@ -270,7 +271,7 @@ export const ClassAttendance: React.FC = () => {
                 alt={row.original.student.name}
               />
               <AvatarFallback className='text-xs'>
-                {row.original.student.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
+                {getInitials(row.original.student.name)}
               </AvatarFallback>
             </Avatar>
             <div>

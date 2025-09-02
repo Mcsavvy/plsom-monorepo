@@ -30,6 +30,17 @@ import {
   SubmissionAnswer,
 } from '@/types/submission';
 
+
+export function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter(n => n !== '')
+    .map(n => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
 export function transformAuditLog(djangoLog: AuditLogResponse): AuditLog {
   return {
     id: djangoLog.id,
@@ -56,12 +67,7 @@ export function transformUser(user: UserResponse): UserIdentity {
     ? `${user.title} ${user.first_name} ${user.last_name}`
     : `${user.first_name} ${user.last_name}`.trim();
 
-  const initials = displayName
-    .split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const initials = getInitials(displayName);
 
   return {
     id: user.id,
@@ -86,12 +92,7 @@ export function transformStudent(studentResponse: StudentResponse): Student {
   const displayName = studentResponse.title
     ? `${studentResponse.title} ${fullName}`
     : fullName;
-  const initials = displayName
-    .split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const initials = getInitials(displayName);
 
   // Transform enrollments
   const enrollments = studentResponse.enrollments.map(enrollment => ({
@@ -154,12 +155,7 @@ export function transformStaff(staffResponse: StaffResponse): Staff {
   const displayName = staffResponse.title
     ? `${staffResponse.title} ${fullName}`
     : fullName;
-  const initials = displayName
-    .split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const initials = getInitials(displayName);
 
   return {
     id: staffResponse.id,
@@ -189,12 +185,7 @@ export function transformEnrollment(
   const studentDisplayName = enrollment.student.title
     ? `${enrollment.student.title} ${enrollment.student.first_name} ${enrollment.student.last_name}`
     : `${enrollment.student.first_name} ${enrollment.student.last_name}`;
-  const studentInitials = studentDisplayName
-    .split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const studentInitials = getInitials(studentDisplayName);
 
   return {
     id: enrollment.id,
@@ -230,12 +221,7 @@ export function transformCourse(courseResponse: CourseResponse): Course {
     const lecturerDisplayName = courseResponse.lecturer.title
       ? `${courseResponse.lecturer.title} ${lecturerFullName}`
       : lecturerFullName;
-    const lecturerInitials = lecturerDisplayName
-      .split(' ')
-      .map(n => n[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
+    const lecturerInitials = getInitials(lecturerDisplayName);
 
     lecturer = {
       id: courseResponse.lecturer.id,
@@ -285,12 +271,7 @@ export function transformClass(classResponse: ClassResponse): Class {
     const lecturerDisplayName = classResponse.course.lecturer.title
       ? `${classResponse.course.lecturer.title} ${lecturerFullName}`
       : lecturerFullName;
-    const lecturerInitials = lecturerDisplayName
-      .split(' ')
-      .map(n => n[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
+    const lecturerInitials = getInitials(lecturerDisplayName);
 
     courseLecturer = {
       id: classResponse.course.lecturer.id,
@@ -315,12 +296,7 @@ export function transformClass(classResponse: ClassResponse): Class {
   const classLecturerDisplayName = classResponse.lecturer.title
     ? `${classResponse.lecturer.title} ${classLecturerFullName}`
     : classLecturerFullName;
-  const classLecturerInitials = classLecturerDisplayName
-    .split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const classLecturerInitials = getInitials(classLecturerDisplayName);
 
   const lecturer = {
     id: classResponse.lecturer.id,

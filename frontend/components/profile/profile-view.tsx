@@ -34,7 +34,7 @@ export function ProfileView({
       : `${profile.first_name} ${profile.last_name}`
   ).trim();
 
-  const initials = displayName.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  const initials = displayName.split(' ').filter(n => n !== '').slice(0, 2).map(n => n[0]).join('').toUpperCase();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

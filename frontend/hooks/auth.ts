@@ -102,7 +102,7 @@ function _transformUser(user: AuthUser): User {
       ? `${user.title} ${user.first_name} ${user.last_name}`
       : `${user.first_name} ${user.last_name}`
   ).trim();
-  const initials = displayName.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  const initials = displayName.split(' ').filter(n => n !== '').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   return {
     id: user.id,
     email: user.email,
