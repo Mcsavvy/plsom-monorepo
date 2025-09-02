@@ -35,6 +35,7 @@ export function FeedbackButton({
 
   const handleClick = () => {
     showFeedbackWidget();
+    setIsVisible(false)
   };
 
   if (!isVisible) {

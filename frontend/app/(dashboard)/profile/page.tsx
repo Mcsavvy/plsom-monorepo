@@ -161,31 +161,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with Feedback Button */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-            
-            <FeedbackButton 
-              variant="outline" 
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Report Issue
-            </FeedbackButton>
-          </div>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="container max-w-6xl mx-auto px-4 py-8">
         <motion.div

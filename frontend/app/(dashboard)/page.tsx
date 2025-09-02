@@ -18,25 +18,19 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FeedbackButton } from "@/components/ui/feedback-button";
 import {
   BookOpen,
   Clock,
   Play,
   AlertCircle,
-  ExternalLink,
   Timer,
   Calendar,
   Users,
-  CheckCircle,
-  XCircle,
-  Video,
   FileText,
   GraduationCap,
   Award,
   ChevronRight,
   Bell,
-  TrendingUp,
 } from "lucide-react";
 import { toastError } from "@/lib/utils";
 
@@ -142,16 +136,7 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground">Student Dashboard</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {/* Feedback Button */}
-            <FeedbackButton 
-              variant="ghost" 
-              size="sm" 
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Report Issue
-            </FeedbackButton>
-            
+          <div className="flex items-center space-x-2">      
             {/* Notification Bell */}
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="h-5 w-5" />
