@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FeedbackButton } from "@/components/ui/feedback-button";
 import {
   BookOpen,
   Clock,
@@ -141,12 +142,24 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground">Student Dashboard</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-5 w-5" />
-            {urgentTests.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-            )}
-          </Button>
+          <div className="flex items-center space-x-2">
+            {/* Feedback Button */}
+            <FeedbackButton 
+              variant="ghost" 
+              size="sm" 
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Report Issue
+            </FeedbackButton>
+            
+            {/* Notification Bell */}
+            <Button variant="ghost" size="sm" className="relative">
+              <Bell className="h-5 w-5" />
+              {urgentTests.length > 0 && (
+                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Live Class Banner - Priority 1 */}

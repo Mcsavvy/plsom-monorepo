@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { PWAInstallButton, NetworkStatus } from "@/components/pwa";
 import { PageTransition } from "@/components/ui/page-transition";
+import { FeedbackButton } from "@/components/ui/feedback-button";
 import {
   Sidebar,
   SidebarContent,
@@ -57,6 +58,17 @@ export function DesktopLayout({
                 <PWAInstallButton variant="button" />
               </div>
             )}
+            
+            {/* Feedback Button in Sidebar */}
+            <div className="px-2 py-1">
+              <FeedbackButton 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start text-xs"
+              >
+                Report Issue
+              </FeedbackButton>
+            </div>
             
             {/* Network Status in Sidebar */}
             {showNetworkStatus && networkStatusVariant === "minimal" && (

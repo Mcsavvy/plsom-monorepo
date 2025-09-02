@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { PWAInstallButton, NetworkStatus } from "@/components/pwa";
 import { PageTransition, MobilePageTransition } from "@/components/ui/page-transition";
+import { FloatingFeedbackButton } from "@/components/ui/feedback-button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileNavigation from "./mobile-navigation";
 
@@ -57,6 +58,12 @@ export function MobileLayout({
           <PWAInstallButton variant="card" />
         </div>
       )}
+
+      {/* Floating Feedback Button - positioned above mobile navigation */}
+      <FloatingFeedbackButton 
+        position="bottom-right" 
+        className="z-50"
+      />
     </>
   );
 }
