@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, X, Smartphone } from "lucide-react";
+import { Download, X, Smartphone, ExternalLink } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -10,21 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: "accepted" | "dismissed";
-    platform: string;
-  }>;
-  prompt(): Promise<void>;
-}
+import { usePWA } from "@/hooks/use-pwa";
 
 interface PWAInstallButtonProps {
-  variant?: "button" | "banner" | "card";
+  variant?: "button" | "banner" | "card" | "link";
   className?: string;
   onInstall?: () => void;
   onDismiss?: () => void;
+  showInstructions?: boolean;
 }
 
 export function PWAInstallButton({
@@ -32,40 +25,19 @@ export function PWAInstallButton({
   className = "",
   onInstall,
   onDismiss,
+  showInstructions = false,
 }: PWAInstallButtonProps) {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
+  const { 
+    isInstallable, 
+    isInstalled, 
+    isIOS, 
+    install, 
+    getInstallInstructions 
+  } = usePWA();
+  
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Check if app is already installed
-  const checkIfInstalled = useCallback(() => {
-    // Check if running as PWA
-    const isStandalone = window.matchMedia(
-      "(display-mode: standalone)"
-    ).matches;
-    const isFullscreen = window.matchMedia(
-      "(display-mode: fullscreen)"
-    ).matches;
-    const isMinimalUI = window.matchMedia("(display-mode: minimal-ui)").matches;
-
-    // Check if running in browser display mode
-    const isInWebView = (window.navigator as any).standalone === true;
-
-    return isStandalone || isFullscreen || isMinimalUI || isInWebView;
-  }, []);
-
-  // Check if device is iOS
-  const checkIfIOS = useCallback(() => {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent);
-  }, []);
-
   useEffect(() => {
-    setIsInstalled(checkIfInstalled());
-    setIsIOS(checkIfIOS());
-
     // Check localStorage for dismissed state
     const dismissed = localStorage.getItem("pwa-install-dismissed");
     if (dismissed) {
@@ -80,59 +52,12 @@ export function PWAInstallButton({
         setIsDismissed(true);
       }
     }
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Always capture the event for potential use
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
-
-      // Only prevent default if we want to show custom UI immediately
-      if (variant === "banner" && !isDismissed) {
-        e.preventDefault();
-      } else if (variant === "card") {
-        e.preventDefault();
-      }
-      // For "button" variant, let the browser handle it unless user clicks our button
-    };
-
-    const handleAppInstalled = () => {
-      setIsInstalled(true);
-      setIsInstallable(false);
-      setDeferredPrompt(null);
-      onInstall?.();
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
-
-    return () => {
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt
-      );
-      window.removeEventListener("appinstalled", handleAppInstalled);
-    };
-  }, [checkIfInstalled, checkIfIOS, onInstall, variant, isDismissed]);
+  }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      // If no deferred prompt available, but user clicked install,
-      // show them manual instructions
-      console.log("No deferred prompt available");
-      return;
-    }
-
-    try {
-      await deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
-
-      if (choiceResult.outcome === "accepted") {
-        setIsInstallable(false);
-        setDeferredPrompt(null);
-        onInstall?.();
-      }
-    } catch (error) {
-      console.error("Error showing install prompt:", error);
+    const success = await install();
+    if (success) {
+      onInstall?.();
     }
   };
 
@@ -144,20 +69,31 @@ export function PWAInstallButton({
 
   // Don't show if already installed or dismissed
   if (isInstalled || isDismissed) {
-    console.log("isInstalled", isInstalled);
-    console.log("isDismissed", isDismissed);
     return null;
+  }
+
+  // Link variant - redirects to install page
+  if (variant === "link") {
+    return (
+      <Button
+        variant="link"
+        onClick={() => window.location.href = '/install'}
+        className={className}
+      >
+        <ExternalLink className="mr-2 h-4 w-4" />
+        Install App
+      </Button>
+    );
   }
 
   // Button variant
   if (variant === "button" && (isInstallable || isIOS)) {
     return (
       <Button
-        onClick={isIOS ? undefined : handleInstallClick}
+        onClick={isIOS ? () => window.location.href = '/install' : handleInstallClick}
         variant="outline"
         size="sm"
         className={className}
-        disabled={isIOS && !isInstallable}
       >
         <Download className="mr-2 h-4 w-4" />
         {isIOS ? "Add to Home Screen" : "Install App"}
@@ -184,15 +120,13 @@ export function PWAInstallButton({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            {!isIOS && (
-              <Button
-                onClick={handleInstallClick}
-                variant="secondary"
-                size="sm"
-              >
-                Install
-              </Button>
-            )}
+            <Button
+              onClick={isIOS ? () => window.location.href = '/install' : handleInstallClick}
+              variant="secondary"
+              size="sm"
+            >
+              {isIOS ? "Instructions" : "Install"}
+            </Button>
             <Button
               onClick={handleDismiss}
               variant="ghost"
@@ -228,15 +162,17 @@ export function PWAInstallButton({
               ? "Add PLSOM LMS to your home screen for quick access and a native app experience. Tap the Share button and select 'Add to Home Screen'."
               : "Install our app for faster loading, offline access, and a native app experience."}
           </CardDescription>
-          {!isIOS && (
-            <Button onClick={handleInstallClick} className="w-full">
-              <Download className="mr-2 h-4 w-4" />
-              Install App
-            </Button>
-          )}
-          {isIOS && (
+          <Button 
+            onClick={isIOS ? () => window.location.href = '/install' : handleInstallClick} 
+            className="w-full"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {isIOS ? "View Instructions" : "Install App"}
+          </Button>
+          
+          {showInstructions && isIOS && (
             <div className="text-muted-foreground bg-muted rounded-md p-3 text-sm">
-              <p className="mb-1 font-medium">How to install:</p>
+              <p className="mb-1 font-medium">Quick steps:</p>
               <ol className="space-y-1">
                 <li>1. Tap the Share button (⬆️) in Safari</li>
                 <li>2. Scroll down and tap "Add to Home Screen"</li>
