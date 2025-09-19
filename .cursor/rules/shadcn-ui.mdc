@@ -1,0 +1,69 @@
+---
+description: shadcn/ui component development and usage guidelines
+---
+
+# shadcn/ui Component Guidelines
+
+## Component Structure
+- All UI components are in `components/ui/` directory
+- Use TypeScript with proper prop interfaces
+- Implement React.forwardRef for components that need refs
+- Use class-variance-authority (cva) for variant styling
+- Follow the "new-york" style variant
+
+## Component Patterns
+- Use Radix UI primitives as base components
+- Implement proper accessibility features
+- Use proper focus management and keyboard navigation
+- Include proper ARIA attributes
+
+## Styling Guidelines
+- Use Tailwind CSS classes
+- Implement CSS variables for theming
+- Use proper responsive design patterns
+- Follow the design system color palette
+- Use proper spacing and typography scales
+
+## Form Components
+- Use React Hook Form integration
+- Implement proper validation states
+- Include proper error handling
+- Add space between labels and inputs as per user preference
+- Use Zod for validation schemas
+
+## Button Component
+- Use the established button variants: default, destructive, outline, secondary, ghost, link
+- Implement proper sizes: default, sm, lg, icon
+- Use proper focus states and disabled states
+- Include proper loading states
+
+## Form Components
+- Use proper form field components
+- Implement proper validation feedback
+- Use consistent spacing and layout
+- Include proper accessibility features
+
+## Data Display Components
+- Use proper table components for data display
+- Implement proper pagination
+- Use proper loading and empty states
+- Include proper sorting and filtering
+
+## Navigation Components
+- Use proper navigation patterns
+- Implement proper active states
+- Use proper responsive navigation
+- Include proper accessibility features
+
+## Modal and Dialog Components
+- Use proper modal patterns
+- Implement proper focus management
+- Use proper escape key handling
+- Include proper accessibility features
+
+## Component Development
+- Always export both the component and its variants
+- Use proper TypeScript types
+- Include proper JSDoc comments
+- Follow the established naming conventions
+- Use proper prop destructuring and spreading

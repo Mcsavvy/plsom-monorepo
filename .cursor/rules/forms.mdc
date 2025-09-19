@@ -1,0 +1,53 @@
+---
+description: Form handling and validation patterns
+---
+
+# Form Handling Rules
+
+## Frontend Forms
+- Use React Hook Form for all forms
+- Implement Zod validation schemas
+- Use shadcn/ui form components
+- Include proper error handling and validation feedback
+
+## Form Layout
+- Add space between labels and inputs as per user preference
+- Use consistent spacing and typography
+- Implement proper responsive design
+- Use proper form field grouping
+
+## Validation
+- Implement client-side validation with Zod
+- Use server-side validation in Django serializers
+- Display validation errors clearly
+- Implement proper field-level and form-level validation
+
+## Form Components
+- Use shadcn/ui form components consistently
+- Implement proper form field components
+- Use proper input types and attributes
+- Include proper accessibility features
+
+## Error Handling
+- Display validation errors clearly
+- Use proper error message styling
+- Implement proper loading states
+- Handle network errors gracefully
+
+## Form Submission
+- Implement proper loading states during submission
+- Disable form during submission
+- Show success/error feedback
+- Handle form reset after successful submission
+
+## Accessibility
+- Use proper form labels and descriptions
+- Implement proper keyboard navigation
+- Use proper ARIA attributes
+- Test with screen readers
+
+## Data Flow
+- Use controlled components
+- Implement proper state management
+- Use proper data transformation
+- Handle form data properly

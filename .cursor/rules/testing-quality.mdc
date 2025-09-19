@@ -1,0 +1,68 @@
+---
+description: Testing and code quality guidelines
+---
+
+# Testing & Code Quality Rules
+
+## Testing Strategy
+- Write unit tests for all business logic
+- Write integration tests for API endpoints
+- Write component tests for React components
+- Use proper test data and fixtures
+- Implement proper test isolation
+
+## Django Backend Testing
+- Use Django's TestCase for model and view tests
+- Test API endpoints with proper authentication
+- Use factory_boy for test data generation
+- Test serializer validation and error handling
+- Test proper permissions and access control
+
+## Frontend Testing
+- Use Jest and React Testing Library for component tests
+- Test user interactions and form submissions
+- Test API integration and error handling
+- Test accessibility features
+- Test responsive design
+
+## Code Quality Tools
+- Use ESLint for JavaScript/TypeScript linting
+- Use Prettier for code formatting
+- Use mypy for Python type checking
+- Use Ruff for Python linting
+- Use Black for Python code formatting
+
+## Error Handling
+- Implement proper error boundaries in React
+- Use proper HTTP status codes in API responses
+- Implement proper logging for errors
+- Use Sentry for error tracking and monitoring
+- Handle network errors gracefully
+
+## Performance
+- Optimize database queries and avoid N+1 problems
+- Use proper caching strategies
+- Optimize bundle size and loading times
+- Implement proper lazy loading
+- Use proper image optimization
+
+## Security
+- Validate all user inputs
+- Use proper authentication and authorization
+- Implement proper CORS policies
+- Use HTTPS in production
+- Implement proper rate limiting
+
+## Documentation
+- Write clear and concise code comments
+- Use proper docstrings for functions and classes
+- Document API endpoints with OpenAPI/Swagger
+- Keep README files updated
+- Document deployment and setup procedures
+
+## Git Workflow
+- Use meaningful commit messages
+- Create feature branches for new features
+- Use pull requests for code review
+- Keep commits atomic and focused
+- Use proper branch naming conventions

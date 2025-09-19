@@ -1,0 +1,34 @@
+---
+alwaysApply: true
+---
+
+# PLSOM Project Structure Guide
+
+This is a multi-repository Learning Management System (LMS) project with three main components:
+
+## Project Architecture
+- **Backend**: Django REST API (`/backend/`) - Python 3.12, Django 5.2, DRF
+- **Admin Dashboard**: React + Vite (`/admin/`) - TypeScript, Refine.dev, shadcn/ui
+- **Frontend**: Next.js 15 (`/frontend/`) - TypeScript, shadcn/ui, PWA
+
+## Key Directories
+- [backend/apps/](mdc:backend/apps/) - Django apps (authentication, users, courses, classes, assessments, cohorts, invitations, core)
+- [backend/config/](mdc:backend/config/) - Django settings and configuration
+- [admin/src/](mdc:admin/src/) - React admin source code
+- [frontend/app/](mdc:frontend/app/) - Next.js app directory with route groups
+- [frontend/components/](mdc:frontend/components/) - Reusable React components
+
+## Technology Stack
+- **Backend**: Django, DRF, PostgreSQL, Redis, JWT, Sentry, Django-Q2
+- **Admin**: React 18, Refine.dev, TanStack Table, React Hook Form, Zod
+- **Frontend**: Next.js 15, React 19, shadcn/ui, Tailwind CSS, PWA
+
+## Development Commands
+- Backend: `cd backend && poetry install && python manage.py runserver`
+- Admin: `cd admin && pnpm install && pnpm dev`
+- Frontend: `cd frontend && pnpm install && pnpm dev`
+
+## Deployment
+- Uses Coolify for deployment
+- Docker containers for each service
+- Environment-specific configuration via `.env` files

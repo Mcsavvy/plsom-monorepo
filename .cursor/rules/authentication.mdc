@@ -1,0 +1,50 @@
+---
+description: Authentication and authorization patterns
+---
+
+# Authentication & Authorization Rules
+
+## User Model
+- Use custom User model: `apps.users.models.User`
+- Email as USERNAME_FIELD (no username field)
+- Support roles: admin, lecturer, student
+- Include profile fields: title, whatsapp_number, profile_picture
+- Track setup completion with `is_setup_complete`
+
+## JWT Authentication
+- Use `rest_framework_simplejwt` for token management
+- Configure proper token lifetimes (1h access, 31d refresh)
+- Implement token rotation and blacklisting
+- Use Bearer token authentication
+
+## Role-Based Access Control
+- Implement proper permissions for each role
+- Use Django's permission system
+- Create custom permission classes when needed
+- Test permissions thoroughly
+
+## API Security
+- Use proper CORS configuration
+- Implement proper CSRF protection
+- Validate all user inputs
+- Use proper HTTP status codes
+- Implement rate limiting
+
+## Frontend Authentication
+- Store JWT tokens securely
+- Implement automatic token refresh
+- Handle authentication errors gracefully
+- Implement proper logout functionality
+- Use proper route protection
+
+## Password Security
+- Use Django's built-in password validators
+- Implement proper password requirements
+- Use secure password reset flows
+- Never store passwords in plain text
+
+## Session Management
+- Implement proper session handling
+- Use secure session cookies
+- Implement proper session timeout
+- Handle concurrent sessions appropriately

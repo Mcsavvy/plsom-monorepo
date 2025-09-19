@@ -1,0 +1,54 @@
+---
+description: Deployment and infrastructure guidelines
+---
+
+# Deployment & Infrastructure Rules
+
+## Deployment Platform
+- Use Coolify for deployment
+- Deploy using Docker containers
+- Specify path to docker-compose.yml file
+- Use environment-specific configuration
+
+## Environment Configuration
+- Use `.env` files for environment variables
+- Separate configs: `.env.development`, `.env.production`, `.env.local`
+- Use `python-decouple` for configuration management
+- Never commit sensitive data to version control
+
+## Docker Configuration
+- Use proper Dockerfile for each service
+- Use docker-compose.yml for orchestration
+- Implement proper health checks
+- Use proper volume mounts for persistent data
+
+## Database Configuration
+- Use PostgreSQL in production
+- Use SQLite for testing
+- Configure proper connection pooling
+- Implement proper backup strategies
+
+## Static Files & Media
+- Use WhiteNoise for static file serving
+- Configure proper media file handling
+- Use CDN for production static files
+- Implement proper file upload handling
+
+## Monitoring & Logging
+- Use Sentry for error tracking
+- Implement structured logging
+- Configure proper log rotation
+- Monitor application performance
+
+## Security in Production
+- Use HTTPS in production
+- Configure proper CORS policies
+- Implement proper security headers
+- Use secure session cookies
+- Regular security updates
+
+## Backup & Recovery
+- Implement database backups
+- Backup media files
+- Test recovery procedures
+- Document backup schedules

@@ -1,0 +1,55 @@
+---
+globs: backend/**/*.py
+---
+
+# Django Backend Development Rules
+
+## Code Style & Formatting
+- Follow Google docstring convention (configured in pyproject.toml)
+- Use Black formatting with 80 character line length
+- Use isort with Black profile for import sorting
+- Use Ruff for linting with Python 3.10+ target
+- Always use type hints with mypy checking enabled
+
+## Project Structure
+- All Django apps are in [backend/apps/](mdc:backend/apps/)
+- Each app should have: models.py, serializers.py, views.py, urls.py, admin.py
+- Use [backend/config/settings/](mdc:backend/config/settings/) for environment-specific settings
+- Custom utilities go in [backend/utils/](mdc:backend/utils/)
+
+## Models & Serializers
+- Use custom User model: `apps.users.models.User` with email as USERNAME_FIELD
+- Always define `__str__` methods for models
+- Use proper field choices with tuples: `(('value', 'Display Name'),)`
+- Serializers should use `ModelSerializer` when possible
+- Use `extend_schema_field` for custom serializer fields
+- Include proper validation and error handling
+
+## API Design
+- Use DRF with JWT authentication
+- Implement proper pagination using `RefineDataProviderPagination`
+- Use standardized error handling with `drf_standardized_errors`
+- Include proper filtering with `RefineDataProviderFilter`
+- Use `drf_spectacular` for OpenAPI documentation
+
+## Database & Migrations
+- Use PostgreSQL in production, SQLite for testing
+- Always create migrations for model changes
+- Use `transaction.atomic()` for complex operations
+- Implement proper database constraints and indexes
+
+## Security & Authentication
+- Use JWT tokens with proper expiration times
+- Implement role-based access control (admin, lecturer, student)
+- Use `django-cors-headers` for CORS configuration
+- Validate all user inputs and use proper permissions
+
+## Background Tasks
+- Use Django-Q2 for background tasks
+- Configure Redis for task queue
+- Implement proper error handling for async tasks
+
+## Logging & Monitoring
+- Use structured logging with proper log levels
+- Configure Sentry for error tracking
+- Log important business operations and errors
