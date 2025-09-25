@@ -23,7 +23,9 @@ class Class(models.Model):
     zoom_join_url = models.URLField(null=True, blank=True)
     password_for_zoom = models.CharField(max_length=200, null=True, blank=True)
     recording_url = models.URLField(null=True, blank=True)
-    password_for_recording = models.CharField(max_length=200, null=True, blank=True)
+    password_for_recording = models.CharField(
+        max_length=200, null=True, blank=True
+    )
 
     class Meta:
         ordering = ["scheduled_at"]

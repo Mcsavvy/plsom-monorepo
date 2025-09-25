@@ -5,9 +5,9 @@ from . import views
 router = DefaultRouter()
 
 # Register viewsets with the router
-router.register(r'tests', views.TestViewSet, basename='test')
-router.register(r'submissions', views.SubmissionViewSet, basename='submission')
+router.register(r"tests", views.TestViewSet, basename="test")
+router.register(r"submissions", views.SubmissionViewSet, basename="submission")
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]

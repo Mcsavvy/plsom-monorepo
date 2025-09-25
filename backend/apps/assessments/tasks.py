@@ -26,20 +26,24 @@ def send_test_notification_email(test_id, notification_type, user_ids=None):
         user_ids: List of user IDs to notify (if None, notify all cohort students)
     """
     try:
-        test = Test.objects.select_related("course", "cohort", "created_by").get(
-            id=test_id
-        )
+        test = Test.objects.select_related(
+            "course", "cohort", "created_by"
+        ).get(id=test_id)
 
         # Only send notifications for published tests (except for 'published' notification)
         if notification_type != "published" and test.status != "published":
-            logger.info(f"Skipping notification for non-published test {test_id}")
+            logger.info(
+                f"Skipping notification for non-published test {test_id}"
+            )
             return
 
         # Get recipients
         if user_ids:
             recipients = User.objects.filter(id__in=user_ids, role="student")
         else:
-            recipients = test.cohort.students.filter(role="student", is_active=True)
+            recipients = test.cohort.students.filter(
+                role="student", is_active=True
+            )
 
         if not recipients.exists():
             logger.info(f"No recipients found for test {test_id} notification")
@@ -70,7 +74,7 @@ def send_test_notification_email(test_id, notification_type, user_ids=None):
             "published": "emails/test_published.html",
             "deadline_reminder": "emails/test_deadline_reminder.html",
         }
-        
+
         text_template_map = {
             "created": "emails/test_created.txt",
             "updated": "emails/test_updated.txt",
@@ -79,9 +83,15 @@ def send_test_notification_email(test_id, notification_type, user_ids=None):
             "deadline_reminder": "emails/test_deadline_reminder.txt",
         }
 
-        subject = subject_map.get(notification_type, f"Test Notification: {test.title}")
-        html_template = html_template_map.get(notification_type, "emails/test_notification.html")
-        text_template = text_template_map.get(notification_type, "emails/test_notification.txt")
+        subject = subject_map.get(
+            notification_type, f"Test Notification: {test.title}"
+        )
+        html_template = html_template_map.get(
+            notification_type, "emails/test_notification.html"
+        )
+        text_template = text_template_map.get(
+            notification_type, "emails/test_notification.txt"
+        )
 
         # Generate email content
         html_message = render_to_string(html_template, context)
@@ -104,7 +114,9 @@ def send_test_notification_email(test_id, notification_type, user_ids=None):
                 f"Sent {notification_type} notification for test {test_id} to {len(recipient_emails)} recipients"
             )
         else:
-            logger.warning(f"No email addresses found for test {test_id} notification")
+            logger.warning(
+                f"No email addresses found for test {test_id} notification"
+            )
 
     except Test.DoesNotExist:
         logger.error(f"Test {test_id} not found for notification")
@@ -115,19 +127,25 @@ def send_test_notification_email(test_id, notification_type, user_ids=None):
 def send_submission_returned_notification(submission_id):
     """
     Send notification to student when their submission is returned due to breaking changes.
-    
+
     Args:
         submission_id: ID of the submission that was returned
     """
     try:
         submission = Submission.objects.select_related(
-            "test", "test__course", "test__cohort", "test__created_by", "student"
+            "test",
+            "test__course",
+            "test__cohort",
+            "test__created_by",
+            "student",
         ).get(id=submission_id)
-        
+
         if submission.status != "returned":
-            logger.info(f"Submission {submission_id} is not returned, skipping notification")
+            logger.info(
+                f"Submission {submission_id} is not returned, skipping notification"
+            )
             return
-            
+
         # Prepare email content
         context = {
             "submission": submission,
@@ -137,15 +155,15 @@ def send_submission_returned_notification(submission_id):
             "instructor": submission.test.created_by,
             "student": submission.student,
         }
-        
+
         subject = f"Submission Returned: {submission.test.title}"
         html_template = "emails/submission_returned.html"
         text_template = "emails/submission_returned.txt"
-        
+
         # Generate email content
         html_message = render_to_string(html_template, context)
         plain_message = render_to_string(text_template, context)
-        
+
         # Send to student
         if submission.student.email:
             send_mail(
@@ -156,17 +174,21 @@ def send_submission_returned_notification(submission_id):
                 html_message=html_message,
                 fail_silently=False,
             )
-            
+
             logger.info(
                 f"Sent submission returned notification for submission {submission_id} to {submission.student.email}"
             )
         else:
-            logger.warning(f"No email address found for student {submission.student.id}")
-            
+            logger.warning(
+                f"No email address found for student {submission.student.id}"
+            )
+
     except Submission.DoesNotExist:
         logger.error(f"Submission {submission_id} not found for notification")
     except Exception as e:
-        logger.error(f"Error sending submission returned notification: {str(e)}")
+        logger.error(
+            f"Error sending submission returned notification: {str(e)}"
+        )
 
 
 def schedule_deadline_reminder(test_id):
@@ -177,7 +199,9 @@ def schedule_deadline_reminder(test_id):
         test = Test.objects.get(id=test_id)
 
         if not test.available_until:
-            logger.info(f"Test {test_id} has no deadline, skipping reminder scheduling")
+            logger.info(
+                f"Test {test_id} has no deadline, skipping reminder scheduling"
+            )
             return
 
         # Calculate when to send the reminder (day of deadline, 9 AM)
@@ -205,7 +229,9 @@ def schedule_deadline_reminder(test_id):
             )
 
     except Test.DoesNotExist:
-        logger.error(f"Test {test_id} not found for deadline reminder scheduling")
+        logger.error(
+            f"Test {test_id} not found for deadline reminder scheduling"
+        )
     except Exception as e:
         logger.error(f"Error scheduling deadline reminder: {str(e)}")
 
@@ -218,7 +244,9 @@ def cancel_deadline_reminder(test_id):
         from django_q.models import Schedule
 
         # Cancel existing deadline reminder
-        Schedule.objects.filter(name=f"deadline_reminder_test_{test_id}").delete()
+        Schedule.objects.filter(
+            name=f"deadline_reminder_test_{test_id}"
+        ).delete()
 
         logger.info(f"Cancelled deadline reminder for test {test_id}")
 

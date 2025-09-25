@@ -381,7 +381,9 @@ class TestViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = StudentTestDetailSerializer(test, context={"request": request})
+        serializer = StudentTestDetailSerializer(
+            test, context={"request": request}
+        )
         return Response(serializer.data)
 
     @extend_schema(
@@ -394,7 +396,10 @@ class TestViewSet(viewsets.ModelViewSet):
                     "total_questions": {"type": "integer"},
                     "total_submissions": {"type": "integer"},
                     "completed_submissions": {"type": "integer"},
-                    "average_completion_time": {"type": "number", "format": "float"},
+                    "average_completion_time": {
+                        "type": "number",
+                        "format": "float",
+                    },
                     "average_score": {"type": "number", "format": "float"},
                     "is_available": {"type": "boolean"},
                 },
@@ -410,7 +415,9 @@ class TestViewSet(viewsets.ModelViewSet):
         """Get test statistics."""
         test = self.get_object()
 
-        submissions = test.submissions.filter(status__in=["submitted", "graded"])
+        submissions = test.submissions.filter(
+            status__in=["submitted", "graded"]
+        )
 
         stats = {
             "total_questions": test.total_questions,
@@ -423,26 +430,34 @@ class TestViewSet(viewsets.ModelViewSet):
 
         if submissions.exists():
             # Calculate average completion time
-            completed_submissions = submissions.exclude(time_spent_minutes__isnull=True)
+            completed_submissions = submissions.exclude(
+                time_spent_minutes__isnull=True
+            )
             if completed_submissions.exists():
                 avg_time = completed_submissions.aggregate(
                     avg=models.Avg("time_spent_minutes")
                 )["avg"]
-                stats["average_completion_time"] = float(avg_time) if avg_time else None
+                stats["average_completion_time"] = (
+                    float(avg_time) if avg_time else None
+                )
 
             # Calculate average score
-            graded_submissions = submissions.filter(status__in=["graded", "returned"])
+            graded_submissions = submissions.filter(
+                status__in=["graded", "returned"]
+            )
             if graded_submissions.exists():
                 total_score = 0
                 submission_count = 0
-                
+
                 for submission in graded_submissions:
                     if submission.score is not None:
                         total_score += submission.score
                         submission_count += 1
-                
+
                 if submission_count > 0:
-                    stats["average_score"] = round(total_score / submission_count, 2)
+                    stats["average_score"] = round(
+                        total_score / submission_count, 2
+                    )
                 else:
                     stats["average_score"] = None
             else:
@@ -549,7 +564,10 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         """Submit a test for grading."""
         submission = self.get_object()
 
-        if submission.student != request.user and request.user.role == "student":
+        if (
+            submission.student != request.user
+            and request.user.role == "student"
+        ):
             return Response(
                 {"error": "You can only submit your own tests"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -586,13 +604,22 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                         "items": {
                             "type": "object",
                             "properties": {
-                                "question": {"type": "string", "format": "uuid"},
+                                "question": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                },
                                 "text_answer": {"type": "string"},
                                 "boolean_answer": {"type": "boolean"},
-                                "date_answer": {"type": "string", "format": "date"},
+                                "date_answer": {
+                                    "type": "string",
+                                    "format": "date",
+                                },
                                 "selected_options": {
                                     "type": "array",
-                                    "items": {"type": "string", "format": "uuid"},
+                                    "items": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                    },
                                 },
                             },
                             "required": ["question"],
@@ -622,7 +649,10 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         submission = self.get_object()
 
         # Only the owner (student) can modify their in-progress submission
-        if request.user.role == "student" and submission.student != request.user:
+        if (
+            request.user.role == "student"
+            and submission.student != request.user
+        ):
             return Response(
                 {"error": "You can only modify your own submission"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -642,7 +672,9 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             )
 
         # Cache questions for this test for quick lookup
-        questions_by_id = {str(q.id): q for q in submission.test.questions.all()}
+        questions_by_id = {
+            str(q.id): q for q in submission.test.questions.all()
+        }
 
         # Process each answer in a transaction
         with transaction.atomic():
@@ -737,15 +769,22 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         submission = self.get_object()
 
         # Only the owner (student) can upload documents
-        if request.user.role == "student" and submission.student != request.user:
+        if (
+            request.user.role == "student"
+            and submission.student != request.user
+        ):
             return Response(
-                {"error": "You can only upload documents to your own submission"},
+                {
+                    "error": "You can only upload documents to your own submission"
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         if submission.status != "in_progress":
             return Response(
-                {"error": "Documents can only be uploaded to in-progress submissions"},
+                {
+                    "error": "Documents can only be uploaded to in-progress submissions"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -830,7 +869,9 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         request={
             "application/json": {
                 "type": "object",
-                "properties": {"question": {"type": "string", "format": "uuid"}},
+                "properties": {
+                    "question": {"type": "string", "format": "uuid"}
+                },
                 "required": ["question"],
             }
         },
@@ -849,15 +890,22 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         submission = self.get_object()
 
         # Only the owner (student) can delete documents
-        if request.user.role == "student" and submission.student != request.user:
+        if (
+            request.user.role == "student"
+            and submission.student != request.user
+        ):
             return Response(
-                {"error": "You can only delete documents from your own submission"},
+                {
+                    "error": "You can only delete documents from your own submission"
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         if submission.status != "in_progress":
             return Response(
-                {"error": "Documents can only be deleted from in-progress submissions"},
+                {
+                    "error": "Documents can only be deleted from in-progress submissions"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -919,8 +967,14 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                         "items": {
                             "type": "object",
                             "properties": {
-                                "answer_id": {"type": "string", "format": "uuid"},
-                                "points_earned": {"type": "number", "format": "float"},
+                                "answer_id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                },
+                                "points_earned": {
+                                    "type": "number",
+                                    "format": "float",
+                                },
                                 "feedback": {"type": "string"},
                                 "is_flagged": {"type": "boolean"},
                             },
@@ -951,7 +1005,9 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         # Check if submission is ready for grading
         if submission.status not in ["submitted", "returned", "graded"]:
             return Response(
-                {"error": "Only submitted or returned submissions can be graded"},
+                {
+                    "error": "Only submitted or returned submissions can be graded"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -973,16 +1029,22 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                 is_flagged = answer_data.get("is_flagged", False)
 
                 if not answer_id:
-                    raise ValidationError("answer_id is required for each answer")
+                    raise ValidationError(
+                        "answer_id is required for each answer"
+                    )
 
                 try:
                     answer = submission.answers.get(id=answer_id)
                 except Answer.DoesNotExist:
-                    raise ValidationError(f"Answer with id {answer_id} not found")
+                    raise ValidationError(
+                        f"Answer with id {answer_id} not found"
+                    )
 
                 # Validate points earned
                 if points_earned is None:
-                    raise ValidationError("points_earned is required for each answer")
+                    raise ValidationError(
+                        "points_earned is required for each answer"
+                    )
 
                 if points_earned < 0:
                     raise ValidationError("points_earned cannot be negative")

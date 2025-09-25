@@ -68,7 +68,9 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
     course_id = serializers.IntegerField(write_only=True)
     lecturer_id = serializers.IntegerField(write_only=True, required=False)
     cohort_id = serializers.IntegerField(write_only=True)
-    timezone = serializers.CharField(write_only=True, required=False, default='UTC')
+    timezone = serializers.CharField(
+        write_only=True, required=False, default="UTC"
+    )
 
     # Read-only nested objects for response
     course = CourseSerializer(read_only=True)
@@ -103,7 +105,9 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
             Course.objects.get(id=value)
             return value
         except Course.DoesNotExist:
-            raise serializers.ValidationError("Course with this ID does not exist.")
+            raise serializers.ValidationError(
+                "Course with this ID does not exist."
+            )
 
     def validate_lecturer_id(self, value):
         """Validate lecturer exists and has correct role"""
@@ -115,10 +119,14 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
         try:
             lecturer = User.objects.get(id=value)
             if lecturer.role not in ["lecturer", "admin"]:
-                raise serializers.ValidationError("User must be a lecturer or admin.")
+                raise serializers.ValidationError(
+                    "User must be a lecturer or admin."
+                )
             return value
         except User.DoesNotExist:
-            raise serializers.ValidationError("Lecturer with this ID does not exist.")
+            raise serializers.ValidationError(
+                "Lecturer with this ID does not exist."
+            )
 
     def validate_cohort_id(self, value):
         """Validate cohort exists"""
@@ -128,48 +136,56 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
             Cohort.objects.get(id=value)
             return value
         except Cohort.DoesNotExist:
-            raise serializers.ValidationError("Cohort with this ID does not exist.")
+            raise serializers.ValidationError(
+                "Cohort with this ID does not exist."
+            )
 
     def validate_scheduled_at(self, value):
         """Validate scheduled time"""
         if value <= timezone.now():
-            raise serializers.ValidationError("Class cannot be scheduled in the past.")
+            raise serializers.ValidationError(
+                "Class cannot be scheduled in the past."
+            )
         return value
 
     def validate(self, attrs):
         """Cross-field validation with timezone handling"""
         # Handle timezone conversion for scheduled_at
-        timezone_name = attrs.get('timezone', 'UTC')
-        
+        timezone_name = attrs.get("timezone", "UTC")
+
         # Remove timezone from attrs since it's not a model field
-        if 'timezone' in attrs:
-            del attrs['timezone']
-        
+        if "timezone" in attrs:
+            del attrs["timezone"]
+
         # If scheduled_at is provided, convert it to the specified timezone
-        if 'scheduled_at' in attrs and attrs['scheduled_at']:
+        if "scheduled_at" in attrs and attrs["scheduled_at"]:
             try:
-                import pytz # type: ignore
+                import pytz  # type: ignore
                 from datetime import datetime
-                
+
                 # Parse the datetime string (should be ISO format from frontend)
-                dt = attrs['scheduled_at']
+                dt = attrs["scheduled_at"]
                 if isinstance(dt, str):
                     # If it's already a timezone-aware datetime, use it as is
-                    if dt.endswith('Z') or '+' in dt or dt.endswith('UTC'):
+                    if dt.endswith("Z") or "+" in dt or dt.endswith("UTC"):
                         # Already timezone-aware, convert to UTC
-                        dt = timezone.datetime.fromisoformat(dt.replace('Z', '+00:00'))
+                        dt = timezone.datetime.fromisoformat(
+                            dt.replace("Z", "+00:00")
+                        )
                     else:
                         # Assume it's in the specified timezone
                         tz = pytz.timezone(timezone_name)
                         dt = datetime.fromisoformat(dt)
                         dt = tz.localize(dt)
-                
+
                 # Convert to UTC for storage
-                attrs['scheduled_at'] = dt.astimezone(pytz.UTC)
-                
+                attrs["scheduled_at"] = dt.astimezone(pytz.UTC)
+
             except (ValueError, pytz.exceptions.UnknownTimeZoneError) as e:
-                raise serializers.ValidationError(f"Invalid timezone or datetime format: {str(e)}")
-        
+                raise serializers.ValidationError(
+                    f"Invalid timezone or datetime format: {str(e)}"
+                )
+
         # Original cross-field validation logic
         course_id = attrs.get("course_id")
         lecturer_id = attrs.get("lecturer_id")
@@ -205,14 +221,16 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
         # Check for scheduling conflicts (same lecturer, overlapping time)
         if lecturer_id and scheduled_at:
             duration = attrs.get("duration_minutes", 90)
-            end_time = scheduled_at + timezone.timedelta(minutes=duration)
+            scheduled_at + timezone.timedelta(minutes=duration)
 
         return attrs
 
     def validate_duration_minutes(self, value):
         """Validate duration is reasonable"""
         if value <= 0:
-            raise serializers.ValidationError("Duration must be greater than 0.")
+            raise serializers.ValidationError(
+                "Duration must be greater than 0."
+            )
         if value > 480:  # 8 hours max
             raise serializers.ValidationError(
                 "Duration cannot exceed 8 hours (480 minutes)."
@@ -236,8 +254,6 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid Zoom URL format.")
 
         return value
-
-
 
     def _extract_meeting_id_from_url(self, url):
         """Extract Zoom meeting ID from URL"""
@@ -364,7 +380,9 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
             Class.objects.get(id=value)
             return value
         except Class.DoesNotExist:
-            raise serializers.ValidationError("Class with this ID does not exist.")
+            raise serializers.ValidationError(
+                "Class with this ID does not exist."
+            )
 
     def validate_student_id(self, value):
         """Validate student exists and has correct role"""
@@ -376,7 +394,9 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("User must be a student.")
             return value
         except User.DoesNotExist:
-            raise serializers.ValidationError("Student with this ID does not exist.")
+            raise serializers.ValidationError(
+                "Student with this ID does not exist."
+            )
 
     def validate(self, attrs):
         """Cross-field validation"""
@@ -408,7 +428,9 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
         student_id = validated_data.pop("student_id")
 
         attendance = Attendance.objects.create(
-            class_session_id=class_session_id, student_id=student_id, **validated_data
+            class_session_id=class_session_id,
+            student_id=student_id,
+            **validated_data,
         )
 
         return attendance
@@ -416,9 +438,12 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
 
 class AttendanceVerificationSerializer(serializers.Serializer):
     """Serializer for attendance verification"""
-    
+
     verified = serializers.BooleanField(default=True)
-    notes = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    notes = serializers.CharField(
+        max_length=500, required=False, allow_blank=True
+    )
+
 
 class StudentAttendanceSerializer(serializers.ModelSerializer):
     """Serializer for student attendance"""

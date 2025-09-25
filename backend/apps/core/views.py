@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets, generics
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
 from apps.core.utils import get_resource_meta
@@ -149,6 +149,7 @@ class DashboardStatsView(generics.GenericAPIView):
     Comprehensive dashboard statistics endpoint.
     Provides different levels of access for admins and lecturers.
     """
+
     permission_classes = [IsAuthenticated, IsLecturerOrAdmin]
     http_method_names = ["get"]
 
@@ -168,7 +169,7 @@ class DashboardStatsView(generics.GenericAPIView):
                             "total_admins": {"type": "integer"},
                             "active_users": {"type": "integer"},
                             "recent_registrations": {"type": "integer"},
-                        }
+                        },
                     },
                     "cohort_stats": {
                         "type": "object",
@@ -179,7 +180,7 @@ class DashboardStatsView(generics.GenericAPIView):
                             "completed_cohorts": {"type": "integer"},
                             "total_enrollments": {"type": "integer"},
                             "avg_enrollment_per_cohort": {"type": "number"},
-                        }
+                        },
                     },
                     "course_stats": {
                         "type": "object",
@@ -189,7 +190,7 @@ class DashboardStatsView(generics.GenericAPIView):
                             "courses_by_program": {"type": "object"},
                             "courses_with_lecturers": {"type": "integer"},
                             "courses_without_lecturers": {"type": "integer"},
-                        }
+                        },
                     },
                     "class_stats": {
                         "type": "object",
@@ -200,7 +201,7 @@ class DashboardStatsView(generics.GenericAPIView):
                             "classes_this_week": {"type": "integer"},
                             "avg_attendance_rate": {"type": "number"},
                             "total_attendance_records": {"type": "integer"},
-                        }
+                        },
                     },
                     "assessment_stats": {
                         "type": "object",
@@ -212,7 +213,7 @@ class DashboardStatsView(generics.GenericAPIView):
                             "total_submissions": {"type": "integer"},
                             "avg_submission_rate": {"type": "number"},
                             "avg_test_score": {"type": "number"},
-                        }
+                        },
                     },
                     "invitation_stats": {
                         "type": "object",
@@ -222,7 +223,7 @@ class DashboardStatsView(generics.GenericAPIView):
                             "used_invitations": {"type": "integer"},
                             "expired_invitations": {"type": "integer"},
                             "invitations_by_role": {"type": "object"},
-                        }
+                        },
                     },
                     "recent_activity": {
                         "type": "object",
@@ -230,9 +231,9 @@ class DashboardStatsView(generics.GenericAPIView):
                             "recent_classes": {"type": "array"},
                             "recent_tests": {"type": "array"},
                             "recent_enrollments": {"type": "array"},
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             }
         },
     )
@@ -240,7 +241,7 @@ class DashboardStatsView(generics.GenericAPIView):
         """Get comprehensive dashboard statistics"""
         user = request.user
         is_admin = user.role == "admin"
-        
+
         # Import models here to avoid circular imports
         from apps.users.models import User
         from apps.cohorts.models import Cohort, Enrollment
@@ -248,12 +249,12 @@ class DashboardStatsView(generics.GenericAPIView):
         from apps.classes.models import Class, Attendance
         from apps.assessments.models import Test, Submission
         from apps.invitations.models import Invitation
-        
+
         now = timezone.now()
         today = now.date()
         week_ago = today - timedelta(days=7)
         month_ago = today - timedelta(days=30)
-        
+
         # Base querysets - filter by lecturer if not admin
         if is_admin:
             course_filter = Q()
@@ -263,7 +264,7 @@ class DashboardStatsView(generics.GenericAPIView):
             course_filter = Q(lecturer=user)
             class_filter = Q(lecturer=user)
             test_filter = Q(created_by=user)
-        
+
         # User Statistics
         user_stats = {
             "total_users": User.objects.count(),
@@ -275,7 +276,7 @@ class DashboardStatsView(generics.GenericAPIView):
                 date_joined__gte=month_ago
             ).count(),
         }
-        
+
         # Cohort Statistics
         cohort_stats = {
             "total_cohorts": Cohort.objects.count(),
@@ -288,29 +289,33 @@ class DashboardStatsView(generics.GenericAPIView):
             ).count(),
             "total_enrollments": Enrollment.objects.count(),
         }
-        
+
         # Calculate average enrollment per cohort
         if cohort_stats["total_cohorts"] > 0:
             cohort_stats["avg_enrollment_per_cohort"] = round(
-                cohort_stats["total_enrollments"] / cohort_stats["total_cohorts"], 2
+                cohort_stats["total_enrollments"]
+                / cohort_stats["total_cohorts"],
+                2,
             )
         else:
             cohort_stats["avg_enrollment_per_cohort"] = 0
-        
+
         # Course Statistics
         courses = Course.objects.filter(course_filter)
         course_stats = {
             "total_courses": courses.count(),
             "active_courses": courses.filter(is_active=True).count(),
             "courses_by_program": dict(
-                courses.values_list("program_type").annotate(
-                    count=Count("id")
-                )
+                courses.values_list("program_type").annotate(count=Count("id"))
             ),
-            "courses_with_lecturers": courses.filter(lecturer__isnull=False).count(),
-            "courses_without_lecturers": courses.filter(lecturer__isnull=True).count(),
+            "courses_with_lecturers": courses.filter(
+                lecturer__isnull=False
+            ).count(),
+            "courses_without_lecturers": courses.filter(
+                lecturer__isnull=True
+            ).count(),
         }
-        
+
         # Class Statistics
         classes = Class.objects.filter(class_filter)
         class_stats = {
@@ -318,11 +323,10 @@ class DashboardStatsView(generics.GenericAPIView):
             "completed_classes": classes.filter(scheduled_at__lt=now).count(),
             "upcoming_classes": classes.filter(scheduled_at__gte=now).count(),
             "classes_this_week": classes.filter(
-                scheduled_at__gte=now,
-                scheduled_at__lte=now + timedelta(days=7)
+                scheduled_at__gte=now, scheduled_at__lte=now + timedelta(days=7)
             ).count(),
         }
-        
+
         # Attendance Statistics
         if is_admin:
             attendance_records = Attendance.objects.all()
@@ -330,25 +334,25 @@ class DashboardStatsView(generics.GenericAPIView):
             attendance_records = Attendance.objects.filter(
                 class_session__lecturer=user
             )
-        
+
         class_stats["total_attendance_records"] = attendance_records.count()
-        
+
         # Calculate average attendance rate
         total_possible_attendances = 0
         total_actual_attendances = 0
-        
+
         for class_obj in classes:
             enrolled_students = class_obj.cohort.enrollments.count()
             total_possible_attendances += enrolled_students
             total_actual_attendances += class_obj.attendances.count()
-        
+
         if total_possible_attendances > 0:
             class_stats["avg_attendance_rate"] = round(
                 (total_actual_attendances / total_possible_attendances) * 100, 2
             )
         else:
             class_stats["avg_attendance_rate"] = 0
-        
+
         # Assessment Statistics
         tests = Test.objects.filter(test_filter)
         assessment_stats = {
@@ -357,64 +361,70 @@ class DashboardStatsView(generics.GenericAPIView):
             "draft_tests": tests.filter(status="draft").count(),
             "archived_tests": tests.filter(status="archived").count(),
         }
-        
+
         # Submission Statistics
         if is_admin:
             submissions = Submission.objects.all()
         else:
             submissions = Submission.objects.filter(test__created_by=user)
-        
+
         assessment_stats["total_submissions"] = submissions.count()
-        
+
         # Calculate average submission rate
         total_possible_submissions = 0
         total_actual_submissions = 0
-        
+
         for test in tests:
             enrolled_students = test.cohort.enrollments.count()
             total_possible_submissions += enrolled_students * test.max_attempts
             total_actual_submissions += test.submissions.count()
-        
+
         if total_possible_submissions > 0:
             assessment_stats["avg_submission_rate"] = round(
                 (total_actual_submissions / total_possible_submissions) * 100, 2
             )
         else:
             assessment_stats["avg_submission_rate"] = 0
-        
+
         # Calculate average test score
         completed_submissions = submissions.filter(
             status__in=["graded", "returned"]
         )
-        
+
         if completed_submissions.exists():
             total_score = 0
             submission_count = 0
-            
+
             for submission in completed_submissions:
                 if submission.score is not None:
                     total_score += submission.score
                     submission_count += 1
-            
+
             if submission_count > 0:
-                assessment_stats["avg_test_score"] = round(total_score / submission_count, 2)
+                assessment_stats["avg_test_score"] = round(
+                    total_score / submission_count, 2
+                )
             else:
                 assessment_stats["avg_test_score"] = 0
         else:
             assessment_stats["avg_test_score"] = 0
-        
+
         # Invitation Statistics (Admin only)
         if is_admin:
             invitations = Invitation.objects.all()
             invitation_stats = {
                 "total_invitations": invitations.count(),
-                "pending_invitations": invitations.filter(used_at__isnull=True).count(),
-                "used_invitations": invitations.filter(used_at__isnull=False).count(),
-                "expired_invitations": invitations.filter(expires_at__lt=now).count(),
+                "pending_invitations": invitations.filter(
+                    used_at__isnull=True
+                ).count(),
+                "used_invitations": invitations.filter(
+                    used_at__isnull=False
+                ).count(),
+                "expired_invitations": invitations.filter(
+                    expires_at__lt=now
+                ).count(),
                 "invitations_by_role": dict(
-                    invitations.values_list("role").annotate(
-                        count=Count("id")
-                    )
+                    invitations.values_list("role").annotate(count=Count("id"))
                 ),
             }
         else:
@@ -425,7 +435,7 @@ class DashboardStatsView(generics.GenericAPIView):
                 "expired_invitations": 0,
                 "invitations_by_role": {},
             }
-        
+
         # Recent Activity
         recent_activity = {
             "recent_classes": list(
@@ -444,13 +454,15 @@ class DashboardStatsView(generics.GenericAPIView):
                 .values("id", "student__email", "cohort__name", "enrolled_at")
             ),
         }
-        
-        return Response({
-            "user_stats": user_stats,
-            "cohort_stats": cohort_stats,
-            "course_stats": course_stats,
-            "class_stats": class_stats,
-            "assessment_stats": assessment_stats,
-            "invitation_stats": invitation_stats,
-            "recent_activity": recent_activity,
-        })
+
+        return Response(
+            {
+                "user_stats": user_stats,
+                "cohort_stats": cohort_stats,
+                "course_stats": course_stats,
+                "class_stats": class_stats,
+                "assessment_stats": assessment_stats,
+                "invitation_stats": invitation_stats,
+                "recent_activity": recent_activity,
+            }
+        )

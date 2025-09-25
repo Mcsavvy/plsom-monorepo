@@ -24,23 +24,24 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         # Normalize email before validation
-        if 'email' in attrs:
-            attrs['email'] = User.objects.normalize_email(attrs['email'])
-        
+        if "email" in attrs:
+            attrs["email"] = User.objects.normalize_email(attrs["email"])
+
         data = super().validate(attrs)
         user = self.user
         data["role"] = user.role
-        
+
         # Calculate token expiry times
         now = timezone.now()
         access_lifetime = settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME")
         refresh_lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME")
-        
+
         data["access_expires_at"] = now + access_lifetime
         data["refresh_expires_at"] = now + refresh_lifetime
-        
+
         return data
-    
+
+
 class CustomTokenRefreshSerializer(TokenRefreshSerializer):
     access = serializers.CharField(read_only=True)
     refresh = serializers.CharField()
@@ -49,15 +50,15 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        
+
         # Calculate token expiry times
         now = timezone.now()
         access_lifetime = settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME")
         refresh_lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME")
-        
+
         data["access_expires_at"] = now + access_lifetime
         data["refresh_expires_at"] = now + refresh_lifetime
-        
+
         return data
 
 
@@ -67,7 +68,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
     def validate_email(self, value):
         # Normalize email before validation
         normalized_email = User.objects.normalize_email(value)
-        
+
         try:
             user = User.objects.get(email=normalized_email)
             if not user.is_active:

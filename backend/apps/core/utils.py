@@ -1,6 +1,7 @@
 from typing import TypedDict
 from django.contrib.contenttypes.models import ContentType
 
+
 def get_content_type(resource: str) -> ContentType:
     from apps.invitations.models import Invitation
     from apps.cohorts.models import Cohort
@@ -115,13 +116,24 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
         class_session = Class.objects.get(id=id)
         return {
             "name": class_session.title,
-            "description": (class_session.title + " (" + class_session.course.name + ")"),
+            "description": (
+                class_session.title + " (" + class_session.course.name + ")"
+            ),
         }
     elif resource == "attendance":
         attendance = Attendance.objects.get(id=id)
         return {
-            "name": attendance.student.get_full_name() + " - " + attendance.class_session.title,
-            "description": (attendance.student.get_full_name() + " - " + attendance.class_session.title + " (" + attendance.class_session.course.name + ")"),
+            "name": attendance.student.get_full_name()
+            + " - "
+            + attendance.class_session.title,
+            "description": (
+                attendance.student.get_full_name()
+                + " - "
+                + attendance.class_session.title
+                + " ("
+                + attendance.class_session.course.name
+                + ")"
+            ),
         }
     elif resource == "audit-logs":
         audit_log = AuditLog.objects.get(id=id)
@@ -144,7 +156,12 @@ def get_resource_meta(resource: str, id: int) -> ResourceMeta:
         submission = Submission.objects.get(id=id)
         return {
             "name": submission.test.title,
-            "description": (submission.test.title + " (" + submission.student.get_full_name() + ")"),
+            "description": (
+                submission.test.title
+                + " ("
+                + submission.student.get_full_name()
+                + ")"
+            ),
         }
     else:
         raise ValueError(f"Invalid resource: {resource}")

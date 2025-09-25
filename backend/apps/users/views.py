@@ -19,6 +19,7 @@ from utils.permissions import IsAdmin, IsLecturerOrAdmin, only_authenticated
 from rest_framework.permissions import BasePermission
 from apps.cohorts.models import Cohort, Enrollment
 
+
 @only_authenticated
 class IsMe(BasePermission):
     """
@@ -26,11 +27,9 @@ class IsMe(BasePermission):
     - Allow user to read their own details.
     - Prevent user from updating other user's details.
     """
-    
+
     def has_object_permission(self, request, view, obj):
         return obj == request.user
-
-
 
 
 @extend_schema(tags=["Users"])
@@ -134,7 +133,7 @@ class StudentViewSet(
         Return only students.
         """
         return User.objects.filter(role="student")
-    
+
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.
@@ -142,7 +141,7 @@ class StudentViewSet(
         if self.action == "list":
             permission_classes = [IsLecturerOrAdmin]
         elif self.action == "retrieve":
-            permission_classes = [IsMe | IsLecturerOrAdmin] # type: ignore
+            permission_classes = [IsMe | IsLecturerOrAdmin]  # type: ignore
         elif self.action == "enroll":
             permission_classes = [IsAdmin]
         elif self.action == "unenroll":

@@ -255,6 +255,7 @@ class RefineDataProviderFilter(filters.BaseFilterBackend):
         """
         from django.db import models
         from django.core.exceptions import FieldDoesNotExist
+
         try:
             field = model._meta.get_field(field_name)
 

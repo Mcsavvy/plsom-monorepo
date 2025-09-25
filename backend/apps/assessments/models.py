@@ -28,8 +28,12 @@ class Test(models.Model):
     )
 
     # Relationships
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="tests")
-    cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name="tests")
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="tests"
+    )
+    cohort = models.ForeignKey(
+        Cohort, on_delete=models.CASCADE, related_name="tests"
+    )
     created_by = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -64,7 +68,9 @@ class Test(models.Model):
         max_length=20, choices=SUBMISSION_STATUS_CHOICES, default="draft"
     )
     available_from = models.DateTimeField(
-        null=True, blank=True, help_text="When the test becomes available to students"
+        null=True,
+        blank=True,
+        help_text="When the test becomes available to students",
     )
     available_until = models.DateTimeField(
         null=True, blank=True, help_text="When the test is no longer available"
@@ -110,9 +116,11 @@ class Test(models.Model):
 
     def calculate_total_points(self):
         """Calculate total points from all questions"""
-        total = sum(question.max_points or 0 for question in self.questions.all())
+        total = sum(
+            question.max_points or 0 for question in self.questions.all()
+        )
         self.total_points = total
-        self.save(update_fields=['total_points'])
+        self.save(update_fields=["total_points"])
         return total
 
     def has_graded_submissions(self):
@@ -149,11 +157,14 @@ class Question(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="questions")
+    test = models.ForeignKey(
+        Test, on_delete=models.CASCADE, related_name="questions"
+    )
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     title = models.CharField(max_length=500)
     description = models.TextField(
-        blank=True, help_text="Additional context or instructions for this question"
+        blank=True,
+        help_text="Additional context or instructions for this question",
     )
 
     # Question settings
@@ -162,7 +173,8 @@ class Question(models.Model):
 
     # File upload settings
     max_file_size_mb = models.PositiveIntegerField(
-        default=10, help_text="Maximum file size in MB (for file upload questions)"
+        default=10,
+        help_text="Maximum file size in MB (for file upload questions)",
     )
     allowed_file_types = models.CharField(
         max_length=200,
@@ -182,18 +194,26 @@ class Question(models.Model):
 
     # Essay/reflection settings
     min_word_count = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Minimum word count for essay questions"
+        null=True,
+        blank=True,
+        help_text="Minimum word count for essay questions",
     )
     max_word_count = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Maximum word count for essay questions"
+        null=True,
+        blank=True,
+        help_text="Maximum word count for essay questions",
     )
 
     # Text input settings
     text_max_length = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Maximum character length for text inputs"
+        null=True,
+        blank=True,
+        help_text="Maximum character length for text inputs",
     )
     text_placeholder = models.CharField(
-        max_length=200, blank=True, help_text="Placeholder text for input fields"
+        max_length=200,
+        blank=True,
+        help_text="Placeholder text for input fields",
     )
 
     # Grading settings
@@ -243,7 +263,8 @@ class QuestionOption(models.Model):
         ordering = ["order", "created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["question", "order"], name="unique_option_order_per_question"
+                fields=["question", "order"],
+                name="unique_option_order_per_question",
             )
         ]
 
@@ -263,7 +284,9 @@ class Submission(models.Model):
         ("returned", "Returned for Revision"),
     ]
 
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="submissions")
+    test = models.ForeignKey(
+        Test, on_delete=models.CASCADE, related_name="submissions"
+    )
     student = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -281,7 +304,9 @@ class Submission(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
     time_spent_minutes = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Total time spent on the test in minutes"
+        null=True,
+        blank=True,
+        help_text="Total time spent on the test in minutes",
     )
 
     # Grading tracking
@@ -294,7 +319,9 @@ class Submission(models.Model):
         limit_choices_to={"role__in": ["admin", "lecturer"]},
     )
     graded_at = models.DateTimeField(null=True, blank=True)
-    feedback = models.TextField(blank=True, help_text="General feedback from grader")
+    feedback = models.TextField(
+        blank=True, help_text="General feedback from grader"
+    )
 
     # Metadata
     ip_address = models.GenericIPAddressField(null=True, blank=True)
@@ -340,7 +367,7 @@ class Submission(models.Model):
         if self.status not in ["graded", "returned"]:
             return None
         total_score = sum(
-            answer.points_earned or 0 
+            answer.points_earned or 0
             for answer in self.answers.filter(points_earned__isnull=False)
         )
         return total_score
@@ -368,11 +395,15 @@ class Answer(models.Model):
     text_answer = models.TextField(blank=True)
     boolean_answer = models.BooleanField(null=True, blank=True)
     date_answer = models.DateField(null=True, blank=True)
-    file_answer = models.FileField(upload_to="test_submissions/", null=True, blank=True)
+    file_answer = models.FileField(
+        upload_to="test_submissions/", null=True, blank=True
+    )
 
     # For single/multiple choice questions
     selected_options = models.ManyToManyField(
-        QuestionOption, blank=True, help_text="Selected options for choice questions"
+        QuestionOption,
+        blank=True,
+        help_text="Selected options for choice questions",
     )
 
     # Answer metadata
@@ -455,34 +486,47 @@ class Answer(models.Model):
         """
         if not self.has_answer:
             return  # Empty answers are valid
-            
+
         question_type = self.question.question_type
-        
+
         # Validate text length for text-based questions
         if question_type in ["text", "scripture_reference"]:
-            if self.question.text_max_length and len(self.text_answer) > self.question.text_max_length:
+            if (
+                self.question.text_max_length
+                and len(self.text_answer) > self.question.text_max_length
+            ):
                 raise ValidationError(
                     f"Text answer exceeds maximum length of {self.question.text_max_length} characters"
                 )
-        
+
         elif question_type in [
-            "essay", "reflection", "ministry_plan", "theological_position", 
-            "case_study", "sermon_outline"
+            "essay",
+            "reflection",
+            "ministry_plan",
+            "theological_position",
+            "case_study",
+            "sermon_outline",
         ]:
             # Validate word count for essay-type questions
             if self.question.min_word_count or self.question.max_word_count:
                 word_count = len(self.text_answer.split())
-                
-                if self.question.min_word_count and word_count < self.question.min_word_count:
+
+                if (
+                    self.question.min_word_count
+                    and word_count < self.question.min_word_count
+                ):
                     raise ValidationError(
                         f"Essay answer must be at least {self.question.min_word_count} words (current: {word_count})"
                     )
-                
-                if self.question.max_word_count and word_count > self.question.max_word_count:
+
+                if (
+                    self.question.max_word_count
+                    and word_count > self.question.max_word_count
+                ):
                     raise ValidationError(
                         f"Essay answer must be no more than {self.question.max_word_count} words (current: {word_count})"
                     )
-        
+
         # Validate required questions have answers
         if self.question.is_required and not self.has_answer:
             raise ValidationError("This question is required")

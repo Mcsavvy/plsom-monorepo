@@ -1,13 +1,9 @@
-from rest_framework import viewsets, status, generics
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from django.shortcuts import redirect
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from apps.classes.models import Class, Attendance
 from apps.classes.serializers import (
@@ -48,19 +44,26 @@ class ClassViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter classes based on user role and permissions"""
         # Handle case when user is not authenticated (for schema generation)
-        if not hasattr(self.request, "user") or not self.request.user.is_authenticated:
-            return Class.objects.select_related("course", "lecturer", "cohort").all()
+        if (
+            not hasattr(self.request, "user")
+            or not self.request.user.is_authenticated
+        ):
+            return Class.objects.select_related(
+                "course", "lecturer", "cohort"
+            ).all()
 
         user = self.request.user
-        queryset = Class.objects.select_related("course", "lecturer", "cohort").all()
+        queryset = Class.objects.select_related(
+            "course", "lecturer", "cohort"
+        ).all()
 
         if hasattr(user, "role") and user.role == "student":
             # Students can only see classes for cohorts they're enrolled in
             from apps.cohorts.models import Enrollment
 
-            enrolled_cohorts = Enrollment.objects.filter(student=user).values_list(
-                "cohort_id", flat=True
-            )
+            enrolled_cohorts = Enrollment.objects.filter(
+                student=user
+            ).values_list("cohort_id", flat=True)
             queryset = queryset.filter(cohort_id__in=enrolled_cohorts)
 
         # Filter by course if specified
@@ -177,19 +180,25 @@ class ClassViewSet(viewsets.ModelViewSet):
                 student=user, cohort=class_obj.cohort
             ).exists():
                 return Response(
-                    {"error": "You are not enrolled in the cohort for this class."},
+                    {
+                        "error": "You are not enrolled in the cohort for this class."
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
         # Check if class can be joined
         now = timezone.now()
         start_time = class_obj.scheduled_at
-        end_time = start_time + timezone.timedelta(minutes=class_obj.duration_minutes)
+        end_time = start_time + timezone.timedelta(
+            minutes=class_obj.duration_minutes
+        )
         join_window_start = start_time - timezone.timedelta(minutes=15)
 
         is_in_progress = join_window_start <= now <= end_time
         is_in_past = now > end_time
-        can_join = (is_in_progress and class_obj.zoom_join_url) or (is_in_past and class_obj.recording_url)
+        can_join = (is_in_progress and class_obj.zoom_join_url) or (
+            is_in_past and class_obj.recording_url
+        )
 
         # Register attendance for students
         attendance_registered = False
@@ -201,7 +210,7 @@ class ClassViewSet(viewsets.ModelViewSet):
                     "join_time": now,
                     "duration_minutes": 0,
                     "via_recording": is_in_past,
-                }
+                },
             )
             if created:
                 attendance_registered = True
@@ -274,7 +283,9 @@ class ClassViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = StudentClassSerializer(class_obj, context={"request": request})
+        serializer = StudentClassSerializer(
+            class_obj, context={"request": request}
+        )
         return Response(serializer.data)
 
 
@@ -297,11 +308,18 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter attendance based on user role"""
         # Handle case when user is not authenticated (for schema generation)
-        if not hasattr(self.request, "user") or not self.request.user.is_authenticated:
-            return Attendance.objects.select_related("student", "class_session").all()
+        if (
+            not hasattr(self.request, "user")
+            or not self.request.user.is_authenticated
+        ):
+            return Attendance.objects.select_related(
+                "student", "class_session"
+            ).all()
 
         user = self.request.user
-        queryset = Attendance.objects.select_related("student", "class_session").all()
+        queryset = Attendance.objects.select_related(
+            "student", "class_session"
+        ).all()
 
         if hasattr(user, "role"):
             if user.role in ["lecturer", "admin"]:
@@ -315,12 +333,18 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Set permissions based on action"""
-        if self.action in ["create", "update", "partial_update", "destroy", "bulk_verify"]:
+        if self.action in [
+            "create",
+            "update",
+            "partial_update",
+            "destroy",
+            "bulk_verify",
+        ]:
             permission_classes = [IsStaff]  # Only staff can manage attendance
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-    
+
     @extend_schema(
         summary="Add manual attendance",
         description="Add manual attendance record",
@@ -345,36 +369,54 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             )
 
         # Check if user has permission to add attendance for this class
-        if not (user.role == "admin" or (user.role == "lecturer" and class_obj.lecturer == user)):
+        if not (
+            user.role == "admin"
+            or (user.role == "lecturer" and class_obj.lecturer == user)
+        ):
             return Response(
-                {"error": "You don't have permission to add attendance for this class."},
+                {
+                    "error": "You don't have permission to add attendance for this class."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Check if student is enrolled in the class cohort
         from apps.cohorts.models import Enrollment
-        if not Enrollment.objects.filter(student_id=student_id, cohort=class_obj.cohort).exists():
+
+        if not Enrollment.objects.filter(
+            student_id=student_id, cohort=class_obj.cohort
+        ).exists():
             return Response(
-                {"error": "Student is not enrolled in the cohort for this class."},
+                {
+                    "error": "Student is not enrolled in the cohort for this class."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if attendance already exists
-        if Attendance.objects.filter(class_session_id=class_session_id, student_id=student_id).exists():
+        if Attendance.objects.filter(
+            class_session_id=class_session_id, student_id=student_id
+        ).exists():
             return Response(
-                {"error": "Attendance record already exists for this student and class."},
+                {
+                    "error": "Attendance record already exists for this student and class."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Create attendance record
-        attendance = serializer.save(verified=True)  # Manual attendance is pre-verified
+        attendance = serializer.save(
+            verified=True
+        )  # Manual attendance is pre-verified
         response_serializer = AttendanceSerializer(attendance)
 
-        return Response({
-            "message": "Manual attendance added successfully.",
-            "attendance": response_serializer.data,
-        }, status=status.HTTP_201_CREATED)
-
+        return Response(
+            {
+                "message": "Manual attendance added successfully.",
+                "attendance": response_serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     @extend_schema(
         summary="Verify attendance",
@@ -404,25 +446,39 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         user = request.user
 
         # Check if user has permission to verify this attendance
-        if not (user.role == "admin" or (user.role == "lecturer" and attendance.class_session.lecturer == user)):
+        if not (
+            user.role == "admin"
+            or (
+                user.role == "lecturer"
+                and attendance.class_session.lecturer == user
+            )
+        ):
             return Response(
-                {"error": "You don't have permission to verify this attendance."},
+                {
+                    "error": "You don't have permission to verify this attendance."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Use the verification serializer to validate the request
-        verification_serializer = AttendanceVerificationSerializer(data=request.data)
+        verification_serializer = AttendanceVerificationSerializer(
+            data=request.data
+        )
         verification_serializer.is_valid(raise_exception=True)
-        
+
         # Update attendance with verified status
-        attendance.verified = verification_serializer.validated_data.get("verified", True)
+        attendance.verified = verification_serializer.validated_data.get(
+            "verified", True
+        )
         attendance.save(update_fields=["verified"])
 
         serializer = AttendanceSerializer(attendance)
-        return Response({
-            "message": "Attendance verified successfully.",
-            "attendance": serializer.data,
-        })
+        return Response(
+            {
+                "message": "Attendance verified successfully.",
+                "attendance": serializer.data,
+            }
+        )
 
     @extend_schema(
         summary="Bulk verify attendance",
@@ -467,28 +523,36 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             )
 
         # Check if user has permission to verify attendance for this class
-        if not (user.role == "admin" or (user.role == "lecturer" and class_obj.lecturer == user)):
+        if not (
+            user.role == "admin"
+            or (user.role == "lecturer" and class_obj.lecturer == user)
+        ):
             return Response(
-                {"error": "You don't have permission to verify attendance for this class."},
+                {
+                    "error": "You don't have permission to verify attendance for this class."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Use the verification serializer to validate the request
-        verification_serializer = AttendanceVerificationSerializer(data=request.data)
+        verification_serializer = AttendanceVerificationSerializer(
+            data=request.data
+        )
         verification_serializer.is_valid(raise_exception=True)
-        
+
         # Verify all unverified attendance records for this class
         unverified_attendances = Attendance.objects.filter(
-            class_session=class_obj,
-            verified=False
+            class_session=class_obj, verified=False
         )
-        
+
         verified_count = unverified_attendances.update(verified=True)
 
-        return Response({
-            "message": f"Successfully verified {verified_count} attendance records.",
-            "verified_count": verified_count,
-        })
+        return Response(
+            {
+                "message": f"Successfully verified {verified_count} attendance records.",
+                "verified_count": verified_count,
+            }
+        )
 
     @extend_schema(
         summary="Get class attendance summary",
@@ -534,19 +598,32 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             )
 
         # Check if user has permission to view attendance for this class
-        if not (user.role == "admin" or (user.role == "lecturer" and class_obj.lecturer == user) or 
-                (user.role == "student" and class_obj.cohort.enrollments.filter(student=user).exists())):
+        if not (
+            user.role == "admin"
+            or (user.role == "lecturer" and class_obj.lecturer == user)
+            or (
+                user.role == "student"
+                and class_obj.cohort.enrollments.filter(student=user).exists()
+            )
+        ):
             return Response(
-                {"error": "You don't have permission to view attendance for this class."},
+                {
+                    "error": "You don't have permission to view attendance for this class."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Get all students enrolled in the class cohort
         from apps.cohorts.models import Enrollment
-        enrolled_students = Enrollment.objects.filter(cohort=class_obj.cohort).select_related("student")
-        
+
+        enrolled_students = Enrollment.objects.filter(
+            cohort=class_obj.cohort
+        ).select_related("student")
+
         # Get attendance records for this class
-        attendances = Attendance.objects.filter(class_session=class_obj).select_related("student")
+        attendances = Attendance.objects.filter(
+            class_session=class_obj
+        ).select_related("student")
         attendance_dict = {att.student_id: att for att in attendances}
 
         # Build attendance list
@@ -558,33 +635,41 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         for enrollment in enrolled_students:
             student = enrollment.student
             attendance = attendance_dict.get(student.id)
-            
+
             if attendance:
                 total_attended += 1
                 if attendance.verified:
                     total_verified += 1
-                
-                attendance_list.append({
-                    "student": {
-                        "id": student.id,
-                        "name": student.get_full_name(),
-                        "email": student.email,
-                        "profile_picture": student.profile_picture.url if student.profile_picture else None,
-                    },
-                    "attendance": AttendanceSerializer(attendance).data,
-                    "status": "attended",
-                })
+
+                attendance_list.append(
+                    {
+                        "student": {
+                            "id": student.id,
+                            "name": student.get_full_name(),
+                            "email": student.email,
+                            "profile_picture": student.profile_picture.url
+                            if student.profile_picture
+                            else None,
+                        },
+                        "attendance": AttendanceSerializer(attendance).data,
+                        "status": "attended",
+                    }
+                )
             else:
-                attendance_list.append({
-                    "student": {
-                        "id": student.id,
-                        "name": student.get_full_name(),
-                        "email": student.email,
-                        "profile_picture": student.profile_picture.url if student.profile_picture else None,
-                    },
-                    "attendance": None,
-                    "status": "absent",
-                })
+                attendance_list.append(
+                    {
+                        "student": {
+                            "id": student.id,
+                            "name": student.get_full_name(),
+                            "email": student.email,
+                            "profile_picture": student.profile_picture.url
+                            if student.profile_picture
+                            else None,
+                        },
+                        "attendance": None,
+                        "status": "absent",
+                    }
+                )
 
         # Sort by student name
         attendance_list.sort(key=lambda x: x["student"]["name"])
@@ -595,8 +680,14 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             "total_absent": total_enrolled - total_attended,
             "total_verified": total_verified,
             "total_unverified": total_attended - total_verified,
-            "attendance_rate": round((total_attended / total_enrolled) * 100, 2) if total_enrolled > 0 else 0,
-            "verification_rate": round((total_verified / total_attended) * 100, 2) if total_attended > 0 else 0,
+            "attendance_rate": round((total_attended / total_enrolled) * 100, 2)
+            if total_enrolled > 0
+            else 0,
+            "verification_rate": round(
+                (total_verified / total_attended) * 100, 2
+            )
+            if total_attended > 0
+            else 0,
         }
 
         class_info = {
@@ -607,9 +698,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             "duration_minutes": class_obj.duration_minutes,
         }
 
-        return Response({
-            "class_info": class_info,
-            "attendance_summary": attendance_summary,
-            "attendance_list": attendance_list,
-        })
-
+        return Response(
+            {
+                "class_info": class_info,
+                "attendance_summary": attendance_summary,
+                "attendance_list": attendance_list,
+            }
+        )

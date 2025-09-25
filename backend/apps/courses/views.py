@@ -14,7 +14,7 @@ from apps.courses.serializers import (
     CourseCreateUpdateSerializer,
     StudentCourseSerializer,
 )
-from utils.permissions import IsAdmin, IsLecturer, IsStudent
+from utils.permissions import IsAdmin, IsStudent
 
 
 @extend_schema(tags=["Courses"])
@@ -149,13 +149,17 @@ class CourseViewSet(viewsets.ModelViewSet):
             }
         },
     )
-
     @extend_schema(
         summary="Get student's curriculum courses",
         description="Get all courses available to the student based on their program type from enrolled cohorts. Shows full curriculum, not just courses with scheduled classes.",
         responses={200: StudentCourseSerializer(many=True)},
     )
-    @action(detail=False, methods=["get"], url_path="my-courses", permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="my-courses",
+        permission_classes=[IsAuthenticated],
+    )
     def my_courses(self, request):
         """
         Get all courses available to the student based on their enrolled cohorts' program types.
@@ -172,11 +176,20 @@ class CourseViewSet(viewsets.ModelViewSet):
         from apps.cohorts.models import Enrollment
 
         # Get enrolled cohorts and their program types
-        enrolled_cohorts = Enrollment.objects.filter(student=request.user).select_related('cohort')
-        program_types = list(set(enrollment.cohort.program_type for enrollment in enrolled_cohorts))
+        enrolled_cohorts = Enrollment.objects.filter(
+            student=request.user
+        ).select_related("cohort")
+        program_types = list(
+            set(
+                enrollment.cohort.program_type
+                for enrollment in enrolled_cohorts
+            )
+        )
 
         # Get all courses that match the student's program types
-        courses = Course.objects.filter(program_type__in=program_types).select_related("lecturer")
+        courses = Course.objects.filter(
+            program_type__in=program_types
+        ).select_related("lecturer")
 
         # Apply filters if provided
         program_type = request.query_params.get("program_type")
@@ -192,10 +205,14 @@ class CourseViewSet(viewsets.ModelViewSet):
 
         page = self.paginate_queryset(courses)
         if page is not None:
-            serializer = StudentCourseSerializer(page, many=True, context={'request': request})
+            serializer = StudentCourseSerializer(
+                page, many=True, context={"request": request}
+            )
             return self.get_paginated_response(serializer.data)
 
-        serializer = StudentCourseSerializer(courses, many=True, context={'request': request})
+        serializer = StudentCourseSerializer(
+            courses, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @extend_schema(
@@ -203,7 +220,12 @@ class CourseViewSet(viewsets.ModelViewSet):
         description="Get detailed information about a specific course for the current student, including class information from their cohorts.",
         responses={200: StudentCourseSerializer},
     )
-    @action(detail=True, methods=["get"], url_path="my-course", permission_classes=[IsAuthenticated])
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="my-course",
+        permission_classes=[IsAuthenticated],
+    )
     def my_course(self, request, pk=None):
         """
         Get detailed course information for the current student.
@@ -216,12 +238,19 @@ class CourseViewSet(viewsets.ModelViewSet):
             )
 
         course = self.get_object()
-        
+
         # Check if student can access this course (must match their program type)
         from apps.cohorts.models import Enrollment
 
-        enrolled_cohorts = Enrollment.objects.filter(student=request.user).select_related('cohort')
-        program_types = list(set(enrollment.cohort.program_type for enrollment in enrolled_cohorts))
+        enrolled_cohorts = Enrollment.objects.filter(
+            student=request.user
+        ).select_related("cohort")
+        program_types = list(
+            set(
+                enrollment.cohort.program_type
+                for enrollment in enrolled_cohorts
+            )
+        )
 
         if course.program_type not in program_types:
             return Response(
@@ -229,7 +258,9 @@ class CourseViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = StudentCourseSerializer(course, context={'request': request})
+        serializer = StudentCourseSerializer(
+            course, context={"request": request}
+        )
         return Response(serializer.data)
 
     @extend_schema(

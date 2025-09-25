@@ -24,7 +24,9 @@ class Command(BaseCommand):
         # Normalize email
         normalized_email = User.objects.normalize_email(email)
 
-        user = User.objects.filter(email=normalized_email, is_superuser=True).first()
+        user = User.objects.filter(
+            email=normalized_email, is_superuser=True
+        ).first()
 
         if user:
             user.role = "admin"

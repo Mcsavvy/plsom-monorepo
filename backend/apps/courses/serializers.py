@@ -294,20 +294,22 @@ class CourseCreateUpdateSerializer(serializers.ModelSerializer):
 
 class StudentCourseSerializer(serializers.ModelSerializer):
     """Serializer for courses viewed by students with relevant information"""
-    
-    lecturer_name = serializers.CharField(source="lecturer.get_full_name", read_only=True)
+
+    lecturer_name = serializers.CharField(
+        source="lecturer.get_full_name", read_only=True
+    )
     total_classes_in_my_cohorts = serializers.SerializerMethodField()
     upcoming_classes_in_my_cohorts = serializers.SerializerMethodField()
     next_class_in_my_cohorts = serializers.SerializerMethodField()
     has_classes_in_my_cohorts = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Course
         fields = [
             "id",
             "name",
             "program_type",
-            "module_count", 
+            "module_count",
             "description",
             "lecturer_name",
             "is_active",
@@ -316,26 +318,25 @@ class StudentCourseSerializer(serializers.ModelSerializer):
             "next_class_in_my_cohorts",
             "has_classes_in_my_cohorts",
         ]
-    
+
     @extend_schema_field(serializers.BooleanField)
     def get_has_classes_in_my_cohorts(self, obj):
         """Check if this course has any classes in student's enrolled cohorts"""
         request = self.context.get("request")
         if not request or not hasattr(request, "user"):
             return False
-            
+
         try:
             from apps.classes.models import Class
             from apps.cohorts.models import Enrollment
-            
+
             # Get student's enrolled cohorts
             enrolled_cohorts = Enrollment.objects.filter(
                 student=request.user
             ).values_list("cohort_id", flat=True)
-            
+
             return Class.objects.filter(
-                course=obj,
-                cohort_id__in=enrolled_cohorts
+                course=obj, cohort_id__in=enrolled_cohorts
             ).exists()
         except ImportError:
             return False
@@ -346,71 +347,74 @@ class StudentCourseSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request or not hasattr(request, "user"):
             return 0
-            
+
         try:
             from apps.classes.models import Class
             from apps.cohorts.models import Enrollment
-            
+
             # Get student's enrolled cohorts
             enrolled_cohorts = Enrollment.objects.filter(
                 student=request.user
             ).values_list("cohort_id", flat=True)
-            
+
             return Class.objects.filter(
-                course=obj,
-                cohort_id__in=enrolled_cohorts
+                course=obj, cohort_id__in=enrolled_cohorts
             ).count()
         except ImportError:
             return 0
-    
+
     @extend_schema_field(serializers.IntegerField)
     def get_upcoming_classes_in_my_cohorts(self, obj):
         """Get number of upcoming classes for this course in student's cohorts"""
         request = self.context.get("request")
         if not request or not hasattr(request, "user"):
             return 0
-            
+
         try:
             from apps.classes.models import Class
             from apps.cohorts.models import Enrollment
             from django.utils import timezone
-            
+
             # Get student's enrolled cohorts
             enrolled_cohorts = Enrollment.objects.filter(
                 student=request.user
             ).values_list("cohort_id", flat=True)
-            
+
             return Class.objects.filter(
                 course=obj,
                 cohort_id__in=enrolled_cohorts,
-                scheduled_at__gte=timezone.now()
+                scheduled_at__gte=timezone.now(),
             ).count()
         except ImportError:
             return 0
-    
+
     @extend_schema_field(serializers.DictField)
     def get_next_class_in_my_cohorts(self, obj):
         """Get next upcoming class for this course in student's cohorts"""
         request = self.context.get("request")
         if not request or not hasattr(request, "user"):
             return None
-            
+
         try:
             from apps.classes.models import Class
             from apps.cohorts.models import Enrollment
             from django.utils import timezone
-            
+
             # Get student's enrolled cohorts
             enrolled_cohorts = Enrollment.objects.filter(
                 student=request.user
             ).values_list("cohort_id", flat=True)
-            
-            next_class = Class.objects.filter(
-                course=obj,
-                cohort_id__in=enrolled_cohorts,
-                scheduled_at__gte=timezone.now()
-            ).order_by("scheduled_at").first()
-            
+
+            next_class = (
+                Class.objects.filter(
+                    course=obj,
+                    cohort_id__in=enrolled_cohorts,
+                    scheduled_at__gte=timezone.now(),
+                )
+                .order_by("scheduled_at")
+                .first()
+            )
+
             if next_class:
                 return {
                     "id": next_class.id,

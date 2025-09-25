@@ -80,10 +80,18 @@ class TestSerializer(serializers.ModelSerializer):
     is_available = serializers.BooleanField(read_only=True)
     course_name = serializers.CharField(source="course.name", read_only=True)
     cohort_name = serializers.CharField(source="cohort.name", read_only=True)
-    breaking_changes_detected = serializers.BooleanField(read_only=True, default=False)
-    graded_submissions_returned = serializers.IntegerField(read_only=True, default=0)
-    available_from_timezone = serializers.CharField(write_only=True, required=False, default='UTC')
-    available_until_timezone = serializers.CharField(write_only=True, required=False, default='UTC')
+    breaking_changes_detected = serializers.BooleanField(
+        read_only=True, default=False
+    )
+    graded_submissions_returned = serializers.IntegerField(
+        read_only=True, default=0
+    )
+    available_from_timezone = serializers.CharField(
+        write_only=True, required=False, default="UTC"
+    )
+    available_until_timezone = serializers.CharField(
+        write_only=True, required=False, default="UTC"
+    )
 
     class Meta:
         model = Test
@@ -125,64 +133,84 @@ class TestSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """Validate test data with timezone handling."""
         from django.utils import timezone
-        import pytz
+        import pytz  # type: ignore
         from datetime import datetime
-        
+
         # Handle timezone conversion for available_from
-        if 'available_from' in attrs and 'available_from_timezone' in attrs:
-            available_from = attrs['available_from']
-            timezone_name = attrs['available_from_timezone']
-            
+        if "available_from" in attrs and "available_from_timezone" in attrs:
+            available_from = attrs["available_from"]
+            timezone_name = attrs["available_from_timezone"]
+
             if available_from and isinstance(available_from, str):
                 try:
                     # If it's already a timezone-aware datetime, use it as is
-                    if available_from.endswith('Z') or '+' in available_from or available_from.endswith('UTC'):
+                    if (
+                        available_from.endswith("Z")
+                        or "+" in available_from
+                        or available_from.endswith("UTC")
+                    ):
                         # Already timezone-aware, convert to UTC
-                        dt = timezone.datetime.fromisoformat(available_from.replace('Z', '+00:00'))
+                        dt = timezone.datetime.fromisoformat(
+                            available_from.replace("Z", "+00:00")
+                        )
                     else:
                         # Assume it's in the specified timezone
                         tz = pytz.timezone(timezone_name)
                         dt = datetime.fromisoformat(available_from)
                         dt = tz.localize(dt)
-                    
+
                     # Convert to UTC for storage
-                    attrs['available_from'] = dt.astimezone(pytz.UTC)
+                    attrs["available_from"] = dt.astimezone(pytz.UTC)
                 except (ValueError, pytz.exceptions.UnknownTimeZoneError) as e:
-                    raise serializers.ValidationError(f"Invalid timezone or datetime format for available_from: {str(e)}")
-            
+                    raise serializers.ValidationError(
+                        f"Invalid timezone or datetime format for available_from: {str(e)}"
+                    )
+
             # Remove timezone from attrs since it's not a model field
-            del attrs['available_from_timezone']
-        
+            del attrs["available_from_timezone"]
+
         # Handle timezone conversion for available_until
-        if 'available_until' in attrs and 'available_until_timezone' in attrs:
-            available_until = attrs['available_until']
-            timezone_name = attrs['available_until_timezone']
-            
+        if "available_until" in attrs and "available_until_timezone" in attrs:
+            available_until = attrs["available_until"]
+            timezone_name = attrs["available_until_timezone"]
+
             if available_until and isinstance(available_until, str):
                 try:
                     # If it's already a timezone-aware datetime, use it as is
-                    if available_until.endswith('Z') or '+' in available_until or available_until.endswith('UTC'):
+                    if (
+                        available_until.endswith("Z")
+                        or "+" in available_until
+                        or available_until.endswith("UTC")
+                    ):
                         # Already timezone-aware, convert to UTC
-                        dt = timezone.datetime.fromisoformat(available_until.replace('Z', '+00:00'))
+                        dt = timezone.datetime.fromisoformat(
+                            available_until.replace("Z", "+00:00")
+                        )
                     else:
                         # Assume it's in the specified timezone
                         tz = pytz.timezone(timezone_name)
                         dt = datetime.fromisoformat(available_until)
                         dt = tz.localize(dt)
-                    
+
                     # Convert to UTC for storage
-                    attrs['available_until'] = dt.astimezone(pytz.UTC)
+                    attrs["available_until"] = dt.astimezone(pytz.UTC)
                 except (ValueError, pytz.exceptions.UnknownTimeZoneError) as e:
-                    raise serializers.ValidationError(f"Invalid timezone or datetime format for available_until: {str(e)}")
-            
+                    raise serializers.ValidationError(
+                        f"Invalid timezone or datetime format for available_until: {str(e)}"
+                    )
+
             # Remove timezone from attrs since it's not a model field
-            del attrs['available_until_timezone']
+            del attrs["available_until_timezone"]
 
         # Original validation logic
         available_from = attrs.get("available_from")
         available_until = attrs.get("available_until")
 
-        if available_from and available_until and available_from >= available_until:
+        if (
+            available_from
+            and available_until
+            and available_from >= available_until
+        ):
             raise serializers.ValidationError(
                 "available_from must be before available_until"
             )
@@ -220,12 +248,14 @@ class TestSerializer(serializers.ModelSerializer):
 
         # Handle questions if provided
         if questions_data is not None:
-            breaking_changes, graded_submissions_returned = self._handle_question_updates_with_breaking_changes(
-                instance, questions_data
+            breaking_changes, graded_submissions_returned = (
+                self._handle_question_updates_with_breaking_changes(
+                    instance, questions_data
+                )
             )
             # Recalculate total points after questions are updated
             instance.calculate_total_points()
-            
+
             # Add breaking change info to the response
             instance.breaking_changes_detected = breaking_changes
             instance.graded_submissions_returned = graded_submissions_returned
@@ -237,12 +267,16 @@ class TestSerializer(serializers.ModelSerializer):
         for order, question_data in enumerate(questions_data):
             options_data = question_data.pop("options", [])
 
-            question = Question.objects.create(test=test, order=order, **question_data)
+            question = Question.objects.create(
+                test=test, order=order, **question_data
+            )
 
             # Create options for choice questions
             self._create_options(question, options_data)
 
-    def _handle_question_updates_with_breaking_changes(self, test, questions_data):
+    def _handle_question_updates_with_breaking_changes(
+        self, test, questions_data
+    ):
         """
         Handle question updates with breaking change detection.
         Returns (breaking_changes_detected, graded_submissions_returned_count)
@@ -256,8 +290,10 @@ class TestSerializer(serializers.ModelSerializer):
 
         if has_graded_submissions:
             # Detect breaking changes
-            breaking_changes = self._detect_breaking_changes(test, questions_data)
-            
+            breaking_changes = self._detect_breaking_changes(
+                test, questions_data
+            )
+
             if breaking_changes:
                 # Return graded submissions and create new question instances
                 graded_submissions_returned = self._handle_breaking_changes(
@@ -282,10 +318,14 @@ class TestSerializer(serializers.ModelSerializer):
         - Option changes for questions with answers
         """
         existing_questions = {str(q.id): q for q in test.questions.all()}
-        incoming_question_ids = {q.get("id") for q in questions_data if q.get("id")}
-        
+        incoming_question_ids = {
+            q.get("id") for q in questions_data if q.get("id")
+        }
+
         # Check for deleted questions
-        deleted_questions = set(existing_questions.keys()) - incoming_question_ids
+        deleted_questions = (
+            set(existing_questions.keys()) - incoming_question_ids
+        )
         if deleted_questions:
             return True
 
@@ -299,15 +339,20 @@ class TestSerializer(serializers.ModelSerializer):
             question_id = question_data.get("id")
             if question_id and question_id in existing_questions:
                 existing_question = existing_questions[question_id]
-                
+
                 # Check for question type change
-                if question_data.get("question_type") != existing_question.question_type:
+                if (
+                    question_data.get("question_type")
+                    != existing_question.question_type
+                ):
                     return True
-                
+
                 # Check for option changes in questions with answers
                 if existing_question.answers.exists():
                     options_data = question_data.get("options", [])
-                    if self._has_option_changes(existing_question, options_data):
+                    if self._has_option_changes(
+                        existing_question, options_data
+                    ):
                         return True
 
         return False
@@ -315,16 +360,18 @@ class TestSerializer(serializers.ModelSerializer):
     def _has_option_changes(self, question, options_data):
         """Check if options have changed for a question."""
         existing_options = {str(opt.id): opt for opt in question.options.all()}
-        incoming_option_ids = {opt.get("id") for opt in options_data if opt.get("id")}
-        
+        incoming_option_ids = {
+            opt.get("id") for opt in options_data if opt.get("id")
+        }
+
         # Check for deleted options
         if set(existing_options.keys()) - incoming_option_ids:
             return True
-            
+
         # Check for new options
         if len(options_data) != len(existing_options):
             return True
-            
+
         # Check for text changes in existing options
         for option_data in options_data:
             option_id = option_data.get("id")
@@ -332,10 +379,12 @@ class TestSerializer(serializers.ModelSerializer):
                 existing_option = existing_options[option_id]
                 if option_data.get("text") != existing_option.text:
                     return True
-                    
+
         return False
 
-    def _handle_breaking_changes(self, test, questions_data, graded_submissions):
+    def _handle_breaking_changes(
+        self, test, questions_data, graded_submissions
+    ):
         """
         Handle breaking changes by:
         1. Returning graded submissions
@@ -344,11 +393,15 @@ class TestSerializer(serializers.ModelSerializer):
         """
         with transaction.atomic():
             # Step 1: Return graded submissions
-            graded_submissions_returned = self._return_graded_submissions(graded_submissions)
-            
+            graded_submissions_returned = self._return_graded_submissions(
+                graded_submissions
+            )
+
             # Step 2: Create new question instances and update references
-            self._create_new_questions_and_update_references(test, questions_data)
-            
+            self._create_new_questions_and_update_references(
+                test, questions_data
+            )
+
             return graded_submissions_returned
 
     def _return_graded_submissions(self, graded_submissions):
@@ -371,51 +424,59 @@ class TestSerializer(serializers.ModelSerializer):
         # Store mapping of old question IDs to new question instances
         question_mapping = {}
         option_mapping = {}
-        
+
         # Step 1: Create new questions and options
         for order, question_data in enumerate(questions_data):
             options_data = question_data.pop("options", [])
             old_question_id = question_data.get("id")
-            
+
             # Create new question (remove old ID to let Django generate new one)
             question_data.pop("id", None)
-            new_question = Question.objects.create(test=test, order=order, **question_data)
-            
+            new_question = Question.objects.create(
+                test=test, order=order, **question_data
+            )
+
             # Store mapping if this was an existing question
             if old_question_id:
                 question_mapping[old_question_id] = new_question
-            
+
             # Create new options and store mappings
-            new_options = self._create_options_with_mapping(new_question, options_data)
+            new_options = self._create_options_with_mapping(
+                new_question, options_data
+            )
             if old_question_id:
                 option_mapping[old_question_id] = new_options
-        
+
         # Step 2: Update all references to point to new instances
-        self._update_references_to_new_instances(test, question_mapping, option_mapping)
-        
+        self._update_references_to_new_instances(
+            test, question_mapping, option_mapping
+        )
+
         # Step 3: Clean up old questions and options (after references are updated)
         self._cleanup_old_instances(test, question_mapping.keys())
 
     def _create_options_with_mapping(self, question, options_data):
         """Create options and return mapping of old to new option IDs."""
         option_mapping = {}
-        
+
         for order, option_data in enumerate(options_data):
             old_option_id = option_data.get("id")
-            
+
             # Create new option (remove old ID to let Django generate new one)
             option_data.pop("id", None)
             new_option = QuestionOption.objects.create(
                 question=question, order=order, **option_data
             )
-            
+
             # Store mapping if this was an existing option
             if old_option_id:
                 option_mapping[old_option_id] = new_option
-                
+
         return option_mapping
 
-    def _update_references_to_new_instances(self, test, question_mapping, option_mapping):
+    def _update_references_to_new_instances(
+        self, test, question_mapping, option_mapping
+    ):
         """Update all references from old instances to new instances."""
         # Update Answer references
         for old_question_id, new_question in question_mapping.items():
@@ -423,7 +484,7 @@ class TestSerializer(serializers.ModelSerializer):
             Answer.objects.filter(question_id=old_question_id).update(
                 question=new_question
             )
-            
+
             # Update option references in answers
             if old_question_id in option_mapping:
                 old_to_new_options = option_mapping[old_question_id]
@@ -431,7 +492,7 @@ class TestSerializer(serializers.ModelSerializer):
                     # Update selected_options in answers
                     answers = Answer.objects.filter(
                         question=new_question,
-                        selected_options__id=old_option_id
+                        selected_options__id=old_option_id,
                     )
                     for answer in answers:
                         answer.selected_options.remove(old_option_id)
@@ -445,7 +506,9 @@ class TestSerializer(serializers.ModelSerializer):
     def _safe_update_questions(self, test, questions_data):
         """Safely update questions, protecting existing answers from being deleted."""
         # Check if test has any submissions with answers
-        has_submissions = test.submissions.filter(answers__isnull=False).exists()
+        has_submissions = test.submissions.filter(
+            answers__isnull=False
+        ).exists()
 
         if has_submissions:
             # Use safe update strategy to preserve existing answers
@@ -568,7 +631,9 @@ class TestSerializer(serializers.ModelSerializer):
         # For questions that already have answers, be more conservative
         if question.answers.exists():
             # Only allow text updates for existing options, don't delete/recreate
-            existing_options = {str(opt.id): opt for opt in question.options.all()}
+            existing_options = {
+                str(opt.id): opt for opt in question.options.all()
+            }
 
             for order, option_data in enumerate(options_data):
                 option_id = option_data.get("id")
@@ -626,14 +691,18 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     display_answer = serializers.CharField(read_only=True)
     has_answer = serializers.BooleanField(read_only=True)
-    question_title = serializers.CharField(source="question.title", read_only=True)
+    question_title = serializers.CharField(
+        source="question.title", read_only=True
+    )
     question_type = serializers.CharField(
         source="question.question_type", read_only=True
     )
     question_description = serializers.CharField(
         source="question.description", read_only=True
     )
-    max_points = serializers.FloatField(source="question.max_points", read_only=True)
+    max_points = serializers.FloatField(
+        source="question.max_points", read_only=True
+    )
 
     class Meta:
         model = Answer
@@ -664,8 +733,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True, read_only=True)
     is_submitted = serializers.BooleanField(read_only=True)
     completion_percentage = serializers.FloatField(read_only=True)
-    student_name = serializers.CharField(source="student.get_full_name", read_only=True)
-    student_email = serializers.CharField(source="student.email", read_only=True)
+    student_name = serializers.CharField(
+        source="student.get_full_name", read_only=True
+    )
+    student_email = serializers.CharField(
+        source="student.email", read_only=True
+    )
     test_title = serializers.CharField(source="test.title", read_only=True)
     test_total_points = serializers.FloatField(
         source="test.total_points", read_only=True
@@ -760,7 +833,9 @@ class StudentTestSerializer(serializers.ModelSerializer):
             return None
 
         latest_submission = (
-            obj.submissions.filter(student=request.user).order_by("-created_at").first()
+            obj.submissions.filter(student=request.user)
+            .order_by("-created_at")
+            .first()
         )
 
         if latest_submission:
@@ -775,7 +850,9 @@ class StudentTestSerializer(serializers.ModelSerializer):
             return None
 
         latest_submission = (
-            obj.submissions.filter(student=request.user).order_by("-created_at").first()
+            obj.submissions.filter(student=request.user)
+            .order_by("-created_at")
+            .first()
         )
         return latest_submission.id if latest_submission else None
 
@@ -787,7 +864,9 @@ class StudentTestSerializer(serializers.ModelSerializer):
             return None
 
         latest_submission = (
-            obj.submissions.filter(student=request.user).order_by("-created_at").first()
+            obj.submissions.filter(student=request.user)
+            .order_by("-created_at")
+            .first()
         )
         return latest_submission.status if latest_submission else None
 

@@ -21,7 +21,7 @@ def send_password_reset_email(user_id: int, uid: str, token: str):
     """
     try:
         user = User.objects.get(id=user_id)
-        
+
         # Use different URLs based on user role
         if user.role in ["admin", "lecturer"]:
             base_url = settings.ADMIN_DASHBOARD_URL

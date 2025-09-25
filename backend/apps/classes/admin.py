@@ -12,7 +12,7 @@ class ClassAdmin(ModelAdmin):
     list_display = [
         "title",
         "course",
-        "lecturer", 
+        "lecturer",
         "cohort",
         "scheduled_at",
         "duration_minutes",
@@ -32,11 +32,19 @@ class ClassAdmin(ModelAdmin):
     ]
     ordering = ["scheduled_at"]
     readonly_fields = ["zoom_meeting_id"]  # Hide meeting ID from admin
-    
+
     fieldsets = (
         (
             "Class Information",
-            {"fields": ("title", "description", "course", "lecturer", "cohort")},
+            {
+                "fields": (
+                    "title",
+                    "description",
+                    "course",
+                    "lecturer",
+                    "cohort",
+                )
+            },
         ),
         (
             "Schedule",
@@ -62,7 +70,11 @@ class ClassAdmin(ModelAdmin):
 
     def get_queryset(self, request):
         """Optimize queryset for admin listing"""
-        return super().get_queryset(request).select_related("course", "lecturer", "cohort")
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("course", "lecturer", "cohort")
+        )
 
 
 @admin.register(Attendance)
@@ -73,7 +85,7 @@ class AttendanceAdmin(ModelAdmin):
         "class_session",
         "student",
         "join_time",
-        "leave_time", 
+        "leave_time",
         "duration_minutes",
         "via_recording",
         "verification_status",
@@ -98,7 +110,15 @@ class AttendanceAdmin(ModelAdmin):
     fieldsets = (
         (
             "Attendance Information",
-            {"fields": ("class_session", "student", "join_time", "leave_time", "duration_minutes")},
+            {
+                "fields": (
+                    "class_session",
+                    "student",
+                    "join_time",
+                    "leave_time",
+                    "duration_minutes",
+                )
+            },
         ),
         (
             "Attendance Details",
@@ -116,7 +136,8 @@ class AttendanceAdmin(ModelAdmin):
             return format_html(
                 '<span style="color: orange; font-weight: bold;">⚠ Pending</span>'
             )
-    verification_status.short_description = "Verification Status" # type: ignore
+
+    verification_status.short_description = "Verification Status"  # type: ignore
 
     def verify_selected_attendances(self, request, queryset):
         """Bulk action to verify selected attendances"""
@@ -126,7 +147,10 @@ class AttendanceAdmin(ModelAdmin):
             f"Successfully verified {updated} attendance record(s).",
             messages.SUCCESS,
         )
-    verify_selected_attendances.short_description = "Verify selected attendances" # type: ignore
+
+    verify_selected_attendances.short_description = ( # type: ignore
+        "Verify selected attendances"
+    )
 
     def unverify_selected_attendances(self, request, queryset):
         """Bulk action to unverify selected attendances"""
@@ -136,8 +160,15 @@ class AttendanceAdmin(ModelAdmin):
             f"Successfully unverified {updated} attendance record(s).",
             messages.SUCCESS,
         )
-    unverify_selected_attendances.short_description = "Unverify selected attendances" # type: ignore
+
+    unverify_selected_attendances.short_description = (  # type: ignore
+        "Unverify selected attendances"
+    )
 
     def get_queryset(self, request):
         """Optimize queryset for admin listing"""
-        return super().get_queryset(request).select_related("student", "class_session")
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("student", "class_session")
+        )
