@@ -146,6 +146,8 @@ class StudentViewSet(
             permission_classes = [IsAdmin]
         elif self.action == "unenroll":
             permission_classes = [IsAdmin]
+        else:
+            permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
     @extend_schema(

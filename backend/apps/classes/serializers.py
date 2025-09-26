@@ -7,6 +7,8 @@ from apps.classes.models import Class, Attendance
 from apps.courses.serializers import CourseSerializer
 from apps.users.serializers import UserSerializer
 from apps.cohorts.serializers import CohortSerializer
+import pytz  # type: ignore
+from datetime import datetime
 
 
 class ClassSerializer(serializers.ModelSerializer):
@@ -160,9 +162,6 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
         # If scheduled_at is provided, convert it to the specified timezone
         if "scheduled_at" in attrs and attrs["scheduled_at"]:
             try:
-                import pytz  # type: ignore
-                from datetime import datetime
-
                 # Parse the datetime string (should be ISO format from frontend)
                 dt = attrs["scheduled_at"]
                 if isinstance(dt, str):
