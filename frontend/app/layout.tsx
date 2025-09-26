@@ -4,11 +4,12 @@ import { ThemeProvider } from "@/provider/theme-provider";
 import SessionProvider from "@/provider/session-provider";
 import { GlobalTransitions } from "@/components/ui/global-transitions";
 import { ServiceWorkerRegister } from "@/components/pwa/sw-register";
+import * as Sentry from "@sentry/nextjs";
 import "./globals.css";
 import "./mobile.css";
 import { Toaster } from "sonner";
 
-export const metadata: Metadata = {
+const staticMetadata: Metadata = {
   title: {
     default: "PLSOM LMS - Perfect Love School of Ministry",
     template: "%s | PLSOM LMS",
@@ -29,6 +30,15 @@ export const metadata: Metadata = {
     telephone: false,
   },
 };
+
+export function generateMetadata(): Metadata {
+  return {
+    ...staticMetadata,
+    other: {
+      ...Sentry.getTraceData(),
+    },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",

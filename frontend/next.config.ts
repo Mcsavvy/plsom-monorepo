@@ -32,7 +32,11 @@ const sentryConfig = {
   // capture component names
   reactComponentAnnotation: {
     enabled: true,
-  }
+  },
+  // Pass the auth token
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
 } as SentryBuildOptions
 
 
