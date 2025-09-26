@@ -51,6 +51,7 @@ PyJWT==2.9.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
 python_ms==1.1.1
+pytz==2025.2
 PyYAML==6.0.2
 pyzmq==26.4.0
 redis==6.2.0
