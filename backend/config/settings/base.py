@@ -118,15 +118,12 @@ DATABASES = {
         default=config("DATABASE_URL"),
         conn_max_age=60,
         conn_health_checks=True,
+        test_options={"NAME": "plsom_test"},
     )
 }
 
-# Use SQLite for testing
+# Test database configuration is handled in test.py
 if TESTING:
-    DATABASES["default"] = {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-    }
     # Disable Redis and Q cluster for testing
     Q_CLUSTER = {
         "name": "plsom",
