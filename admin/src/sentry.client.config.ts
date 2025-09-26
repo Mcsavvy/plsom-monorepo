@@ -3,13 +3,20 @@ import { useLocation, useNavigationType, createRoutesFromChildren, matchRoutes }
 import React from "react";
 
 Sentry.init({
-  dsn: "https://9648fe5f94db4ed047c819d9b837f39b@o4506900881670144.ingest.us.sentry.io/4507866272628736",
-
-  // Adds request headers and IP for users, for more info visit:
-  // https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/#sendDefaultPii
+  dsn: "https://40a2fa2871f13075b40733af6fd8736f@o4506900881670144.ingest.us.sentry.io/4510088034451456",
+  // Setting this option to true will send default PII data to Sentry.
+  // For example, automatic IP address collection on events
   sendDefaultPii: true,
-
+  // Tracing
+  tracesSampleRate: 1.0, //  Capture 100% of the transactions
+  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
+  tracePropagationTargets: ["localhost", /^https:\/\/admin.plsom.com/],
+  // Session Replay
+  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
+  replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
   integrations: [
+    Sentry.replayIntegration(),
+    Sentry.browserTracingIntegration(),
     // If you're using react router, use the integration for your react router version instead.
     // Learn more at
     Sentry.reactRouterV7BrowserTracingIntegration({
@@ -19,24 +26,5 @@ Sentry.init({
       createRoutesFromChildren,
       matchRoutes,
     }),
-
-    // Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration(),
   ],
-
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for tracing.
-  // Learn more at
-  // https://docs.sentry.io/platforms/javascript/configuration/options/#traces-sample-rate
-  tracesSampleRate: 1.0,
-
-  // Set `tracePropagationTargets` to control for which URLs trace propagation should be enabled
-  tracePropagationTargets: [/^\//, /^https:\/\/yourserver\.io\/api/],
-
-  // Capture Replay for 10% of all sessions,
-  // plus for 100% of sessions with an error
-  // Learn more at
-  // https://docs.sentry.io/platforms/javascript/session-replay/configuration/#general-integration-configuration
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
 });

@@ -27,3 +27,5 @@ _.sln
 openapi.json
 .env.local
 plsom_prd.md
+# Sentry Config File
+.env.sentry-build-plugin

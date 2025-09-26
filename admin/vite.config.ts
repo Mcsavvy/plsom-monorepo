@@ -9,14 +9,14 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
-  plugins: [
-    react(),
-    sentryVitePlugin({
-        reactComponentAnnotation: {
-          enabled: true,
-        }
-    })
-  ],
+  plugins: [react(), sentryVitePlugin({
+    org: "futurdevs",
+    project: "plsom-admin",
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    reactComponentAnnotation: {
+      enabled: true,
+    }
+  })],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
