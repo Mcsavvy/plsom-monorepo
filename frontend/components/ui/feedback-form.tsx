@@ -80,7 +80,7 @@ export function FeedbackForm({ isOpen, onClose, onSubmit, isLoading = false }: F
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="right" className="w-full sm:max-w-md">
+      <SheetContent side="right" className="w-full sm:max-w-md p-4">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Send className="h-5 w-5 text-primary" />
