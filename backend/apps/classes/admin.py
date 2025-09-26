@@ -148,7 +148,7 @@ class AttendanceAdmin(ModelAdmin):
             messages.SUCCESS,
         )
 
-    verify_selected_attendances.short_description = ( # type: ignore
+    verify_selected_attendances.short_description = (  # type: ignore
         "Verify selected attendances"
     )
 

@@ -30,9 +30,16 @@ UNFOLD = {
     "SHOW_VIEW_ON_SITE": True,
     "SITE_DROPDOWN": [
         {
+            "icon": "home",
+            "title": "Admin Dashboard",
+            "link": config(
+                "ADMIN_DASHBOARD_URL", default="https://admin.plsom.com"
+            ),
+        },
+        {
             "icon": "diamond",
-            "title": "APP",
-            "link": config("FRONTEND_URL", default="https://plsom.com"),
+            "title": "Student Portal",
+            "link": config("FRONTEND_URL", default="https://app.plsom.com"),
         },
     ],
     # Sidebar Configuration
@@ -136,24 +143,29 @@ UNFOLD = {
                 "collapsible": True,
                 "items": [
                     {
-                        "title": "Email Templates",
-                        "icon": "mail",
-                        "link": "/core/emailtemplate/",
-                    },
-                    {
                         "title": "System Logs",
                         "icon": "browse_activity",
                         "link": "/core/auditlog/",
                     },
                     {
-                        "title": "Queue Tasks",
-                        "icon": "queue",
-                        "link": "/django_q/ormq/",
-                    },
-                    {
                         "title": "Scheduled Tasks",
                         "icon": "schedule",
                         "link": "/django_q/schedule/",
+                    },
+                    {
+                        "title": "Task Queue",
+                        "icon": "view_kanban",
+                        "link": "/django_q/ormq/",
+                    },
+                    {
+                        "title": "Successful Tasks",
+                        "icon": "task_alt",
+                        "link": "/django_q/success/",
+                    },
+                    {
+                        "title": "Failed Tasks",
+                        "icon": "error",
+                        "link": "/django_q/failure/",
                     },
                 ],
             },
