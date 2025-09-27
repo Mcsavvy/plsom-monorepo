@@ -130,7 +130,7 @@ function ClassCard({ classData, onViewDetails }: ClassCardProps) {
 
         {/* Actions */}
         <div className="flex gap-2 pt-2">
-          {classData.status === "ongoing" && classData.zoomJoinUrl && (
+          {classData.canJoin && classData.zoomJoinUrl && (
             <Button
               size="sm"
               className="flex-1"
