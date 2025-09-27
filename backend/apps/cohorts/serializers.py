@@ -4,6 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 from apps.cohorts.models import Cohort, Enrollment
+from apps.users.models import User
 from apps.users.serializers import UserSerializer
 from drf_spectacular.utils import extend_schema_field
 
@@ -149,15 +150,6 @@ class CohortSerializer(serializers.ModelSerializer):
                 }
             )
 
-        # For existing cohorts with students, validate program type changes
-        if instance and instance.program_type != program_type:
-            if Enrollment.objects.filter(cohort=instance).exists():
-                raise serializers.ValidationError(
-                    {
-                        "program_type": "Cannot change program type for a cohort with enrolled students."
-                    }
-                )
-
         # Validate active cohort business rule
         if is_active:
             existing_active = Cohort.objects.filter(
@@ -240,6 +232,8 @@ class CohortSerializer(serializers.ModelSerializer):
 class EnrollmentSerializer(serializers.ModelSerializer):
     student = UserSerializer(read_only=True)
     cohort = CohortSerializer(read_only=True)
+    student_id = serializers.IntegerField(write_only=True)
+    cohort_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Enrollment
@@ -247,21 +241,33 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             "id",
             "student",
             "cohort",
+            "student_id",
+            "cohort_id",
             "enrolled_at",
+            "end_date"
         ]
 
     def validate(self, attrs):
         """Validate enrollment rules"""
-        student = attrs.get("student")
-        cohort = attrs.get("cohort")
+        student_id = attrs.get("student_id")
+        cohort_id = attrs.get("cohort_id")
+        
+        # Get student and cohort objects
+        try:
+            student = User.objects.get(id=student_id) if student_id else None
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"student_id": "Student with this ID does not exist."})
+            
+        try:
+            cohort = Cohort.objects.get(id=cohort_id) if cohort_id else None
+        except Cohort.DoesNotExist:
+            raise serializers.ValidationError({"cohort_id": "Cohort with this ID does not exist."})
+        
+        # Add the objects to validated_data for use in create/update
+        attrs["student"] = student
+        attrs["cohort"] = cohort
 
         if student and cohort:
-            # Student program type should match cohort program type
-            if student.program_type != cohort.program_type:
-                raise serializers.ValidationError(
-                    f"Student's program type ({student.program_type}) does not match cohort's program type ({cohort.program_type})."
-                )
-
             # Cannot enroll in inactive cohort
             if not cohort.is_active:
                 raise serializers.ValidationError(
