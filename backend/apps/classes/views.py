@@ -215,9 +215,7 @@ class ClassViewSet(viewsets.ModelViewSet):
             if created:
                 attendance_registered = True
             elif not attendance.leave_time:
-                # Update join time if student rejoins
-                attendance.join_time = now
-                attendance.save(update_fields=["join_time"])
+                # Student is already in the class, no need to update join_time
                 attendance_registered = True
 
         if is_in_progress and class_obj.zoom_join_url:
