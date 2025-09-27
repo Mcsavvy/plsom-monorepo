@@ -221,7 +221,7 @@ export default function ClassDetailPage() {
               </div>
             </div>
 
-                          {classData.status === "ongoing" && classData.zoomJoinUrl && (
+            {classData.canJoin && classData.zoomJoinUrl && (
                 <Button
                   className="w-full"
                   onClick={handleJoinClass}
