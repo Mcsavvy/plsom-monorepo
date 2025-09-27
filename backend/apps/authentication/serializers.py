@@ -27,6 +27,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if "email" in attrs:
             attrs["email"] = User.objects.normalize_email(attrs["email"])
 
+        print(attrs)
+
         data = super().validate(attrs)
         user = self.user
         data["role"] = user.role
