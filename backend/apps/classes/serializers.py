@@ -186,10 +186,11 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
                 )
 
         # Original cross-field validation logic
-        course_id = attrs.get("course_id")
-        lecturer_id = attrs.get("lecturer_id")
-        cohort_id = attrs.get("cohort_id")
-        scheduled_at = attrs.get("scheduled_at")
+        instance = self.instance
+        course_id = attrs.get("course_id", instance.course_id if instance else None)
+        lecturer_id = attrs.get("lecturer_id", instance.lecturer_id if instance else None)
+        cohort_id = attrs.get("cohort_id", instance.cohort_id if instance else None)
+        scheduled_at = attrs.get("scheduled_at", instance.scheduled_at if instance else None)
 
         # Import models
         from apps.courses.models import Course
@@ -219,7 +220,7 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
 
         # Check for scheduling conflicts (same lecturer, overlapping time)
         if lecturer_id and scheduled_at:
-            duration = attrs.get("duration_minutes", 90)
+            duration = attrs.get("duration_minutes", instance.duration_minutes if instance else None)
             scheduled_at + timezone.timedelta(minutes=duration)
 
         return attrs

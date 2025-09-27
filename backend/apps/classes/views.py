@@ -14,7 +14,20 @@ from apps.classes.serializers import (
     AttendanceCreateSerializer,
     AttendanceVerificationSerializer,
 )
-from utils.permissions import IsAdmin, IsStaff, IsStudent
+from utils.permissions import IsStaff, IsStudent
+from rest_framework.permissions import BasePermission
+from rest_framework.request import Request
+
+class IsClassLecturerOrAdmin(BasePermission):
+    """Check if a user is a lecturer or admin"""
+    def has_object_permission(self, request: Request, view, obj: Class):
+        user = request.user
+        if user.role.lower() == "admin" or user.is_superuser:
+            return True
+        elif user.role.lower() == "lecturer":
+            if obj.lecturer == user:
+                return True
+        return False
 
 
 @extend_schema(tags=["Classes"])
@@ -89,7 +102,7 @@ class ClassViewSet(viewsets.ModelViewSet):
         if self.action in ["create"]:
             permission_classes = [IsStaff]
         elif self.action in ["update", "partial_update", "destroy"]:
-            permission_classes = [IsAdmin]
+            permission_classes = [IsClassLecturerOrAdmin]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -209,8 +222,15 @@ class ClassViewSet(viewsets.ModelViewSet):
             )
             if created:
                 # Calculate duration based on join_time and class end time
-                duration_minutes = int((class_end_time - now).total_seconds() / 60)
-                attendance.duration_minutes = max(0, duration_minutes)
+                if is_in_past:
+                    # For past classes (recordings), give full class duration
+                    duration_minutes = class_obj.duration_minutes
+                else:
+                    # For live classes, calculate remaining time but cap at class duration
+                    duration_minutes = int((class_end_time - now).total_seconds() / 60)
+                    duration_minutes = max(0, min(duration_minutes, class_obj.duration_minutes))
+                
+                attendance.duration_minutes = duration_minutes
                 attendance.save(update_fields=["duration_minutes"])
                 attendance_registered = True
             elif not attendance.leave_time:
@@ -218,10 +238,17 @@ class ClassViewSet(viewsets.ModelViewSet):
                 attendance_registered = True
                 if not attendance.duration_minutes:
                     # Calculate duration based on join_time and class end time
-                    duration_minutes = int(
-                        (class_end_time - attendance.join_time).total_seconds() / 60
-                    )
-                    attendance.duration_minutes = max(0, duration_minutes)
+                    if is_in_past:
+                        # For past classes (recordings), give full class duration
+                        duration_minutes = class_obj.duration_minutes
+                    else:
+                        # For live classes, calculate remaining time but cap at class duration
+                        duration_minutes = int(
+                            (class_end_time - attendance.join_time).total_seconds() / 60
+                        )
+                        duration_minutes = max(0, min(duration_minutes, class_obj.duration_minutes))
+                    
+                    attendance.duration_minutes = duration_minutes
                     attendance.save(update_fields=["duration_minutes"])
 
         if is_in_progress and class_obj.zoom_join_url:
@@ -317,7 +344,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         queryset = Attendance.objects.select_related("student", "class_session").all()
 
         if hasattr(user, "role"):
-            if user.role in ["lecturer", "admin"]:
+            if user.role == "admin":
+                pass
+            elif user.role == "lecturer":
                 queryset = queryset.filter(class_session__lecturer=user)
             elif user.role == "student":
                 queryset = queryset.filter(student=user)
@@ -334,6 +363,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             "partial_update",
             "destroy",
             "bulk_verify",
+            "class_attendance_summary",
         ]:
             permission_classes = [IsStaff]  # Only staff can manage attendance
         else:
