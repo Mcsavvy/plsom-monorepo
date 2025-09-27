@@ -44,26 +44,19 @@ class ClassViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter classes based on user role and permissions"""
         # Handle case when user is not authenticated (for schema generation)
-        if (
-            not hasattr(self.request, "user")
-            or not self.request.user.is_authenticated
-        ):
-            return Class.objects.select_related(
-                "course", "lecturer", "cohort"
-            ).all()
+        if not hasattr(self.request, "user") or not self.request.user.is_authenticated:
+            return Class.objects.select_related("course", "lecturer", "cohort").all()
 
         user = self.request.user
-        queryset = Class.objects.select_related(
-            "course", "lecturer", "cohort"
-        ).all()
+        queryset = Class.objects.select_related("course", "lecturer", "cohort").all()
 
         if hasattr(user, "role") and user.role == "student":
             # Students can only see classes for cohorts they're enrolled in
             from apps.cohorts.models import Enrollment
 
-            enrolled_cohorts = Enrollment.objects.filter(
-                student=user
-            ).values_list("cohort_id", flat=True)
+            enrolled_cohorts = Enrollment.objects.filter(student=user).values_list(
+                "cohort_id", flat=True
+            )
             queryset = queryset.filter(cohort_id__in=enrolled_cohorts)
 
         # Filter by course if specified
@@ -180,18 +173,14 @@ class ClassViewSet(viewsets.ModelViewSet):
                 student=user, cohort=class_obj.cohort
             ).exists():
                 return Response(
-                    {
-                        "error": "You are not enrolled in the cohort for this class."
-                    },
+                    {"error": "You are not enrolled in the cohort for this class."},
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
         # Check if class can be joined
         now = timezone.now()
         start_time = class_obj.scheduled_at
-        end_time = start_time + timezone.timedelta(
-            minutes=class_obj.duration_minutes
-        )
+        end_time = start_time + timezone.timedelta(minutes=class_obj.duration_minutes)
         join_window_start = start_time - timezone.timedelta(minutes=15)
 
         is_in_progress = join_window_start <= now <= end_time
@@ -203,20 +192,37 @@ class ClassViewSet(viewsets.ModelViewSet):
         # Register attendance for students
         attendance_registered = False
         if hasattr(user, "role") and user.role == "student" and can_join:
+            # Calculate class end time
+            class_end_time = start_time + timezone.timedelta(
+                minutes=class_obj.duration_minutes
+            )
+
             attendance, created = Attendance.objects.get_or_create(
                 class_session=class_obj,
                 student=user,
                 defaults={
                     "join_time": now,
-                    "duration_minutes": 0,
+                    "leave_time": class_end_time,
+                    "duration_minutes": 0,  # Will be calculated below
                     "via_recording": is_in_past,
                 },
             )
             if created:
+                # Calculate duration based on join_time and class end time
+                duration_minutes = int((class_end_time - now).total_seconds() / 60)
+                attendance.duration_minutes = max(0, duration_minutes)
+                attendance.save(update_fields=["duration_minutes"])
                 attendance_registered = True
             elif not attendance.leave_time:
                 # Student is already in the class, no need to update join_time
                 attendance_registered = True
+                if not attendance.duration_minutes:
+                    # Calculate duration based on join_time and class end time
+                    duration_minutes = int(
+                        (class_end_time - attendance.join_time).total_seconds() / 60
+                    )
+                    attendance.duration_minutes = max(0, duration_minutes)
+                    attendance.save(update_fields=["duration_minutes"])
 
         if is_in_progress and class_obj.zoom_join_url:
             return Response(
@@ -281,9 +287,7 @@ class ClassViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = StudentClassSerializer(
-            class_obj, context={"request": request}
-        )
+        serializer = StudentClassSerializer(class_obj, context={"request": request})
         return Response(serializer.data)
 
 
@@ -306,18 +310,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter attendance based on user role"""
         # Handle case when user is not authenticated (for schema generation)
-        if (
-            not hasattr(self.request, "user")
-            or not self.request.user.is_authenticated
-        ):
-            return Attendance.objects.select_related(
-                "student", "class_session"
-            ).all()
+        if not hasattr(self.request, "user") or not self.request.user.is_authenticated:
+            return Attendance.objects.select_related("student", "class_session").all()
 
         user = self.request.user
-        queryset = Attendance.objects.select_related(
-            "student", "class_session"
-        ).all()
+        queryset = Attendance.objects.select_related("student", "class_session").all()
 
         if hasattr(user, "role"):
             if user.role in ["lecturer", "admin"]:
@@ -385,9 +382,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             student_id=student_id, cohort=class_obj.cohort
         ).exists():
             return Response(
-                {
-                    "error": "Student is not enrolled in the cohort for this class."
-                },
+                {"error": "Student is not enrolled in the cohort for this class."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -403,9 +398,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             )
 
         # Create attendance record
-        attendance = serializer.save(
-            verified=True
-        )  # Manual attendance is pre-verified
+        attendance = serializer.save(verified=True)  # Manual attendance is pre-verified
         response_serializer = AttendanceSerializer(attendance)
 
         return Response(
@@ -446,22 +439,15 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         # Check if user has permission to verify this attendance
         if not (
             user.role == "admin"
-            or (
-                user.role == "lecturer"
-                and attendance.class_session.lecturer == user
-            )
+            or (user.role == "lecturer" and attendance.class_session.lecturer == user)
         ):
             return Response(
-                {
-                    "error": "You don't have permission to verify this attendance."
-                },
+                {"error": "You don't have permission to verify this attendance."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Use the verification serializer to validate the request
-        verification_serializer = AttendanceVerificationSerializer(
-            data=request.data
-        )
+        verification_serializer = AttendanceVerificationSerializer(data=request.data)
         verification_serializer.is_valid(raise_exception=True)
 
         # Update attendance with verified status
@@ -533,9 +519,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             )
 
         # Use the verification serializer to validate the request
-        verification_serializer = AttendanceVerificationSerializer(
-            data=request.data
-        )
+        verification_serializer = AttendanceVerificationSerializer(data=request.data)
         verification_serializer.is_valid(raise_exception=True)
 
         # Verify all unverified attendance records for this class
@@ -619,9 +603,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         ).select_related("student")
 
         # Get attendance records for this class
-        attendances = Attendance.objects.filter(
-            class_session=class_obj
-        ).select_related("student")
+        attendances = Attendance.objects.filter(class_session=class_obj).select_related(
+            "student"
+        )
         attendance_dict = {att.student_id: att for att in attendances}
 
         # Build attendance list
@@ -645,9 +629,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                             "id": student.id,
                             "name": student.get_full_name(),
                             "email": student.email,
-                            "profile_picture": student.profile_picture.url
-                            if student.profile_picture
-                            else None,
+                            "profile_picture": (
+                                student.profile_picture.url
+                                if student.profile_picture
+                                else None
+                            ),
                         },
                         "attendance": AttendanceSerializer(attendance).data,
                         "status": "attended",
@@ -660,9 +646,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                             "id": student.id,
                             "name": student.get_full_name(),
                             "email": student.email,
-                            "profile_picture": student.profile_picture.url
-                            if student.profile_picture
-                            else None,
+                            "profile_picture": (
+                                student.profile_picture.url
+                                if student.profile_picture
+                                else None
+                            ),
                         },
                         "attendance": None,
                         "status": "absent",
@@ -678,14 +666,16 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             "total_absent": total_enrolled - total_attended,
             "total_verified": total_verified,
             "total_unverified": total_attended - total_verified,
-            "attendance_rate": round((total_attended / total_enrolled) * 100, 2)
-            if total_enrolled > 0
-            else 0,
-            "verification_rate": round(
-                (total_verified / total_attended) * 100, 2
-            )
-            if total_attended > 0
-            else 0,
+            "attendance_rate": (
+                round((total_attended / total_enrolled) * 100, 2)
+                if total_enrolled > 0
+                else 0
+            ),
+            "verification_rate": (
+                round((total_verified / total_attended) * 100, 2)
+                if total_attended > 0
+                else 0
+            ),
         }
 
         class_info = {
