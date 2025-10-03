@@ -52,6 +52,7 @@ class RefineDataProviderPagination(PageNumberPagination):
     def paginate_queryset(self, queryset, request, view=None):
         """
         Paginate a queryset using _start/_end parameters.
+        If _start and _end are not provided, return all data.
         """
         # Set request instance for get_next_link and get_previous_link methods
         self.request = request
@@ -101,7 +102,15 @@ class RefineDataProviderPagination(PageNumberPagination):
                 # If _start/_end are not valid integers, fall back to regular pagination
                 pass
 
-        # Fall back to regular pagination if _start/_end not provided
+        # If _start/_end not provided, return all data without pagination
+        if start is None and end is None:
+            # Create a mock page object for compatibility with get_paginated_response
+            from django.core.paginator import Paginator
+            paginator = Paginator(queryset, queryset.count() if queryset.count() > 0 else 1)
+            self.page = paginator.page(1)
+            return list(queryset)
+
+        # Fall back to regular pagination if _start/_end are provided but invalid
         return super().paginate_queryset(queryset, request, view)
 
     def get_page_number(self, request, paginator):
