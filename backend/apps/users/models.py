@@ -14,19 +14,6 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def normalize_email(self, email):
-        """
-        Normalize the email address by lowercasing the domain part of it.
-        """
-        email = email or ""
-        try:
-            email_name, domain_part = email.strip().rsplit("@", 1)
-        except ValueError:
-            pass
-        else:
-            email = email_name.lower() + "@" + domain_part.lower()
-        return email
-
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
