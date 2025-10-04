@@ -53,7 +53,7 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
-CORS_EXPOSE_HEADERS = ["content-type", "content-disposition"]
+CORS_EXPOSE_HEADERS = ["content-type", "content-disposition", "x-total-count"]
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 
 ALLOWED_HOSTS: list[str] = config("ALLOWED_HOSTS", default="", cast=Csv())  # type: ignore
