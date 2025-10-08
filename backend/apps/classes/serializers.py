@@ -193,13 +193,10 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
             allowed_fields = {
                 'recording_url', 'password_for_recording', 'title', 'description'
             }
+            # Filter out restricted fields instead of raising an error
             restricted_fields = set(attrs.keys()) - allowed_fields
-            
-            if restricted_fields:
-                raise serializers.ValidationError(
-                    f"For past classes, only the following fields can be updated: {', '.join(allowed_fields)}. "
-                    f"Attempted to update restricted fields: {', '.join(restricted_fields)}"
-                )
+            for field in restricted_fields:
+                attrs.pop(field, None)
 
         # Original cross-field validation logic
         course_id = attrs.get("course_id", instance.course_id if instance else None)

@@ -398,7 +398,7 @@ class ClassViewSetTestCase(APITestCase):
         self.assertEqual(past_class.password_for_recording, 'recording123')
 
     def test_update_restricted_fields_after_class_completion(self):
-        """Test that restricted fields cannot be updated after class completion."""
+        """Test that restricted fields are ignored when updating past classes."""
         # Create a past class
         past_class = Class.objects.create(
             course=self.course,
@@ -411,18 +411,25 @@ class ClassViewSetTestCase(APITestCase):
         
         self.client.force_authenticate(user=self.lecturer)
         
-        # Try to update restricted fields
+        # Try to update restricted fields along with allowed ones
         data = {
-            'scheduled_at': self.now + timedelta(hours=1),  # Try to reschedule
-            'duration_minutes': 120,  # Try to change duration
-            'course_id': self.course.id,  # Try to change course
+            'scheduled_at': self.now + timedelta(hours=1),  # Try to reschedule (should be ignored)
+            'duration_minutes': 120,  # Try to change duration (should be ignored)
+            'course_id': self.course.id,  # Try to change course (should be ignored)
             'recording_url': 'https://example.com/recording.mp4'  # This should be allowed
         }
         
         response = self.client.patch(f'/api/classes/{past_class.id}/', data)
         
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('For past classes, only the following fields can be updated', str(response.data))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Only the recording_url should be updated
+        self.assertEqual(response.data['recording_url'], 'https://example.com/recording.mp4')
+        
+        # Verify that restricted fields were not updated
+        past_class.refresh_from_db()
+        self.assertEqual(past_class.recording_url, 'https://example.com/recording.mp4')
+        self.assertEqual(past_class.duration_minutes, 90)  # Should remain unchanged
+        self.assertEqual(past_class.scheduled_at, self.now - timedelta(hours=2))  # Should remain unchanged
 
     def test_update_allowed_fields_after_class_completion(self):
         """Test that allowed fields can be updated after class completion."""
