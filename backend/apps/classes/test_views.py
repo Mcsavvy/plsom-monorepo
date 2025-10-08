@@ -366,6 +366,94 @@ class ClassViewSetTestCase(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_update_recording_link_after_class_completion(self):
+        """Test that recording links can be updated after class completion."""
+        # Create a past class
+        past_class = Class.objects.create(
+            course=self.course,
+            lecturer=self.lecturer,
+            cohort=self.cohort,
+            title='Past Class',
+            scheduled_at=self.now - timedelta(hours=2),  # 2 hours ago
+            duration_minutes=90
+        )
+        
+        self.client.force_authenticate(user=self.lecturer)
+        
+        # Update recording URL
+        data = {
+            'recording_url': 'https://example.com/recording.mp4',
+            'password_for_recording': 'recording123'
+        }
+        
+        response = self.client.patch(f'/api/classes/{past_class.id}/', data)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['recording_url'], 'https://example.com/recording.mp4')
+        self.assertEqual(response.data['password_for_recording'], 'recording123')
+        
+        # Verify the update was saved
+        past_class.refresh_from_db()
+        self.assertEqual(past_class.recording_url, 'https://example.com/recording.mp4')
+        self.assertEqual(past_class.password_for_recording, 'recording123')
+
+    def test_update_restricted_fields_after_class_completion(self):
+        """Test that restricted fields cannot be updated after class completion."""
+        # Create a past class
+        past_class = Class.objects.create(
+            course=self.course,
+            lecturer=self.lecturer,
+            cohort=self.cohort,
+            title='Past Class',
+            scheduled_at=self.now - timedelta(hours=2),  # 2 hours ago
+            duration_minutes=90
+        )
+        
+        self.client.force_authenticate(user=self.lecturer)
+        
+        # Try to update restricted fields
+        data = {
+            'scheduled_at': self.now + timedelta(hours=1),  # Try to reschedule
+            'duration_minutes': 120,  # Try to change duration
+            'course_id': self.course.id,  # Try to change course
+            'recording_url': 'https://example.com/recording.mp4'  # This should be allowed
+        }
+        
+        response = self.client.patch(f'/api/classes/{past_class.id}/', data)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('For past classes, only the following fields can be updated', str(response.data))
+
+    def test_update_allowed_fields_after_class_completion(self):
+        """Test that allowed fields can be updated after class completion."""
+        # Create a past class
+        past_class = Class.objects.create(
+            course=self.course,
+            lecturer=self.lecturer,
+            cohort=self.cohort,
+            title='Past Class',
+            scheduled_at=self.now - timedelta(hours=2),  # 2 hours ago
+            duration_minutes=90
+        )
+        
+        self.client.force_authenticate(user=self.lecturer)
+        
+        # Update only allowed fields
+        data = {
+            'title': 'Updated Past Class Title',
+            'description': 'Updated description for past class',
+            'recording_url': 'https://example.com/recording.mp4',
+            'password_for_recording': 'recording123'
+        }
+        
+        response = self.client.patch(f'/api/classes/{past_class.id}/', data)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'Updated Past Class Title')
+        self.assertEqual(response.data['description'], 'Updated description for past class')
+        self.assertEqual(response.data['recording_url'], 'https://example.com/recording.mp4')
+        self.assertEqual(response.data['password_for_recording'], 'recording123')
+
     def test_delete_class_as_admin(self):
         """Test deleting a class as an admin."""
         self.client.force_authenticate(user=self.admin)

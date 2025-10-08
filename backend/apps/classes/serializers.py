@@ -144,7 +144,8 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_scheduled_at(self, value):
         """Validate scheduled time"""
-        if value <= timezone.now():
+        # Allow past scheduling only for updates (not creation)
+        if value <= timezone.now() and not self.instance:
             raise serializers.ValidationError(
                 "Class cannot be scheduled in the past."
             )
@@ -185,8 +186,22 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
                     f"Invalid timezone or datetime format: {str(e)}"
                 )
 
-        # Original cross-field validation logic
+        # Check if this is an update to a past class
         instance = self.instance
+        if instance and instance.scheduled_at < timezone.now():
+            # For past classes, only allow updating recording-related fields
+            allowed_fields = {
+                'recording_url', 'password_for_recording', 'title', 'description'
+            }
+            restricted_fields = set(attrs.keys()) - allowed_fields
+            
+            if restricted_fields:
+                raise serializers.ValidationError(
+                    f"For past classes, only the following fields can be updated: {', '.join(allowed_fields)}. "
+                    f"Attempted to update restricted fields: {', '.join(restricted_fields)}"
+                )
+
+        # Original cross-field validation logic
         course_id = attrs.get("course_id", instance.course_id if instance else None)
         lecturer_id = attrs.get("lecturer_id", instance.lecturer_id if instance else None)
         cohort_id = attrs.get("cohort_id", instance.cohort_id if instance else None)

@@ -19,3 +19,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173",
     "https://openapi-slimmer.vercel.app",
 ]
+
+CORS_ALLOW_HEADERS = [
+    "*"
+]
