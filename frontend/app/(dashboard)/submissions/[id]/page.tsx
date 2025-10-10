@@ -385,19 +385,6 @@ export default function SubmissionDetailPage() {
                                     ))}
                                   </div>
                                 </div>
-                                
-                                {/* Selected Options Summary */}
-                                <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
-                                  <p className="text-sm font-medium text-blue-900">
-                                    You Selected:{' '}
-                                    {answer.selected_options && answer.selected_options.length > 0
-                                      ? answer.question_options
-                                          ?.filter(opt => answer.selected_options?.includes(opt.id))
-                                          .map(opt => opt.text)
-                                          .join(', ') || 'None'
-                                      : 'None'}
-                                  </p>
-                                </div>
                               </div>
                             ) : (
                               <p className="whitespace-pre-wrap break-words text-sm md:text-base">{answer.display_answer}</p>
