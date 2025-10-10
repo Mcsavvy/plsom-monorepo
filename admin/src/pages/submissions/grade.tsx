@@ -272,19 +272,6 @@ export const SubmissionGrade: React.FC = () => {
                 ))}
               </div>
             </div>
-            
-            {/* Selected Options Summary */}
-            <div className='bg-blue-50 p-3 rounded-md border border-blue-200'>
-              <p className='text-sm font-medium text-blue-900'>
-                Student Selected:{' '}
-                {answer.selectedOptions.length > 0
-                  ? answer.selectedOptions.map((selectedOption) => {
-                    const option = answer.questionOptions.find((o) => o.id === selectedOption);
-                    return option?.text;
-                  }).join(', ')
-                  : 'None'}
-              </p>
-            </div>
           </div>
         );
       case 'date':
