@@ -1,3 +1,6 @@
 ignoredBuiltDependencies:
   - '@tailwindcss/oxide'
   - esbuild
+
+onlyBuiltDependencies:
+  - '@sentry/cli'
