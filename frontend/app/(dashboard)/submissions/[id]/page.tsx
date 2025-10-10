@@ -345,6 +345,60 @@ export default function SubmissionDetailPage() {
                                   <ExternalLink className="h-3 w-3 flex-shrink-0" />
                                 </a>
                               </div>
+                            ) : answer.question_type === 'single_choice' || answer.question_type === 'multiple_choice' ? (
+                              <div className="space-y-3">
+                                {/* Available Options */}
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700 mb-2">Available Options:</p>
+                                  <div className="space-y-1">
+                                    {answer.question_options?.map((option) => (
+                                      <div
+                                        key={option.id}
+                                        className={`flex items-center space-x-2 p-2 rounded-md border ${
+                                          answer.selected_options?.includes(option.id)
+                                            ? 'bg-blue-50 border-blue-200'
+                                            : 'bg-gray-50 border-gray-200'
+                                        }`}
+                                      >
+                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                          answer.selected_options?.includes(option.id)
+                                            ? 'border-blue-500 bg-blue-500'
+                                            : 'border-gray-300'
+                                        }`}>
+                                          {answer.selected_options?.includes(option.id) && (
+                                            <div className="w-2 h-2 bg-white rounded-full" />
+                                          )}
+                                        </div>
+                                        <span className={`text-sm ${
+                                          answer.selected_options?.includes(option.id)
+                                            ? 'text-blue-900 font-medium'
+                                            : 'text-gray-600'
+                                        }`}>
+                                          {option.text}
+                                        </span>
+                                        {option.is_correct && (
+                                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                            Correct
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                
+                                {/* Selected Options Summary */}
+                                <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                                  <p className="text-sm font-medium text-blue-900">
+                                    You Selected:{' '}
+                                    {answer.selected_options && answer.selected_options.length > 0
+                                      ? answer.question_options
+                                          ?.filter(opt => answer.selected_options?.includes(opt.id))
+                                          .map(opt => opt.text)
+                                          .join(', ') || 'None'
+                                      : 'None'}
+                                  </p>
+                                </div>
+                              </div>
                             ) : (
                               <p className="whitespace-pre-wrap break-words text-sm md:text-base">{answer.display_answer}</p>
                             )}

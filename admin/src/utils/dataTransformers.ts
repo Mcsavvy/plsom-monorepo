@@ -647,6 +647,12 @@ export function transformSubmissionAnswer(
     questionTitle: answerResponse.question_title,
     questionType: answerResponse.question_type,
     questionDescription: answerResponse.question_description,
+    questionOptions: answerResponse.question_options.map(option => ({
+      id: option.id,
+      text: option.text,
+      order: option.order,
+      isCorrect: option.is_correct,
+    })),
   };
 }
 

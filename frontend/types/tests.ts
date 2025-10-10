@@ -1,14 +1,22 @@
 import { z } from "zod";
 
+// Question option schema
+export const questionOptionSchema = z.object({
+  id: z.uuid(),
+  text: z.string().max(300),
+  order: z.number(),
+  is_correct: z.boolean(),
+});
+
 // Answer from backend (detailed response)
 export const backendAnswerDetailSchema = z.object({
   id: z.number(),
-  question: z.string().uuid(),
+  question: z.uuid(),
   text_answer: z.string().optional(),
   boolean_answer: z.boolean().nullable().optional(),
   date_answer: z.string().nullable().optional(), // YYYY-MM-DD format
   file_answer: z.string().nullable().optional(), // File URL
-  selected_options: z.array(z.string().uuid()).optional(),
+  selected_options: z.array(z.uuid()).optional(),
   answered_at: z.string(),
   is_flagged: z.boolean(),
   points_earned: z.number().nullable().optional(),
@@ -18,6 +26,7 @@ export const backendAnswerDetailSchema = z.object({
   has_answer: z.boolean(),
   question_title: z.string(),
   question_type: z.string(),
+  question_options: z.array(questionOptionSchema).optional(),
 });
 
 // Test submission schemas
@@ -59,14 +68,6 @@ export const submissionDetailSchema = z.object({
   student_name: z.string(),
   test_title: z.string(),
   graded_by_name: z.string().nullable().optional(),
-});
-
-// Question option schema
-export const questionOptionSchema = z.object({
-  id: z.uuid(),
-  text: z.string().max(300),
-  order: z.number(),
-  is_correct: z.boolean(),
 });
 
 // Question types enum

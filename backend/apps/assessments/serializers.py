@@ -703,6 +703,7 @@ class AnswerSerializer(serializers.ModelSerializer):
     max_points = serializers.FloatField(
         source="question.max_points", read_only=True
     )
+    question_options = serializers.SerializerMethodField()
 
     class Meta:
         model = Answer
@@ -724,7 +725,15 @@ class AnswerSerializer(serializers.ModelSerializer):
             "question_title",
             "question_type",
             "question_description",
+            "question_options",
         ]
+
+    def get_question_options(self, obj):
+        """Get question options for choice-based questions."""
+        if obj.question.question_type in ["single_choice", "multiple_choice"]:
+            options = obj.question.options.all().order_by("order")
+            return QuestionOptionSerializer(options, many=True).data
+        return []
 
 
 class SubmissionSerializer(serializers.ModelSerializer):

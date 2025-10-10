@@ -25,6 +25,13 @@ export interface SubmissionListResponse {
   graded_by_name: string;
 }
 
+export interface QuestionOptionResponse {
+  id: string;
+  text: string;
+  order: number;
+  is_correct: boolean;
+}
+
 export interface SubmissionAnswerResponse {
   id: number;
   question: string;
@@ -43,6 +50,7 @@ export interface SubmissionAnswerResponse {
   question_title: string;
   question_type: string;
   question_description: string;
+  question_options: QuestionOptionResponse[];
 }
 
 export interface SubmissionGradeRequest {
@@ -57,6 +65,13 @@ export interface SubmissionGradeRequest {
 }
 
 // Transformed Types for Frontend
+export interface QuestionOption {
+  id: string;
+  text: string;
+  order: number;
+  isCorrect: boolean;
+}
+
 export interface SubmissionAnswer {
   id: number;
   question: string;
@@ -75,6 +90,7 @@ export interface SubmissionAnswer {
   questionTitle: string;
   questionType: string;
   questionDescription: string;
+  questionOptions: QuestionOption[];
 }
 
 export interface Submission {

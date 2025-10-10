@@ -231,13 +231,55 @@ export const SubmissionGrade: React.FC = () => {
       case 'single_choice':
       case 'multiple_choice':
         return (
-          <div className='bg-gray-50 p-3 rounded-md'>
-            <p className='text-sm'>
-              Selected:{' '}
-              {answer.selectedOptions.length > 0
-                ? answer.selectedOptions.join(', ')
-                : 'None'}
-            </p>
+          <div className='space-y-3'>
+            {/* Available Options */}
+            <div>
+              <p className='text-sm font-medium text-gray-700 mb-2'>Available Options:</p>
+              <div className='space-y-1'>
+                {answer.questionOptions.map((option) => (
+                  <div
+                    key={option.id}
+                    className={`flex items-center space-x-2 p-2 rounded-md border ${
+                      answer.selectedOptions.includes(option.text)
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                      answer.selectedOptions.includes(option.text)
+                        ? 'border-blue-500 bg-blue-500'
+                        : 'border-gray-300'
+                    }`}>
+                      {answer.selectedOptions.includes(option.text) && (
+                        <div className='w-2 h-2 bg-white rounded-full' />
+                      )}
+                    </div>
+                    <span className={`text-sm ${
+                      answer.selectedOptions.includes(option.text)
+                        ? 'text-blue-900 font-medium'
+                        : 'text-gray-600'
+                    }`}>
+                      {option.text}
+                    </span>
+                    {option.isCorrect && (
+                      <span className='text-xs bg-green-100 text-green-800 px-2 py-1 rounded'>
+                        Correct
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Selected Options Summary */}
+            <div className='bg-blue-50 p-3 rounded-md border border-blue-200'>
+              <p className='text-sm font-medium text-blue-900'>
+                Student Selected:{' '}
+                {answer.selectedOptions.length > 0
+                  ? answer.selectedOptions.join(', ')
+                  : 'None'}
+              </p>
+            </div>
           </div>
         );
       case 'date':
