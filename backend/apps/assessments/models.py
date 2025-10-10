@@ -349,17 +349,31 @@ class Submission(models.Model):
 
     @property
     def completion_percentage(self):
-        """Calculate completion percentage based on answered questions"""
+        """
+        Calculate completion percentage based on answered questions.
+        An answer is considered answered if it has any relevant value:
+        - non-empty text_answer
+        - file uploaded
+        - boolean_answer is not None
+        - date_answer is not None
+        - at least one selected_option
+        """
         total_questions = self.test.total_questions
         if total_questions == 0:
-            return 0
-        answered_questions = self.answers.exclude(
-            models.Q(text_answer="")
-            & models.Q(file_answer="")
-            & models.Q(boolean_answer__isnull=True)
-            & models.Q(date_answer__isnull=True)
-        ).count()
-        return (answered_questions / total_questions) * 100
+            return 100
+
+        answered = 0
+        for answer in self.answers.all():
+            if (
+                (answer.text_answer and answer.text_answer.strip())
+                or (answer.file_answer)
+                or (answer.boolean_answer is not None)
+                or (answer.date_answer is not None)
+                or (answer.selected_options.exists())
+            ):
+                answered += 1
+
+        return (answered / total_questions) * 100
 
     @property
     def score(self):
