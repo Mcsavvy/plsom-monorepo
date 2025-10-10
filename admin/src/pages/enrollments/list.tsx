@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useTable, useNavigation } from '@refinedev/core';
+import { useNavigation } from '@refinedev/core';
+import { useTable } from '@refinedev/react-table';
 import { format } from 'date-fns';
 import { Calendar, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react';
 import {
@@ -50,34 +51,6 @@ export const EnrollmentsList: React.FC = () => {
   const [globalFilter, setGlobalFilter] = useState('');
 
   const { show } = useNavigation();
-
-  const tableResult = useTable({
-    resource: 'enrollments',
-    pagination: {
-      pageSize: 10,
-    },
-    sorters: {
-      initial: [
-        {
-          field: 'enrolled_at',
-          order: 'desc',
-        },
-      ],
-    },
-    meta: {
-      transform: true,
-    },
-  });
-
-  const {
-    tableQuery: { data, isLoading, error },
-  } = tableResult;
-
-  const pagination = useTablePagination({
-    table: tableResult,
-    showSizeChanger: true,
-    pageSizeOptions: [10, 20, 30, 40, 50],
-  });
 
   const getProgramTypeColor = (programType: string) => {
     switch (programType) {
@@ -282,6 +255,63 @@ export const EnrollmentsList: React.FC = () => {
     [show]
   );
 
+  const refineCoreProps = useMemo(
+    () => ({
+      resource: 'enrollments',
+      pagination: {
+        currentPage: 1,
+        pageSize: 10,
+      },
+      sorters: {
+        initial: [
+          {
+            field: 'enrolled_at',
+            order: 'desc' as 'desc' | 'asc',
+          },
+        ],
+      },
+      filters: {
+        initial: [],
+      },
+      meta: {
+        transform: true,
+      },
+    }),
+    [columns]
+  );
+
+  const tableResult = useTable<Enrollment>({
+    columns,
+    refineCoreProps,
+  });
+
+  const {
+    reactTable: {
+      getHeaderGroups,
+      getRowModel,
+
+    },
+    refineCore: {
+      tableQuery: { data, isLoading, error },
+      filters,
+      setFilters,
+      currentPage,
+      setCurrentPage,
+      pageCount,
+    },
+  } = tableResult;
+
+  const pagination = useTablePagination({
+    table: {
+      current: currentPage,
+      setCurrent: setCurrentPage,
+      pageSize: 10,
+      tableQuery: { data, isLoading },
+      pageCount,
+    },
+    showSizeChanger: true,
+  });
+
   const table = useReactTable<Enrollment>({
     data: (data?.data as Enrollment[]) || [],
     columns,
@@ -298,6 +328,8 @@ export const EnrollmentsList: React.FC = () => {
       columnFilters,
       globalFilter,
     },
+    manualPagination: true,
+    pageCount: pageCount,
   });
 
   if (error) {
@@ -360,7 +392,7 @@ export const EnrollmentsList: React.FC = () => {
                 <div className='rounded-md border'>
                   <Table>
                     <TableHeader>
-                      {table.getHeaderGroups().map(headerGroup => (
+                      {getHeaderGroups().map(headerGroup => (
                         <TableRow key={headerGroup.id}>
                           {headerGroup.headers.map(header => (
                             <TableHead
@@ -379,8 +411,8 @@ export const EnrollmentsList: React.FC = () => {
                       ))}
                     </TableHeader>
                     <TableBody>
-                      {table.getRowModel().rows?.length ? (
-                        table.getRowModel().rows.map(row => (
+                      {getRowModel().rows?.length ? (
+                        getRowModel().rows.map(row => (
                           <TableRow
                             key={row.id}
                             data-state={row.getIsSelected() && 'selected'}

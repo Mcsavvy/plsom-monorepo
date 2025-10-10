@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useBreadcrumb, useResource } from '@refinedev/core';
+import { useBreadcrumb, useResourceParams } from '@refinedev/core';
 import { Link, useLocation, useParams } from 'react-router';
 import {
   Breadcrumb as ShadcnBreadcrumb,
@@ -139,7 +139,7 @@ export const Breadcrumb = () => {
   const { breadcrumbs } = useBreadcrumb();
   const location = useLocation();
   const params = useParams();
-  const { resource } = useResource();
+  const { resource } = useResourceParams();
 
   // Enhanced breadcrumb items with meta data support and action separation
   const enhancedBreadcrumbs = useMemo(() => {

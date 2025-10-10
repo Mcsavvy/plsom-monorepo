@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useTable, useNavigation, useDelete, useCreate } from '@refinedev/core';
+import { useNavigation, useDelete, useCreate } from '@refinedev/core';
+import { useTable } from '@refinedev/react-table';
 import {
   MoreHorizontal,
   Plus,
@@ -64,35 +65,6 @@ export const CoursesList: React.FC = () => {
   const { show, edit, create } = useNavigation();
   const { mutate: deleteRecord } = useDelete();
   const { mutate: createCourse } = useCreate();
-
-  const tableResult = useTable<Course>({
-    resource: 'courses',
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-    sorters: {
-      initial: [
-        {
-          field: 'name',
-          order: 'asc',
-        },
-      ],
-    },
-    meta: {
-      transform: true,
-    },
-  });
-
-  const {
-    tableQuery: { data, isLoading, isError, error },
-  } = tableResult;
-
-  const pagination = useTablePagination({
-    table: tableResult,
-    showSizeChanger: true,
-    pageSizeOptions: [10, 20, 30, 40, 50],
-  });
 
   const getProgramTypeColor = (programType: string) => {
     switch (programType) {
@@ -383,6 +355,63 @@ export const CoursesList: React.FC = () => {
     ],
     [show, edit, handleDelete, handleClone]
   );
+
+  const refineCoreProps = useMemo(
+    () => ({
+      resource: 'courses',
+      pagination: {
+        currentPage: 1,
+        pageSize: 10,
+      },
+      sorters: {
+        initial: [
+          {
+            field: 'name',
+            order: 'asc' as 'asc' | 'desc',
+          },
+        ],
+      },
+      filters: {
+        initial: [],
+      },
+      meta: {
+        transform: true,
+      },
+    }),
+    []
+  );
+
+  const tableResult = useTable<Course>({
+    columns,
+    refineCoreProps,
+  });
+
+  const {
+    reactTable: {
+      getHeaderGroups,
+      getRowModel,
+
+    },
+    refineCore: {
+      tableQuery: { data, isLoading, isError, error },
+      filters,
+      setFilters,
+      currentPage,
+      setCurrentPage,
+      pageCount,
+    },
+  } = tableResult;
+
+  const pagination = useTablePagination({
+    table: {
+      current: currentPage,
+      setCurrent: setCurrentPage,
+      pageSize: 10,
+      tableQuery: { data, isLoading },
+      pageCount,
+    },
+    showSizeChanger: true,
+  });
 
   const table = useReactTable({
     data: data?.data || [],

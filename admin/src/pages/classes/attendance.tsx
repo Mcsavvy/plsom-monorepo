@@ -119,7 +119,14 @@ export const ClassAttendance: React.FC = () => {
   const { mutate: createAttendance } = useCreate();
 
   // Get attendance summary for the class from URL
-  const { data: attendanceData, isLoading, refetch } = useCustom<AttendanceSummary>({
+  const {
+    query: {
+      isLoading,
+      refetch
+    },
+
+    result: attendanceData
+  } = useCustom<AttendanceSummary>({
     url: 'attendance/class-summary/',
     method: 'get',
     config: {

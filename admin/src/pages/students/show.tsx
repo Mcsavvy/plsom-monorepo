@@ -70,10 +70,12 @@ export const StudentsShow: React.FC = () => {
     useStudentEnrollment();
 
   const {
-    data: studentData,
-    isLoading,
-    isError,
-    error,
+    result: studentData,
+    query: {
+      isLoading,
+      isError,
+      error
+    }
   } = useOne<Student>({
     resource: 'students',
     id: id,
@@ -82,12 +84,12 @@ export const StudentsShow: React.FC = () => {
     },
   });
 
-  const { data: cohortsData } = useList<Cohort>({
+  const { result: cohortsData } = useList<Cohort>({
     resource: 'cohorts',
     filters: [{ field: 'is_active', operator: 'eq', value: true }],
   });
 
-  const student = studentData?.data;
+  const student = studentData;
   const cohorts = cohortsData?.data || [];
 
   // Get cohorts the student is not enrolled in

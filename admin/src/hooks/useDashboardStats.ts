@@ -77,7 +77,15 @@ interface UseDashboardStatsOptions {
 export const useDashboardStats = (options: UseDashboardStatsOptions = {}) => {
   const { enabled = true } = options;
 
-  const { data, isLoading, error, refetch } = useCustom<DashboardStats>({
+  const {
+    query: {
+      isLoading,
+      error,
+      refetch
+    },
+
+    result: data
+  } = useCustom<DashboardStats>({
     url: '/dashboard/stats/',
     method: 'get',
     queryOptions: {

@@ -36,16 +36,18 @@ export const AuditLogsShow: React.FC = () => {
   const { list } = useNavigation();
 
   const {
-    data: auditLogData,
-    isLoading,
-    isError,
-    error,
+    result: auditLogData,
+    query: {
+      isLoading,
+      isError,
+      error
+    }
   } = useOne<AuditLog>({
     resource: 'audit-logs',
     id: id,
   });
 
-  const auditLog = auditLogData?.data;
+  const auditLog = auditLogData;
 
   const getActionColor = (action: string) => {
     switch (action?.toLowerCase()) {

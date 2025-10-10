@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useOne, useNavigation, useCustomMutation } from '@refinedev/core';
+import { useOne, useBack, useGo, useCustomMutation } from '@refinedev/core';
 import {
   Save,
   AlertCircle,
@@ -35,7 +35,7 @@ import { transformSubmission } from '@/utils/dataTransformers';
 
 export const SubmissionGrade: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { goBack } = useNavigation();
+  const goBack = useBack()
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gradingData, setGradingData] = useState<{
@@ -52,10 +52,12 @@ export const SubmissionGrade: React.FC = () => {
   });
 
   const {
-    data: submission,
-    isLoading,
-    isError,
-    error,
+    result: submission,
+    query: {
+      isLoading,
+      isError,
+      error
+    }
   } = useOne<Submission>({
     resource: 'submissions',
     id,
@@ -67,13 +69,13 @@ export const SubmissionGrade: React.FC = () => {
   const { mutate: gradeSubmission } = useCustomMutation();
 
   useEffect(() => {
-    if (submission?.data) {
+    if (submission) {
       const initialGradingData: Record<
         string,
         { pointsEarned: number; feedback: string; isFlagged: boolean }
       > = {};
 
-      submission.data.answers.forEach(answer => {
+      submission.answers.forEach(answer => {
         initialGradingData[answer.id.toString()] = {
           pointsEarned: answer.pointsEarned || 0,
           feedback: answer.feedback || '',
@@ -83,7 +85,7 @@ export const SubmissionGrade: React.FC = () => {
 
       setGradingData({
         answers: initialGradingData,
-        generalFeedback: submission.data.feedback || '',
+        generalFeedback: submission.feedback || '',
         returnForRevision: false,
       });
     }
@@ -121,7 +123,7 @@ export const SubmissionGrade: React.FC = () => {
   };
 
   const handleSubmitGrade = async () => {
-    if (!submission?.data) return;
+    if (!submission) return;
 
     setIsSubmitting(true);
     try {
@@ -339,7 +341,7 @@ export const SubmissionGrade: React.FC = () => {
     );
   }
 
-  if (isError || !submission?.data) {
+  if (isError || !submission) {
     return (
       <div className='p-4'>
         <Alert variant='destructive'>
@@ -352,7 +354,7 @@ export const SubmissionGrade: React.FC = () => {
     );
   }
 
-  const submissionData = submission.data;
+  const submissionData = submission;
   const totalPossiblePoints = submissionData.answers.reduce(
     (sum, answer) => sum + answer.maxPoints,
     0

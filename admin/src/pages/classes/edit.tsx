@@ -93,7 +93,9 @@ export const ClassesEdit: React.FC = () => {
   const { list } = useNavigation();
   const { mutate: updateClass } = useUpdate();
 
-  const { data: classData, isLoading } = useOne<Class>({
+  const { result: classData, query: {
+    isLoading
+  } } = useOne<Class>({
     resource: 'classes',
     id: id,
     meta: {
@@ -102,7 +104,9 @@ export const ClassesEdit: React.FC = () => {
   });
 
   // Fetch courses for selection
-  const { data: coursesData, isLoading: isLoadingCourses } = useList<Course>({
+  const { result: coursesData, query: {
+    isLoading: isLoadingCourses
+  } } = useList<Course>({
     resource: 'courses',
     pagination: { mode: 'off' },
     filters: [
@@ -118,7 +122,9 @@ export const ClassesEdit: React.FC = () => {
   });
 
   // Fetch lecturers for selection
-  const { data: lecturersData, isLoading: isLoadingLecturers } = useList<Staff>(
+  const { result: lecturersData, query: {
+    isLoading: isLoadingLecturers
+  } } = useList<Staff>(
     {
       resource: 'staff',
       pagination: { mode: 'off' },
@@ -136,7 +142,9 @@ export const ClassesEdit: React.FC = () => {
   );
 
   // Fetch cohorts for selection
-  const { data: cohortsData, isLoading: isLoadingCohorts } = useList<Cohort>({
+  const { result: cohortsData, query: {
+    isLoading: isLoadingCohorts
+  } } = useList<Cohort>({
     resource: 'cohorts',
     pagination: { mode: 'off' },
     filters: [
@@ -148,7 +156,7 @@ export const ClassesEdit: React.FC = () => {
     ],
   });
 
-  const classItem = classData?.data;
+  const classItem = classData;
   const courses = useMemo(() => coursesData?.data || [], [coursesData]);
   const lecturers = useMemo(() => lecturersData?.data || [], [lecturersData]);
   const cohorts = useMemo(() => cohortsData?.data || [], [cohortsData]);

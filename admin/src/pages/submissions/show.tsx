@@ -35,10 +35,12 @@ export const SubmissionShow: React.FC = () => {
   const { edit } = useNavigation();
 
   const {
-    data: submission,
-    isLoading,
-    isError,
-    error,
+    result: submission,
+    query: {
+      isLoading,
+      isError,
+      error
+    }
   } = useOne<Submission>({
     resource: 'submissions',
     id,
@@ -240,7 +242,7 @@ export const SubmissionShow: React.FC = () => {
     );
   }
 
-  if (isError || !submission?.data) {
+  if (isError || !submission) {
     return (
       <div className='p-4'>
         <Alert variant='destructive'>
@@ -253,7 +255,7 @@ export const SubmissionShow: React.FC = () => {
     );
   }
 
-  const submissionData = submission?.data;
+  const submissionData = submission;
 
   return (
     <div className='p-4 space-y-4'>

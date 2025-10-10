@@ -114,7 +114,7 @@ export const TestsCreate: React.FC = () => {
   const { mutate: createTest } = useCreate();
 
   // Fetch courses
-  const { data: coursesData } = useList<Course>({
+  const { result: coursesData } = useList<Course>({
     resource: 'courses',
     pagination: { mode: 'off' },
     filters: [{ field: 'is_active', operator: 'eq', value: true }],
@@ -122,7 +122,7 @@ export const TestsCreate: React.FC = () => {
   });
 
   // Fetch cohorts - simplified for now
-  const { data: cohortsData } = useList({
+  const { result: cohortsData } = useList({
     resource: 'cohorts',
     pagination: { mode: 'off' },
     filters: [{ field: 'is_active', operator: 'eq', value: true }],

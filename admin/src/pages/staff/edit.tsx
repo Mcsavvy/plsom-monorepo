@@ -57,13 +57,17 @@ export const StaffEdit: React.FC = () => {
   const { open } = useNotification();
   const [error, setError] = useState<string>('');
 
-  const { mutate: updateStaff, isPending: isUpdating } = useUpdate();
+  const { mutate: updateStaff, mutation: {
+    isPending: isUpdating
+  } } = useUpdate();
 
   const {
-    data: staffData,
-    isLoading,
-    isError,
-    error: fetchError,
+    result: staffData,
+    query: {
+      isLoading,
+      isError,
+      error: fetchError
+    }
   } = useOne<Staff>({
     resource: 'staff',
     id: id,
@@ -72,7 +76,7 @@ export const StaffEdit: React.FC = () => {
     },
   });
 
-  const staff = staffData?.data;
+  const staff = staffData;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

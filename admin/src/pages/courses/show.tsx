@@ -31,7 +31,9 @@ export const CoursesShow: React.FC = () => {
   const { mutate: deleteCourse } = useDelete();
   const { mutate: createCourse } = useCreate();
 
-  const { data: courseData, isLoading } = useOne<Course>({
+  const { result: courseData, query: {
+    isLoading
+  } } = useOne<Course>({
     resource: 'courses',
     id: id,
     meta: {
@@ -39,7 +41,7 @@ export const CoursesShow: React.FC = () => {
     },
   });
 
-  const course = courseData?.data;
+  const course = courseData;
 
   const handleDelete = () => {
     if (!course) return;

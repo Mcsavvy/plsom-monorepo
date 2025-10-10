@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  useTable,
   useNavigation,
   useDelete,
   useCustomMutation,
 } from '@refinedev/core';
+import { useTable } from '@refinedev/react-table';
 import { format } from 'date-fns';
 import {
   MoreHorizontal,
@@ -84,24 +84,6 @@ export const InvitationsList: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
-
-  const tableResult = useTable<Invitation>({
-    resource: 'invitations',
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-  });
-
-  const {
-    tableQuery: { data, isLoading, isError, error },
-  } = tableResult;
-
-  const pagination = useTablePagination({
-    table: tableResult,
-    showSizeChanger: true,
-    pageSizeOptions: [10, 20, 30, 40, 50],
-  });
 
   const handleDelete = useCallback(
     (id: number) => {
@@ -393,7 +375,65 @@ export const InvitationsList: React.FC = () => {
     [edit, show, handleDelete, handleResend, loading]
   );
 
-  const table = useReactTable({
+  const refineCoreProps = useMemo(
+
+    () => ({
+      resource: 'invitations',
+      pagination: {
+        currentPage: 1,
+        pageSize: 10,
+      },
+      sorters: {
+        initial: [
+          {
+            field: 'email',
+            order: 'asc' as 'asc' | 'desc',
+          },
+        ],
+      },
+      filters: {
+        initial: [],
+      },
+      meta: {
+        transform: true,
+      },
+    }),
+    [columns]
+  );
+
+  const tableResult = useTable<Invitation>({
+    columns,
+    refineCoreProps,
+  });
+
+  const {
+    reactTable: {
+      getHeaderGroups,
+      getRowModel,
+
+    },
+    refineCore: {
+      tableQuery: { data, isLoading, isError, error },
+      filters,
+      setFilters,
+      currentPage,
+      setCurrentPage,
+      pageCount,
+    },
+  } = tableResult;
+
+  const pagination = useTablePagination({
+    table: {
+      current: currentPage,
+      setCurrent: setCurrentPage,
+      pageSize: 10,
+      tableQuery: { data, isLoading },
+      pageCount,
+    },
+    showSizeChanger: true,
+  });
+
+  const table = useReactTable<Invitation>({
     data: data?.data || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
@@ -409,7 +449,7 @@ export const InvitationsList: React.FC = () => {
       globalFilter,
     },
     manualPagination: true,
-    pageCount: pagination.pageCount,
+    pageCount: pageCount,
   });
 
   if (isError) {
@@ -476,7 +516,7 @@ export const InvitationsList: React.FC = () => {
                 <div className='rounded-md border'>
                   <Table>
                     <TableHeader>
-                      {table.getHeaderGroups().map(headerGroup => (
+                      {getHeaderGroups().map(headerGroup => (
                         <TableRow key={headerGroup.id}>
                           {headerGroup.headers.map(header => (
                             <TableHead
@@ -495,8 +535,8 @@ export const InvitationsList: React.FC = () => {
                       ))}
                     </TableHeader>
                     <TableBody>
-                      {table.getRowModel().rows?.length ? (
-                        table.getRowModel().rows.map(row => (
+                      {getRowModel().rows?.length ? (
+                        getRowModel().rows.map(row => (
                           <TableRow
                             key={row.id}
                             data-state={row.getIsSelected() && 'selected'}

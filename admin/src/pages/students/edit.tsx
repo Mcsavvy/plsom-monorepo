@@ -54,13 +54,17 @@ export const StudentsEdit: React.FC = () => {
   const { open } = useNotification();
   const [error, setError] = useState<string>('');
 
-  const { mutate: updateStudent, isPending: isUpdating } = useUpdate();
+  const { mutate: updateStudent, mutation: {
+    isPending: isUpdating
+  } } = useUpdate();
 
   const {
-    data: studentData,
-    isLoading,
-    isError,
-    error: fetchError,
+    result: studentData,
+    query: {
+      isLoading,
+      isError,
+      error: fetchError
+    }
   } = useOne<Student>({
     resource: 'students',
     id: id,
@@ -69,7 +73,7 @@ export const StudentsEdit: React.FC = () => {
     },
   });
 
-  const student = studentData?.data;
+  const student = studentData;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

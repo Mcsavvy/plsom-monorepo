@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useTable, useNavigation, useDelete, useCreate } from '@refinedev/core';
+import { useTable } from '@refinedev/react-table';
+import { useNavigation, useDelete, useCreate } from '@refinedev/core';
 import {
   MoreHorizontal,
   Plus,
@@ -65,40 +66,11 @@ export const ClassesList: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { show, edit, create, list } = useNavigation();
   const { mutate: deleteRecord } = useDelete();
   const { mutate: createClass } = useCreate();
-
-  const tableResult = useTable<Class>({
-    resource: 'classes',
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-    sorters: {
-      initial: [
-        {
-          field: 'scheduled_at',
-          order: 'asc',
-        },
-      ],
-    },
-    meta: {
-      transform: true,
-    },
-  });
-
-  const {
-    tableQuery: { data, isLoading, isError, error },
-  } = tableResult;
-
-  const pagination = useTablePagination({
-    table: tableResult,
-    showSizeChanger: true,
-    pageSizeOptions: [10, 20, 30, 40, 50],
-  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -390,6 +362,63 @@ export const ClassesList: React.FC = () => {
     ],
     [show, edit, handleDelete, handleClone, navigate]
   );
+
+  const refineCoreProps = useMemo(
+    () => ({
+      resource: 'classes',
+      pagination: {
+        currentPage: 1,
+        pageSize: 10,
+      },
+      sorters: {
+        initial: [
+          {
+            field: 'scheduled_at',
+            order: 'asc' as 'asc' | 'desc',
+          },
+        ],
+      },
+      filters: {
+        initial: [],
+      },
+      meta: {
+        transform: true,
+      },
+    }),
+    []
+  );
+
+  const tableResult = useTable<Class>({
+    columns,
+    refineCoreProps,
+  });
+
+  const {
+    reactTable: {
+      getHeaderGroups,
+      getRowModel,
+
+    },
+    refineCore: {
+      tableQuery: { data, isLoading, isError, error },
+      filters,
+      setFilters,
+      currentPage,
+      setCurrentPage,
+      pageCount,
+    },
+  } = tableResult;
+
+  const pagination = useTablePagination({
+    table: {
+      current: currentPage,
+      setCurrent: setCurrentPage,
+      pageSize: 10,
+      tableQuery: { data, isLoading },
+      pageCount,
+    },
+    showSizeChanger: true,
+  });
 
   const table = useReactTable({
     data: data?.data || [],

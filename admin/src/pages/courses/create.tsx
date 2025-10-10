@@ -67,7 +67,9 @@ export const CoursesCreate: React.FC = () => {
   const { mutate: createCourse } = useCreate();
 
   // Fetch lecturers for selection
-  const { data: lecturersData, isLoading: isLoadingLecturers } = useList<Staff>(
+  const { result: lecturersData, query: {
+    isLoading: isLoadingLecturers
+  } } = useList<Staff>(
     {
       resource: 'staff',
       pagination: { mode: 'off' },

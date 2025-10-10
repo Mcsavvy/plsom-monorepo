@@ -298,22 +298,25 @@ export const AuditLogsList: React.FC = () => {
   });
 
   const {
-    getHeaderGroups,
-    getRowModel,
+    reactTable: {
+      getHeaderGroups,
+      getRowModel,
+
+    },
     refineCore: {
       tableQuery: { data, isLoading, isError, error },
       filters,
       setFilters,
-      current,
-      setCurrent,
+      currentPage,
+      setCurrentPage,
       pageCount,
     },
   } = tableResult;
 
   const pagination = useTablePagination({
     table: {
-      current,
-      setCurrent,
+      current: currentPage,
+      setCurrent: setCurrentPage,
       pageSize: 20, // Fixed page size for audit logs
       tableQuery: { data, isLoading },
       pageCount,
@@ -346,7 +349,7 @@ export const AuditLogsList: React.FC = () => {
   // Helper to update filters
   const updateFilter = React.useCallback(
     (field: string, value: string) => {
-      setCurrent(1); // Reset to first page when filters change
+      setCurrentPage(1); // Reset to first page when filters change
 
       setFilters((prev: CrudFilters) => {
         const newFilters = [
@@ -358,7 +361,7 @@ export const AuditLogsList: React.FC = () => {
         return newFilters;
       });
     },
-    [setFilters, setCurrent]
+    [setFilters, setCurrentPage]
   );
 
   const updateSearchFilter = React.useCallback(

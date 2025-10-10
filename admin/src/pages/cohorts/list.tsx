@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  useTable,
   useNavigation,
   useDelete,
   useCustomMutation,
 } from '@refinedev/core';
+import { useTable } from '@refinedev/react-table';
 import { format } from 'date-fns';
 import {
   MoreHorizontal,
@@ -78,31 +78,6 @@ export const CohortsList: React.FC = () => {
   const { show, edit, create } = useNavigation();
   const { mutate: deleteRecord } = useDelete();
   const { mutate: archiveCohort } = useCustomMutation();
-
-  const tableResult = useTable({
-    resource: 'cohorts',
-    pagination: {
-      pageSize: 10,
-    },
-    sorters: {
-      initial: [
-        {
-          field: 'start_date',
-          order: 'desc',
-        },
-      ],
-    },
-  });
-
-  const {
-    tableQuery: { data, isLoading, error },
-  } = tableResult;
-
-  const pagination = useTablePagination({
-    table: tableResult,
-    showSizeChanger: true,
-    pageSizeOptions: [10, 20, 30, 40, 50],
-  });
 
   const getProgramTypeColor = (programType: string) => {
     switch (programType) {
@@ -375,6 +350,64 @@ export const CohortsList: React.FC = () => {
     ],
     [show, edit, handleDelete, handleArchive]
   );
+
+  const refineCoreProps = useMemo(
+    () => ({
+      resource: 'cohorts',
+      pagination: {
+        currentPage: 1,
+        pageSize: 10,
+      },
+      sorters: {
+        initial: [
+          {
+            field: 'start_date',
+            order: 'desc' as 'desc' | 'asc',
+          },
+        ],
+      },
+      filters: {
+        initial: [],
+      },
+      meta: {
+        transform: true,
+      },
+    }),
+    []
+  );
+
+  const tableResult = useTable<Cohort>({
+    columns,
+    refineCoreProps,
+  });
+
+  const {
+    reactTable: {
+      getHeaderGroups,
+      getRowModel,
+
+    },
+    refineCore: {
+      tableQuery: { data, isLoading, isError, error },
+      filters,
+      setFilters,
+      currentPage,
+      setCurrentPage,
+      pageCount,
+    },
+  } = tableResult;
+
+
+  const pagination = useTablePagination({
+    table: {
+      current: currentPage,
+      setCurrent: setCurrentPage,
+      pageSize: 10,
+      tableQuery: { data, isLoading },
+      pageCount,
+    },
+    showSizeChanger: true,
+  });
 
   const table = useReactTable<Cohort>({
     data: (data?.data as Cohort[]) || [],

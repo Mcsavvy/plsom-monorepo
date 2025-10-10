@@ -42,7 +42,9 @@ interface InviteStaffFormProps {
 export const InviteStaffForm: React.FC<InviteStaffFormProps> = ({
   onSuccess,
 }) => {
-  const { mutate: createInvitation, isPending } = useCreate();
+  const { mutate: createInvitation, mutation: {
+    isPending
+  } } = useCreate();
   const { open } = useNotification();
   const [error, setError] = useState<string>('');
 
@@ -195,12 +197,14 @@ interface InviteStudentFormProps {
 export const InviteStudentForm: React.FC<InviteStudentFormProps> = ({
   onSuccess,
 }) => {
-  const { mutate: createInvitation, isPending } = useCreate();
+  const { mutate: createInvitation, mutation: {
+    isPending
+  } } = useCreate();
   const { open } = useNotification();
   const [error, setError] = useState<string>('');
 
   // Fetch active cohorts
-  const { data: cohortsData } = useList<Cohort>({
+  const { result: cohortsData } = useList<Cohort>({
     resource: 'cohorts',
     filters: [{ field: 'is_active', operator: 'eq', value: true }],
   });

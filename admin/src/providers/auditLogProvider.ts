@@ -4,7 +4,7 @@ import { transformAuditLog } from '@/utils/dataTransformers';
 
 export const auditLogProvider: AuditLogProvider = {
   get: async params => {
-    const { resource, meta, action, author, metaData } = params;
+    const { resource, meta, action, author } = params;
 
     // Build query parameters
     const queryParams = new URLSearchParams();
@@ -26,13 +26,13 @@ export const auditLogProvider: AuditLogProvider = {
     }
 
     // Add any additional filters from metaData
-    if (metaData) {
-      Object.entries(metaData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-    }
+    // if (metaData) {
+    //   Object.entries(metaData).forEach(([key, value]) => {
+    //     if (value !== undefined && value !== null) {
+    //       queryParams.append(key, String(value));
+    //     }
+    //   });
+    // }
 
     const url = meta?.id
       ? `/audit-logs/${resource}/${meta.id}/`

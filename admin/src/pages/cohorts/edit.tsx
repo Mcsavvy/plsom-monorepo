@@ -89,12 +89,14 @@ export const CohortsEdit: React.FC = () => {
   const { list } = useNavigation();
   const { mutate: updateCohort } = useUpdate();
 
-  const { data: cohortData, isLoading } = useOne<Cohort>({
+  const { result: cohortData, query: {
+    isLoading
+  } } = useOne<Cohort>({
     resource: 'cohorts',
     id: id,
   });
 
-  const cohort = cohortData?.data;
+  const cohort = cohortData;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

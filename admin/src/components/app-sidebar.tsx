@@ -104,14 +104,14 @@ export function AppSidebar() {
               <SidebarMenu className='space-y-2'>
                 {menuItems.length === 0 ? (
                   // Loading skeleton
-                  <div className='space-y-0'>
+                  (<div className='space-y-0'>
                     {[...Array(4)].map((_, i) => (
                       <div
                         key={i}
                         className='h-8 bg-muted rounded-md animate-pulse'
                       />
                     ))}
-                  </div>
+                  </div>)
                 ) : menuItems.length > 0 ? (
                   menuItems.filter(item => item.name != "attendance").map(item => {
                     const isActive =
@@ -157,7 +157,7 @@ export function AppSidebar() {
                   })
                 ) : (
                   // Empty state
-                  <div className='text-center py-8'>
+                  (<div className='text-center py-8'>
                     <AlertCircle className='h-6 w-6 mx-auto text-muted-foreground mb-2' />
                     <p className='text-sm text-muted-foreground mb-2'>
                       No menu items available
@@ -170,7 +170,7 @@ export function AppSidebar() {
                       <RefreshCcw className='h-4 w-4 mr-2' />
                       Reload
                     </Button>
-                  </div>
+                  </div>)
                 )}
               </SidebarMenu>
             </SidebarGroupContent>

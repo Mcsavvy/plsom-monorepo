@@ -91,7 +91,9 @@ export const ClassesCreate: React.FC = () => {
   const { mutate: createClass } = useCreate();
 
   // Fetch courses for selection
-  const { data: coursesData, isLoading: isLoadingCourses } = useList<Course>({
+  const { result: coursesData, query: {
+    isLoading: isLoadingCourses
+  } } = useList<Course>({
     resource: 'courses',
     pagination: { mode: 'off' },
     filters: [
@@ -107,7 +109,9 @@ export const ClassesCreate: React.FC = () => {
   });
 
   // Fetch lecturers for selection
-  const { data: lecturersData, isLoading: isLoadingLecturers } = useList<Staff>(
+  const { result: lecturersData, query: {
+    isLoading: isLoadingLecturers
+  } } = useList<Staff>(
     {
       resource: 'staff',
       pagination: { mode: 'off' },
@@ -125,7 +129,9 @@ export const ClassesCreate: React.FC = () => {
   );
 
   // Fetch cohorts for selection
-  const { data: cohortsData, isLoading: isLoadingCohorts } = useList<Cohort>({
+  const { result: cohortsData, query: {
+    isLoading: isLoadingCohorts
+  } } = useList<Cohort>({
     resource: 'cohorts',
     pagination: { mode: 'off' },
     filters: [

@@ -84,10 +84,14 @@ interface Invitation {
 export const InvitationsEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { list } = useNavigation();
-  const { mutate: updateInvitation, isPending: isUpdating } = useUpdate();
+  const { mutate: updateInvitation, mutation: {
+    isPending: isUpdating
+  } } = useUpdate();
   const [error, setError] = useState<string>('');
 
-  const { data: invitationData, isLoading } = useOne<Invitation>({
+  const { result: invitationData, query: {
+    isLoading
+  } } = useOne<Invitation>({
     resource: 'invitations',
     id: id,
   });
@@ -106,8 +110,8 @@ export const InvitationsEdit: React.FC = () => {
 
   // Update form when data loads
   useEffect(() => {
-    if (invitationData?.data) {
-      const invitation = invitationData.data;
+    if (invitationData) {
+      const invitation = invitationData;
       form.reset({
         email: invitation.email,
         role: invitation.role as 'admin' | 'lecturer' | 'student',
@@ -164,7 +168,7 @@ export const InvitationsEdit: React.FC = () => {
     );
   }
 
-  if (!invitationData?.data) {
+  if (!invitationData) {
     return (
       <Alert variant='destructive'>
         <AlertDescription>
@@ -174,7 +178,7 @@ export const InvitationsEdit: React.FC = () => {
     );
   }
 
-  const invitation = invitationData.data;
+  const invitation = invitationData;
 
   return (
     <div className='space-y-6'>

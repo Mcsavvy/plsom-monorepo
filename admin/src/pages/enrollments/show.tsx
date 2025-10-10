@@ -22,7 +22,9 @@ export const EnrollmentsShow: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { show } = useNavigation();
 
-  const { data: enrollmentData, isLoading } = useOne<Enrollment>({
+  const { result: enrollmentData, query: {
+    isLoading
+  } } = useOne<Enrollment>({
     resource: 'enrollments',
     id: id,
     meta: {
@@ -30,7 +32,7 @@ export const EnrollmentsShow: React.FC = () => {
     },
   });
 
-  const enrollment = enrollmentData?.data;
+  const enrollment = enrollmentData;
 
   const getProgramTypeColor = (programType: string) => {
     switch (programType) {

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useTable, useNavigation } from '@refinedev/core';
+import { useNavigation } from '@refinedev/core';
+import { useTable } from '@refinedev/react-table';
 import {
   MoreHorizontal,
   Edit,
@@ -62,35 +63,6 @@ export const SubmissionsList: React.FC = () => {
   const [globalFilter, setGlobalFilter] = useState('');
 
   const { show, edit } = useNavigation();
-
-  const tableResult = useTable<SubmissionListItem>({
-    resource: 'submissions',
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-    sorters: {
-      initial: [
-        {
-          field: 'updated_at',
-          order: 'desc',
-        },
-      ],
-    },
-    meta: {
-      transform: true,
-    },
-  });
-
-  const {
-    tableQuery: { data, isLoading, isError, error },
-  } = tableResult;
-
-  const pagination = useTablePagination({
-    table: tableResult,
-    showSizeChanger: true,
-    pageSizeOptions: [10, 20, 30, 40, 50],
-  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -429,7 +401,65 @@ export const SubmissionsList: React.FC = () => {
     [show, edit]
   );
 
-  const table = useReactTable({
+  const refineCoreProps = useMemo(
+    () => ({
+      resource: 'submissions',
+      pagination: {
+        currentPage: 1,
+        pageSize: 10,
+      },
+      sorters: {
+        initial: [
+          {
+            field: 'updated_at',
+            order: 'desc' as 'desc' | 'asc',
+          },
+        ],
+      },
+      filters: {
+        initial: [],
+      },
+      meta: {
+        transform: true,
+      },
+    }),
+    [columns]
+  );
+
+
+  const tableResult = useTable<SubmissionListItem>({
+    columns,
+    refineCoreProps,
+  });
+
+  const {
+    reactTable: {
+      getHeaderGroups,
+      getRowModel,
+
+    },
+    refineCore: {
+      tableQuery: { data, isLoading, isError, error },
+      filters,
+      setFilters,
+      currentPage,
+      setCurrentPage,
+      pageCount,
+    },
+  } = tableResult;
+
+  const pagination = useTablePagination({
+    table: {
+      current: currentPage,
+      setCurrent: setCurrentPage,
+      pageSize: 10,
+      tableQuery: { data, isLoading },
+      pageCount,
+    },
+    showSizeChanger: true,
+  });
+
+  const table = useReactTable<SubmissionListItem>({
     data: data?.data || [],
     columns,
     onSortingChange: setSorting,
@@ -443,6 +473,8 @@ export const SubmissionsList: React.FC = () => {
       columnFilters,
       globalFilter,
     },
+    manualPagination: true,
+    pageCount: pageCount,
   });
 
   if (isError) {
@@ -482,7 +514,7 @@ export const SubmissionsList: React.FC = () => {
           <div className='rounded-md border'>
             <Table>
               <TableHeader>
-                {table.getHeaderGroups().map(headerGroup => (
+                {getHeaderGroups().map(headerGroup => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map(header => {
                       return (
@@ -512,8 +544,8 @@ export const SubmissionsList: React.FC = () => {
                       )}
                     </TableRow>
                   ))
-                ) : table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map(row => (
+                ) : getRowModel().rows?.length ? (
+                  getRowModel().rows.map(row => (
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}

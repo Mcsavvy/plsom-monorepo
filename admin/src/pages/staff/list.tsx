@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useTable, useNavigation, useCustomMutation } from '@refinedev/core';
+import { useNavigation, useCustomMutation } from '@refinedev/core';
+import { useTable } from '@refinedev/react-table';
 import {
   Mail,
   Phone,
@@ -69,37 +70,10 @@ export const StaffList: React.FC = () => {
   const [globalFilter, setGlobalFilter] = useState('');
 
   const { show, edit } = useNavigation();
-  const { mutate: promoteOrDemote, isPending: isPromotingDemoting } =
+  const { mutate: promoteOrDemote, mutation: {
+    isPending: isPromotingDemoting
+  } } =
     useCustomMutation();
-
-  const tableResult = useTable<Staff>({
-    resource: 'staff',
-    pagination: {
-      current: 1,
-      pageSize: 10,
-    },
-    sorters: {
-      initial: [
-        {
-          field: 'first_name',
-          order: 'asc',
-        },
-      ],
-    },
-    meta: {
-      transform: true,
-    },
-  });
-
-  const {
-    tableQuery: { data, isLoading, isError, error },
-  } = tableResult;
-
-  const pagination = useTablePagination({
-    table: tableResult,
-    showSizeChanger: true,
-    pageSizeOptions: [10, 20, 30, 40, 50],
-  });
 
   const getRoleColor = (role: 'admin' | 'lecturer') => {
     switch (role) {
@@ -459,6 +433,63 @@ export const StaffList: React.FC = () => {
     [show, edit, handlePromoteDemote, isPromotingDemoting]
   );
 
+  const refineCoreProps = useMemo(
+    () => ({
+      resource: 'staff',
+      pagination: {
+        currentPage: 1,
+        pageSize: 10,
+      },
+      sorters: {
+        initial: [
+          {
+            field: 'first_name',
+            order: 'asc' as 'asc' | 'desc',
+          },
+        ],
+      },
+      filters: {
+        initial: [],
+      },
+      meta: {
+        transform: true,
+      },
+    }),
+    [columns]
+  );
+
+  const tableResult = useTable<Staff>({
+    columns,
+    refineCoreProps,
+  });
+
+  const {
+    reactTable: {
+      getHeaderGroups,
+      getRowModel,
+
+    },
+    refineCore: {
+      tableQuery: { data, isLoading, isError, error },
+      filters,
+      setFilters,
+      currentPage,
+      setCurrentPage,
+      pageCount,
+    },
+  } = tableResult;
+
+  const pagination = useTablePagination({
+    table: {
+      current: currentPage,
+      setCurrent: setCurrentPage,
+      pageSize: 10,
+      tableQuery: { data, isLoading },
+      pageCount,
+    },
+    showSizeChanger: true,
+  });
+
   const table = useReactTable({
     data: data?.data || [],
     columns,
@@ -475,6 +506,7 @@ export const StaffList: React.FC = () => {
       globalFilter,
     },
     manualPagination: true,
+    pageCount: pageCount,
   });
 
   if (isError) {
@@ -538,7 +570,7 @@ export const StaffList: React.FC = () => {
             <div className='rounded-md border'>
               <Table>
                 <TableHeader>
-                  {table.getHeaderGroups().map(headerGroup => (
+                  {getHeaderGroups().map(headerGroup => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map(header => (
                         <TableHead key={header.id}>
@@ -554,8 +586,8 @@ export const StaffList: React.FC = () => {
                   ))}
                 </TableHeader>
                 <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map(row => (
+                  {getRowModel().rows?.length ? (
+                    getRowModel().rows.map(row => (
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}

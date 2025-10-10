@@ -129,7 +129,9 @@ export const TestsEdit: React.FC = () => {
   const { list } = useNavigation();
   const { mutate: updateTest } = useUpdate();
 
-  const { data: testData, isLoading } = useOne<TestDetail>({
+  const { result: testData, query: {
+    isLoading
+  } } = useOne<TestDetail>({
     resource: 'tests',
     id: id,
     meta: {
@@ -138,7 +140,7 @@ export const TestsEdit: React.FC = () => {
   });
 
   // Fetch courses
-  const { data: coursesData } = useList<Course>({
+  const { result: coursesData } = useList<Course>({
     resource: 'courses',
     pagination: { mode: 'off' },
     filters: [{ field: 'is_active', operator: 'eq', value: true }],
@@ -146,13 +148,13 @@ export const TestsEdit: React.FC = () => {
   });
 
   // Fetch cohorts
-  const { data: cohortsData } = useList({
+  const { result: cohortsData } = useList({
     resource: 'cohorts',
     pagination: { mode: 'off' },
     filters: [{ field: 'is_active', operator: 'eq', value: true }],
   });
 
-  const test = testData?.data;
+  const test = testData;
   const courses = coursesData?.data || [];
   const cohorts = cohortsData?.data || [];
 

@@ -47,14 +47,18 @@ export const CohortsShow: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const { list, edit } = useNavigation();
   const { mutate: deleteCohort } = useDelete();
-  const { mutate: archiveCohort, isPending: isArchiving } = useCustomMutation();
+  const { mutate: archiveCohort, mutation: {
+    isPending: isArchiving
+  } } = useCustomMutation();
 
-  const { data: cohortData, isLoading } = useOne<Cohort>({
+  const { result: cohortData, query: {
+    isLoading
+  } } = useOne<Cohort>({
     resource: 'cohorts',
     id: id,
   });
 
-  const cohort = cohortData?.data;
+  const cohort = cohortData;
 
   const handleDelete = () => {
     if (!cohort) return;

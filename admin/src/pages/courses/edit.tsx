@@ -66,7 +66,9 @@ export const CoursesEdit: React.FC = () => {
   const { list } = useNavigation();
   const { mutate: updateCourse } = useUpdate();
 
-  const { data: courseData, isLoading } = useOne<Course>({
+  const { result: courseData, query: {
+    isLoading
+  } } = useOne<Course>({
     resource: 'courses',
     id: id,
     meta: {
@@ -75,7 +77,9 @@ export const CoursesEdit: React.FC = () => {
   });
 
   // Fetch lecturers for selection
-  const { data: lecturersData, isLoading: isLoadingLecturers } = useList<Staff>(
+  const { result: lecturersData, query: {
+    isLoading: isLoadingLecturers
+  } } = useList<Staff>(
     {
       resource: 'staff',
       pagination: { mode: 'off' },
@@ -86,7 +90,7 @@ export const CoursesEdit: React.FC = () => {
     }
   );
 
-  const course = courseData?.data;
+  const course = courseData;
   const lecturers = lecturersData?.data || [];
 
   const form = useForm<FormData>({

@@ -48,7 +48,9 @@ export const InvitationsShow: React.FC = () => {
   const { mutate: resendInvitation } = useCustomMutation();
   const [loading, setLoading] = useState(false);
 
-  const { data: invitationData, isLoading } = useOne<Invitation>({
+  const { result: invitationData, query: {
+    isLoading
+  } } = useOne<Invitation>({
     resource: 'invitations',
     id: id,
   });
@@ -132,7 +134,7 @@ export const InvitationsShow: React.FC = () => {
     );
   }
 
-  if (!invitationData?.data) {
+  if (!invitationData) {
     return (
       <Alert variant='destructive'>
         <AlertDescription>
@@ -142,7 +144,7 @@ export const InvitationsShow: React.FC = () => {
     );
   }
 
-  const invitation = invitationData.data;
+  const invitation = invitationData;
 
   return (
     <div className='space-y-6'>

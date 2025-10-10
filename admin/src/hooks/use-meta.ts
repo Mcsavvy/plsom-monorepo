@@ -24,7 +24,15 @@ export const useMeta = (
   // Only fetch if we have both resource and id
   const shouldFetch = enabled && Boolean(resource) && Boolean(id);
 
-  const { data, isLoading, error, refetch } = useCustom<MetaData>({
+  const {
+    query: {
+      isLoading,
+      error,
+      refetch
+    },
+
+    result: data
+  } = useCustom<MetaData>({
     url: `meta/${resource}/${id}/`,
     method: 'get',
     queryOptions: {

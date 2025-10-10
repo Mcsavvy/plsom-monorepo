@@ -158,14 +158,14 @@ function App() {
             options={{
               syncWithLocation: true,
               warnWhenUnsavedChanges: true,
-              useNewQueryKeys: true,
               projectId: 'kGMTVU-QpOWh6-o4w4v9',
               liveMode: 'auto',
+
               redirect: {
                 afterCreate: 'show',
                 afterClone: 'list',
                 afterEdit: 'list',
-              },
+              }
             }}
           >
             <Suspense fallback={<FullPageLoader />}>

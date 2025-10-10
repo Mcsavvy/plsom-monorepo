@@ -37,7 +37,9 @@ export const ClassesShow: React.FC = () => {
   const { mutate: deleteClass } = useDelete();
   const { mutate: createClass } = useCreate();
 
-  const { data: classData, isLoading } = useOne<Class>({
+  const { result: classData, query: {
+    isLoading
+  } } = useOne<Class>({
     resource: 'classes',
     id: id,
     meta: {
@@ -45,7 +47,7 @@ export const ClassesShow: React.FC = () => {
     },
   });
 
-  const classItem = classData?.data;
+  const classItem = classData;
 
   const handleDelete = () => {
     if (!classItem) return;
