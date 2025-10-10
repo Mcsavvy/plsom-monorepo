@@ -29,6 +29,8 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { Enrollment } from '@/types/enrollment';
+import { DashboardStats } from '@/hooks/useDashboardStats';
 
 export const Dashboard = () => {
   const { data: user } = useGetIdentity<UserIdentity>();
@@ -203,7 +205,7 @@ export const Dashboard = () => {
       {/* Key Insights Summary */}
       {stats && (
         <DashboardSummary
-          stats={stats}
+          stats={stats as DashboardStats}
           userRole={user?.role as 'admin' | 'lecturer'}
         />
       )}
@@ -539,7 +541,7 @@ export const Dashboard = () => {
                 <div className='space-y-2'>
                   {stats.recent_activity.recent_classes
                     .slice(0, 3)
-                    .map(classItem => (
+                    .map((classItem) => (
                       <div
                         key={classItem.id}
                         className='flex items-center gap-2'
@@ -564,7 +566,7 @@ export const Dashboard = () => {
                   Latest Tests
                 </h4>
                 <div className='space-y-2'>
-                  {stats.recent_activity.recent_tests.slice(0, 3).map(test => (
+                  {stats.recent_activity.recent_tests.slice(0, 3).map((test) => (
                     <div key={test.id} className='flex items-center gap-2'>
                       <ClipboardCheck className='h-3 w-3 text-green-500' />
                       <span className='text-sm truncate'>{test.title}</span>
@@ -590,7 +592,7 @@ export const Dashboard = () => {
                   <div className='space-y-2'>
                     {stats.recent_activity.recent_enrollments
                       .slice(0, 3)
-                      .map(enrollment => (
+                      .map((enrollment) => (
                         <div
                           key={enrollment.id}
                           className='flex items-center gap-2'

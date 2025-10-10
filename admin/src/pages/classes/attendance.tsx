@@ -129,6 +129,7 @@ export const ClassAttendance: React.FC = () => {
     },
     queryOptions: {
       enabled: !!id,
+      queryKey: ['attendance-summary', id],
     },
   });
 

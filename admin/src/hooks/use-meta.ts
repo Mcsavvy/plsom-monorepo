@@ -32,11 +32,12 @@ export const useMeta = (
       // Cache for 5 minutes to avoid unnecessary requests
       staleTime: 5 * 60 * 1000,
       // Keep in cache for 10 minutes
-      cacheTime: 10 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       // Retry on failure
       retry: 2,
       // Don't refetch on window focus for meta data
       refetchOnWindowFocus: false,
+      queryKey: ['meta', resource, id],
     },
   });
 
