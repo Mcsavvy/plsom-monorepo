@@ -141,22 +141,22 @@ export const SubmissionShow: React.FC = () => {
                   <div
                     key={option.id}
                     className={`flex items-center space-x-2 p-2 rounded-md border ${
-                      answer.selectedOptions.includes(option.text)
+                      answer.selectedOptions.includes(option.id)
                         ? 'bg-blue-50 border-blue-200'
                         : 'bg-gray-50 border-gray-200'
                     }`}
                   >
                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      answer.selectedOptions.includes(option.text)
+                      answer.selectedOptions.includes(option.id)
                         ? 'border-blue-500 bg-blue-500'
                         : 'border-gray-300'
                     }`}>
-                      {answer.selectedOptions.includes(option.text) && (
+                      {answer.selectedOptions.includes(option.id) && (
                         <div className='w-2 h-2 bg-white rounded-full' />
                       )}
                     </div>
                     <span className={`text-sm ${
-                      answer.selectedOptions.includes(option.text)
+                      answer.selectedOptions.includes(option.id)
                         ? 'text-blue-900 font-medium'
                         : 'text-gray-600'
                     }`}>
@@ -177,7 +177,10 @@ export const SubmissionShow: React.FC = () => {
               <p className='text-sm font-medium text-blue-900'>
                 Student Selected:{' '}
                 {answer.selectedOptions.length > 0
-                  ? answer.selectedOptions.join(', ')
+                  ? answer.selectedOptions.map((selectedOption) => {
+                    const option = answer.questionOptions.find((o) => o.id === selectedOption);
+                    return option?.text;
+                  }).join(', ')
                   : 'None'}
               </p>
             </div>
