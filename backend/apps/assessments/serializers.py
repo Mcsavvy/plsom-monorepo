@@ -220,6 +220,10 @@ class TestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create test with nested questions and options."""
         questions_data = validated_data.pop("questions", [])
+        
+        # Remove timezone fields that are not model fields
+        validated_data.pop("available_from_timezone", None)
+        validated_data.pop("available_until_timezone", None)
 
         # Create the test
         test = Test.objects.create(**validated_data)
@@ -235,6 +239,10 @@ class TestSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Update test with breaking change detection and handling."""
         questions_data = validated_data.pop("questions", None)
+        
+        # Remove timezone fields that are not model fields
+        validated_data.pop("available_from_timezone", None)
+        validated_data.pop("available_until_timezone", None)
 
         # Store previous state for notification logic
         instance._previous_status = instance.status

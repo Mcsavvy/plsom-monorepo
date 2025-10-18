@@ -322,21 +322,24 @@ class StudentCourseSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.BooleanField)
     def get_has_classes_in_my_cohorts(self, obj):
         """Check if this course has any classes in student's enrolled cohorts"""
+        # Use pre-computed annotation if available
+        if hasattr(obj, 'total_classes_in_cohorts'):
+            return obj.total_classes_in_cohorts > 0
+        
+        # Fallback to original logic if annotation not available
         request = self.context.get("request")
         if not request or not hasattr(request, "user"):
             return False
 
         try:
             from apps.classes.models import Class
-            from apps.cohorts.models import Enrollment
-
-            # Get student's enrolled cohorts
-            enrolled_cohorts = Enrollment.objects.filter(
-                student=request.user
-            ).values_list("cohort_id", flat=True)
+            enrolled_cohort_ids = self.context.get("enrolled_cohort_ids", [])
+            
+            if not enrolled_cohort_ids:
+                return False
 
             return Class.objects.filter(
-                course=obj, cohort_id__in=enrolled_cohorts
+                course=obj, cohort_id__in=enrolled_cohort_ids
             ).exists()
         except ImportError:
             return False
@@ -344,21 +347,24 @@ class StudentCourseSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.IntegerField)
     def get_total_classes_in_my_cohorts(self, obj):
         """Get total number of classes for this course in student's cohorts"""
+        # Use pre-computed annotation if available
+        if hasattr(obj, 'total_classes_in_cohorts'):
+            return obj.total_classes_in_cohorts
+        
+        # Fallback to original logic if annotation not available
         request = self.context.get("request")
         if not request or not hasattr(request, "user"):
             return 0
 
         try:
             from apps.classes.models import Class
-            from apps.cohorts.models import Enrollment
-
-            # Get student's enrolled cohorts
-            enrolled_cohorts = Enrollment.objects.filter(
-                student=request.user
-            ).values_list("cohort_id", flat=True)
+            enrolled_cohort_ids = self.context.get("enrolled_cohort_ids", [])
+            
+            if not enrolled_cohort_ids:
+                return 0
 
             return Class.objects.filter(
-                course=obj, cohort_id__in=enrolled_cohorts
+                course=obj, cohort_id__in=enrolled_cohort_ids
             ).count()
         except ImportError:
             return 0
@@ -366,23 +372,26 @@ class StudentCourseSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.IntegerField)
     def get_upcoming_classes_in_my_cohorts(self, obj):
         """Get number of upcoming classes for this course in student's cohorts"""
+        # Use pre-computed annotation if available
+        if hasattr(obj, 'upcoming_classes_in_cohorts'):
+            return obj.upcoming_classes_in_cohorts
+        
+        # Fallback to original logic if annotation not available
         request = self.context.get("request")
         if not request or not hasattr(request, "user"):
             return 0
 
         try:
             from apps.classes.models import Class
-            from apps.cohorts.models import Enrollment
             from django.utils import timezone
-
-            # Get student's enrolled cohorts
-            enrolled_cohorts = Enrollment.objects.filter(
-                student=request.user
-            ).values_list("cohort_id", flat=True)
+            enrolled_cohort_ids = self.context.get("enrolled_cohort_ids", [])
+            
+            if not enrolled_cohort_ids:
+                return 0
 
             return Class.objects.filter(
                 course=obj,
-                cohort_id__in=enrolled_cohorts,
+                cohort_id__in=enrolled_cohort_ids,
                 scheduled_at__gte=timezone.now(),
             ).count()
         except ImportError:
@@ -397,20 +406,19 @@ class StudentCourseSerializer(serializers.ModelSerializer):
 
         try:
             from apps.classes.models import Class
-            from apps.cohorts.models import Enrollment
             from django.utils import timezone
-
-            # Get student's enrolled cohorts
-            enrolled_cohorts = Enrollment.objects.filter(
-                student=request.user
-            ).values_list("cohort_id", flat=True)
+            enrolled_cohort_ids = self.context.get("enrolled_cohort_ids", [])
+            
+            if not enrolled_cohort_ids:
+                return None
 
             next_class = (
                 Class.objects.filter(
                     course=obj,
-                    cohort_id__in=enrolled_cohorts,
+                    cohort_id__in=enrolled_cohort_ids,
                     scheduled_at__gte=timezone.now(),
                 )
+                .select_related('cohort')
                 .order_by("scheduled_at")
                 .first()
             )

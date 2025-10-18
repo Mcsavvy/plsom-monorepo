@@ -186,10 +186,33 @@ class CourseViewSet(viewsets.ModelViewSet):
             )
         )
 
-        # Get all courses that match the student's program types
+        # Get student's enrolled cohorts once to avoid N+1 queries
+        enrolled_cohort_ids = list(
+            enrolled_cohorts.values_list("cohort_id", flat=True)
+        )
+
+        # Get all courses that match the student's program types with optimized queries
+        from django.db.models import Count, Q
+        from django.utils import timezone
+
         courses = Course.objects.filter(
             program_type__in=program_types
-        ).select_related("lecturer")
+        ).select_related("lecturer").annotate(
+            # Pre-calculate class counts for student's cohorts
+            total_classes_in_cohorts=Count(
+                'classes',
+                filter=Q(classes__cohort_id__in=enrolled_cohort_ids),
+                distinct=True
+            ),
+            upcoming_classes_in_cohorts=Count(
+                'classes',
+                filter=Q(
+                    classes__cohort_id__in=enrolled_cohort_ids,
+                    classes__scheduled_at__gte=timezone.now()
+                ),
+                distinct=True
+            )
+        )
 
         # Apply filters if provided
         program_type = request.query_params.get("program_type")
@@ -206,12 +229,18 @@ class CourseViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(courses)
         if page is not None:
             serializer = StudentCourseSerializer(
-                page, many=True, context={"request": request}
+                page, many=True, context={
+                    "request": request,
+                    "enrolled_cohort_ids": enrolled_cohort_ids
+                }
             )
             return self.get_paginated_response(serializer.data)
 
         serializer = StudentCourseSerializer(
-            courses, many=True, context={"request": request}
+            courses, many=True, context={
+                "request": request,
+                "enrolled_cohort_ids": enrolled_cohort_ids
+            }
         )
         return Response(serializer.data)
 
