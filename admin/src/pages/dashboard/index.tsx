@@ -48,7 +48,7 @@ export const Dashboard = () => {
   };
 
   // Prepare chart data
-  const userDistributionData = stats
+  const userDistributionData = (stats && stats.user_stats)
     ? [
         {
           name: 'Students',
