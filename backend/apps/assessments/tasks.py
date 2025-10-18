@@ -41,8 +41,11 @@ def send_test_notification_email(test_id, notification_type, user_ids=None):
         if user_ids:
             recipients = User.objects.filter(id__in=user_ids, role="student")
         else:
-            recipients = test.cohort.students.filter(
-                role="student", is_active=True
+            # Get students enrolled in the cohort through the Enrollment model
+            recipients = User.objects.filter(
+                enrollments__cohort=test.cohort,
+                role="student", 
+                is_active=True
             )
 
         if not recipients.exists():
@@ -260,7 +263,12 @@ def send_bulk_test_notification(test_id, notification_type, chunk_size=50):
     """
     try:
         test = Test.objects.get(id=test_id)
-        recipients = test.cohort.students.filter(role="student", is_active=True)
+        # Get students enrolled in the cohort through the Enrollment model
+        recipients = User.objects.filter(
+            enrollments__cohort=test.cohort,
+            role="student", 
+            is_active=True
+        )
 
         # Process in chunks
         recipient_ids = list(recipients.values_list("id", flat=True))
