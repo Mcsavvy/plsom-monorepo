@@ -210,6 +210,8 @@ export const ClassAttendance: React.FC = () => {
         values: {},
         meta: {
           query: { class_id: id },
+          // Override the id for audit log to use only the numeric class ID
+          id: parseInt(id),
         },
       },
       {

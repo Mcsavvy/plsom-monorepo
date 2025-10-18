@@ -75,7 +75,18 @@ class CreateAuditLogSerializer(serializers.ModelSerializer):
             if content_type:
                 validated_data["content_type"] = content_type
                 if object_id:
-                    validated_data["object_id"] = object_id
+                    # Handle cases where object_id might contain non-numeric characters
+                    # Extract only the numeric part for database storage
+                    if isinstance(object_id, str) and '/' in object_id:
+                        # Extract the numeric part before the first '/'
+                        numeric_part = object_id.split('/')[0]
+                        try:
+                            validated_data["object_id"] = int(numeric_part)
+                        except ValueError:
+                            # If we can't parse it as an integer, don't set object_id
+                            pass
+                    else:
+                        validated_data["object_id"] = object_id
 
         # Set author from request user or provided data
         if request and request.user.is_authenticated:
