@@ -68,7 +68,7 @@ export const Dashboard = () => {
       ]
     : [];
 
-  const courseProgramData = stats
+  const courseProgramData = ( stats && stats.course_stats)
     ? Object.entries(stats.course_stats.courses_by_program).map(
         ([program, count]) => ({
           name: program === 'certificate' ? 'Certificate' : 'Diploma',
@@ -77,7 +77,7 @@ export const Dashboard = () => {
       )
     : [];
 
-  const testStatusData = stats
+  const testStatusData = ( stats && stats.assessment_stats)
     ? [
         {
           name: 'Published',
