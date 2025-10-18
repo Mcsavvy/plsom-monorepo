@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Test, Question, QuestionOption, Submission, Answer
 from drf_spectacular.utils import extend_schema_field
-from django.db import transaction
+from django.db import transaction, models
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -425,6 +425,11 @@ class TestSerializer(serializers.ModelSerializer):
         question_mapping = {}
         option_mapping = {}
 
+        # Get the highest existing order value to avoid conflicts
+        max_existing_order = test.questions.aggregate(
+            max_order=models.Max('order')
+        )['max_order'] or -1
+
         # Step 1: Create new questions and options
         for order, question_data in enumerate(questions_data):
             options_data = question_data.pop("options", [])
@@ -432,8 +437,10 @@ class TestSerializer(serializers.ModelSerializer):
 
             # Create new question (remove old ID to let Django generate new one)
             question_data.pop("id", None)
+            # Use order values that don't conflict with existing ones
+            new_order = max_existing_order + 1 + order
             new_question = Question.objects.create(
-                test=test, order=order, **question_data
+                test=test, order=new_order, **question_data
             )
 
             # Store mapping if this was an existing question
@@ -454,6 +461,9 @@ class TestSerializer(serializers.ModelSerializer):
 
         # Step 3: Clean up old questions and options (after references are updated)
         self._cleanup_old_instances(test, question_mapping.keys())
+        
+        # Step 4: Reorder questions to be sequential starting from 0
+        self._reorder_questions_sequentially(test)
 
     def _create_options_with_mapping(self, question, options_data):
         """Create options and return mapping of old to new option IDs."""
@@ -502,6 +512,13 @@ class TestSerializer(serializers.ModelSerializer):
         """Clean up old question and option instances after references are updated."""
         # Delete old questions (this will cascade to old options)
         Question.objects.filter(id__in=old_question_ids).delete()
+
+    def _reorder_questions_sequentially(self, test):
+        """Reorder all questions in a test to be sequential starting from 0."""
+        questions = test.questions.all().order_by('order', 'created_at')
+        for index, question in enumerate(questions):
+            question.order = index
+            question.save(update_fields=['order'])
 
     def _safe_update_questions(self, test, questions_data):
         """Safely update questions, protecting existing answers from being deleted."""
