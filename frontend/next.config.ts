@@ -23,7 +23,7 @@ const serwistConfig = {
 
 const sentryConfig = {
   org: "futurdevs",
-  project: "plsom",
+  project: "plsom-student",
   // Only print logs for uploading source maps in CI
   // Set to `true` to suppress logs
   silent: !process.env.CI,
