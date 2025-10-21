@@ -9,35 +9,72 @@ export function ServiceWorkerRegister() {
       "serviceWorker" in navigator &&
       process.env.NODE_ENV === "production"
     ) {
-      // Register the service worker
-      navigator.serviceWorker
-        .register("/sw.js", {
-          scope: "/",
-        })
-        .then((registration) => {
-          console.log("✅ Service Worker registered successfully:", registration);
-          
-          // Check for updates
-          registration.addEventListener("updatefound", () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                  // New content is available
-                  console.log("🔄 New content available! Please refresh.");
-                  
-                  // Optionally show a toast or notification to user
-                  if (confirm("New version available! Would you like to update?")) {
-                    window.location.reload();
-                  }
-                }
-              });
+      // Check if service worker is already registered
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        if (registrations.length > 0) {
+          console.log("✅ Service Worker already registered");
+          return;
+        }
+
+        // Add a small delay to ensure the page is fully loaded
+        setTimeout(() => {
+
+        // Register the service worker with proper error handling
+        const registerSW = async () => {
+          try {
+            // First check if the service worker file exists
+            const response = await fetch("/sw.js", { method: "HEAD" });
+            if (!response.ok) {
+              console.warn("⚠️ Service Worker file not found, skipping registration");
+              return;
             }
-          });
-        })
-        .catch((error) => {
-          console.error("❌ Service Worker registration failed:", error);
-        });
+
+            const registration = await navigator.serviceWorker.register("/sw.js", {
+              scope: "/",
+            });
+            
+            console.log("✅ Service Worker registered successfully:", registration);
+            
+            // Check for updates
+            registration.addEventListener("updatefound", () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener("statechange", () => {
+                  if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                    // New content is available
+                    console.log("🔄 New content available! Please refresh.");
+                    
+                    // Optionally show a toast or notification to user
+                    if (confirm("New version available! Would you like to update?")) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              }
+            });
+          } catch (error: any) {
+            console.error("❌ Service Worker registration failed:", error);
+            
+            // Handle specific error types
+            if (error.name === "SecurityError") {
+              console.error("Service Worker registration blocked by security policy");
+            } else if (error.name === "InvalidStateError") {
+              console.error("Service Worker registration in invalid state");
+            } else if (error.name === "NetworkError") {
+              console.error("Service Worker file not found or network error");
+            } else {
+              console.error("Unknown Service Worker registration error:", error);
+            }
+            
+            // Don't rethrow the error to prevent unhandled promise rejection
+          }
+        };
+
+        registerSW();
+        }, 1000); // 1 second delay
+      }).catch((error) => {
+        console.error("❌ Failed to check existing registrations:", error);
+      });
 
       // Listen for service worker messages
       navigator.serviceWorker.addEventListener("message", (event) => {
@@ -66,6 +103,26 @@ export function ServiceWorkerRegister() {
         console.log("🔄 Service Worker controller changed");
         window.location.reload();
       });
+
+      // Add global error handler for unhandled promise rejections
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        // Check if it's a service worker related error
+        if (event.reason && typeof event.reason === 'object') {
+          const error = event.reason;
+          if (error.message && error.message.includes('service worker')) {
+            console.warn("🚫 Caught Service Worker related unhandled rejection:", error);
+            event.preventDefault(); // Prevent the error from being logged to console
+            return;
+          }
+        }
+      };
+
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+      // Cleanup
+      return () => {
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      };
     }
   }, []);
 
