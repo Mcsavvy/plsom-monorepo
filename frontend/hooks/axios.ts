@@ -207,14 +207,15 @@ export function useClient() {
   const handleAuthFail = useCallback(() => {
     session && clearSession();
   }, [clearSession, session]);
+  
   const client = useMemo(() => {
     if (!session) throw "No session is active";
     const axiosInstance = createAxiosInstance({
-      token: session?.tokens.access,
+      token: session.tokens.access,
       onAuthFail: handleAuthFail,
     });
     return axiosInstance;
-  }, [session]);
+  }, [session?.tokens.access, handleAuthFail]);
 
   return client;
 }

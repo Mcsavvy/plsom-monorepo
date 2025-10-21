@@ -148,24 +148,29 @@ export function useAuth() {
 
   const refreshLogin = useCallback(async () => {
     if (!session) throw "No session is active";
+    
+    // Create a fresh client instance for token refresh to avoid stale tokens
+    const refreshClient = createAxiosInstance({});
     const tokenResponse = await _refreshToken(
-      client,
+      refreshClient,
       session.tokens.access,
       session.tokens.refresh
     );
     setSession({ ...session, tokens: tokenResponse });
-  }, [client, setSession, session]);
+  }, [setSession, session]);
 
   const logout = useCallback(async () => {
     if (!session) throw "No session is active";
     try {
-      await _logout(client, session.tokens.access, session.tokens.refresh);
+      // Create a fresh client instance for logout to avoid stale tokens
+      const logoutClient = createAxiosInstance({});
+      await _logout(logoutClient, session.tokens.access, session.tokens.refresh);
     } catch (error) {
       console.error("Failed to logout", error);
     } finally {
       clearSession();
     }
-  }, [client, clearSession, session]);
+  }, [clearSession, session]);
 
   const isAuthenticated = useMemo(() => {
     return session !== null;
@@ -173,9 +178,12 @@ export function useAuth() {
 
   const refreshCurrentUser = useCallback(async () => {
     if (!session) throw "No session is active";
-    const userResponse = await _getCurrentUser(client, session.tokens.access);
+    
+    // Create a fresh client instance to ensure we use the latest token
+    const userClient = createAxiosInstance({});
+    const userResponse = await _getCurrentUser(userClient, session.tokens.access);
     setSession({ ...session, user: userResponse });
-  }, [client, setSession, session]);
+  }, [setSession, session]);
 
   const requestPasswordReset = useCallback(
     async (data: ForgotPasswordRequest) => {

@@ -19,6 +19,7 @@ export function SessionRefresher({
   const { session } = useSession();
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isRefreshingRef = useRef<boolean>(false);
 
   const log = useCallback((message: string, ...args: any[]) => {
     if (debug) {
@@ -67,6 +68,14 @@ export function SessionRefresher({
       return;
     }
 
+    // Prevent multiple simultaneous refresh attempts
+    if (isRefreshingRef.current) {
+      log("Refresh already in progress, skipping");
+      return;
+    }
+
+    isRefreshingRef.current = true;
+
     try {
       log("Attempting to refresh session");
       await refreshLogin();
@@ -95,6 +104,8 @@ export function SessionRefresher({
         log("Retrying refresh after failure");
         handleRefresh();
       }, 60 * 1000);
+    } finally {
+      isRefreshingRef.current = false;
     }
   }, [session, refreshLogin, scheduleNextRefresh, log, logout]);
 
@@ -123,13 +134,18 @@ export function SessionRefresher({
       clearInterval(refreshIntervalRef.current);
       refreshIntervalRef.current = null;
     }
+    // Reset refresh flag when clearing timeouts
+    isRefreshingRef.current = false;
   }, []);
 
   // Effect to handle session changes
   useEffect(() => {
     if (session) {
       log("Session detected, scheduling refresh");
-      scheduleNextRefresh();
+      // Only schedule if not currently refreshing to avoid conflicts
+      if (!isRefreshingRef.current) {
+        scheduleNextRefresh();
+      }
       startPeriodicCheck();
     } else {
       log("No session, clearing timeouts");
