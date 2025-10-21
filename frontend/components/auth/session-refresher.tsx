@@ -77,10 +77,17 @@ export function SessionRefresher({
     } catch (error: any) {
       log("Failed to refresh session:", error);
 
+      // Handle undefined errors and authentication failures
+      if (error === undefined || error === null) {
+        log("Received undefined error during refresh, likely due to redirect");
+        return;
+      }
+
       // If the error is a 401, logout the user
-      if (Object.hasOwn(error, "statusCode") && error.statusCode === 401) {
+      if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 401) {
         console.log("401 error, logging out");
         logout();
+        return; // Don't retry after logout
       }
 
       // If refresh fails, try again in 1 minute

@@ -66,6 +66,20 @@ export default function HomePage() {
         setClasses(classesData);
         setTests(testsData);
       } catch (err) {
+        // Handle undefined errors and provide proper error handling
+        if (err === undefined || err === null) {
+          console.warn("Received undefined error, likely due to authentication redirect");
+          setError("Session expired. Please log in again.");
+          return;
+        }
+        
+        // Check if it's an authentication error
+        if (err && typeof err === 'object' && 'statusCode' in err && err.statusCode === 401) {
+          console.log("401 error, logging out");
+          setError("Session expired. Please log in again.");
+          return;
+        }
+        
         toastError(err, "Failed to load dashboard data. Please try again.");
         setError("Failed to load dashboard data. Please try again.");
       } finally {

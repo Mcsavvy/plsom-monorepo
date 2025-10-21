@@ -30,29 +30,35 @@ export function toastError(
 ): void {
   let message: string;
 
-  Sentry.captureException(error);
-
-  // Handle custom HttpError type
-  if (error && typeof error === "object" && "message" in error && "statusCode" in error) {
-    const httpError = error as HttpError;
-    message = httpError.message || fallbackMessage;
-  }
-  // Handle standard Error instances
-  else if (error instanceof Error) {
-    message = error.message || fallbackMessage;
-  }
-  // Handle string errors
-  else if (typeof error === "string") {
-    message = error || fallbackMessage;
-  }
-  // Handle objects with message property
-  else if (error && typeof error === "object" && "message" in error) {
-    const errorObj = error as { message: unknown };
-    message = typeof errorObj.message === "string" ? errorObj.message : fallbackMessage;
-  }
-  // Fallback for any other type
-  else {
+  // Handle undefined/null errors gracefully
+  if (error === undefined || error === null) {
+    console.warn("Received undefined/null error in toastError");
     message = fallbackMessage;
+  } else {
+    Sentry.captureException(error);
+
+    // Handle custom HttpError type
+    if (error && typeof error === "object" && "message" in error && "statusCode" in error) {
+      const httpError = error as HttpError;
+      message = httpError.message || fallbackMessage;
+    }
+    // Handle standard Error instances
+    else if (error instanceof Error) {
+      message = error.message || fallbackMessage;
+    }
+    // Handle string errors
+    else if (typeof error === "string") {
+      message = error || fallbackMessage;
+    }
+    // Handle objects with message property
+    else if (error && typeof error === "object" && "message" in error) {
+      const errorObj = error as { message: unknown };
+      message = typeof errorObj.message === "string" ? errorObj.message : fallbackMessage;
+    }
+    // Fallback for any other type
+    else {
+      message = fallbackMessage;
+    }
   }
 
   // Ensure we have a valid message

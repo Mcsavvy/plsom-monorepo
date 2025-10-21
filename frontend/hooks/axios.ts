@@ -183,11 +183,18 @@ export function createAxiosInstance({
     error => {
       const customError = parseError(error);
       Sentry.captureException(customError);
-      if (
-        customError.statusCode == 401 &&
-        customError.message == "Given token not valid for any token type"
-      ) {
-        if (onAuthFail) return onAuthFail();
+      
+      // Handle 401 errors with proper cleanup
+      if (customError.statusCode === 401) {
+        if (onAuthFail) {
+          // Call onAuthFail but don't return its result to avoid undefined errors
+          onAuthFail();
+          // Return a proper error object instead of undefined
+          return Promise.reject({
+            message: "Authentication failed. Please log in again.",
+            statusCode: 401
+          });
+        }
       }
       return Promise.reject(customError);
     }
