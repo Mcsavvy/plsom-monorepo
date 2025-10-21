@@ -42,22 +42,22 @@
     {
       "name": "Courses",
       "url": "/courses",
-      "description": ""
+      "description": "All courses available"
     },
     {
       "name": "Classes",
       "url": "/classes",
-      "description": ""
+      "description": "All classes available"
     },
     {
       "name": "Tests",
       "url": "/tests",
-      "description": ""
+      "description": "All tests available"
     },
     {
       "name": "My Profile",
       "url": "/profile",
-      "description": ""
+      "description": "Your profile"
     }
   ],
   "dir": "ltr",
