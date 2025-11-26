@@ -295,9 +295,7 @@ class CourseCreateUpdateSerializer(serializers.ModelSerializer):
 class StudentCourseSerializer(serializers.ModelSerializer):
     """Serializer for courses viewed by students with relevant information"""
 
-    lecturer_name = serializers.CharField(
-        source="lecturer.get_full_name", read_only=True
-    )
+    lecturer_name = serializers.SerializerMethodField()
     total_classes_in_my_cohorts = serializers.SerializerMethodField()
     upcoming_classes_in_my_cohorts = serializers.SerializerMethodField()
     next_class_in_my_cohorts = serializers.SerializerMethodField()
@@ -318,6 +316,13 @@ class StudentCourseSerializer(serializers.ModelSerializer):
             "next_class_in_my_cohorts",
             "has_classes_in_my_cohorts",
         ]
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_lecturer_name(self, obj):
+        """Get lecturer's full name, or None if no lecturer is assigned"""
+        if obj.lecturer:
+            return obj.lecturer.get_full_name()
+        return None
 
     @extend_schema_field(serializers.BooleanField)
     def get_has_classes_in_my_cohorts(self, obj):

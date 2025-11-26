@@ -7,7 +7,7 @@ export const courseSchema = z.object({
   program_type: z.enum(["certificate", "diploma"]),
   module_count: z.number().min(0),
   description: z.string(),
-  lecturer_name: z.string(),
+  lecturer_name: z.string().nullable(),
   is_active: z.boolean(),
   total_classes_in_my_cohorts: z.number(),
   upcoming_classes_in_my_cohorts: z.number(),
@@ -87,7 +87,7 @@ export function transformCourseToCardData(course: Course): CourseCardData {
   return {
     id: course.id,
     title: course.name,
-    instructor: course.lecturer_name,
+    instructor: course.lecturer_name || "No lecturer assigned",
     programType: course.program_type,
     moduleCount: course.module_count,
     description: course.description,

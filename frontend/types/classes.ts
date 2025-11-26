@@ -14,7 +14,10 @@ export const classAttendanceSchema = z.object({
 export const classSchema = z.object({
   id: z.number(),
   course_name: z.string(),
-  lecturer_name: z.string(),
+  lecturer_name: z.preprocess(
+    (val) => val === undefined ? null : val,
+    z.string().nullable()
+  ),
   title: z.string().max(200),
   description: z.string(),
   scheduled_at: z.string(),
@@ -116,7 +119,7 @@ export function transformClassToCardData(classData: Class): ClassCardData {
     id: classData.id,
     title: classData.title,
     courseName: classData.course_name,
-    lecturerName: classData.lecturer_name,
+    lecturerName: classData.lecturer_name ?? "TBA",
     description: classData.description,
     scheduledAt,
     durationMinutes: classData.duration_minutes,

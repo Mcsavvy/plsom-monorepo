@@ -477,9 +477,7 @@ class StudentClassSerializer(serializers.ModelSerializer):
     """Serializer for classes viewed by students"""
 
     course_name = serializers.CharField(source="course.name", read_only=True)
-    lecturer_name = serializers.CharField(
-        source="lecturer.get_full_name", read_only=True
-    )
+    lecturer_name = serializers.SerializerMethodField()
     can_join = serializers.SerializerMethodField()
     my_attendance = serializers.SerializerMethodField()
 
@@ -499,6 +497,13 @@ class StudentClassSerializer(serializers.ModelSerializer):
             "can_join",
             "my_attendance",
         ]
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_lecturer_name(self, obj):
+        """Get lecturer's full name, or None if no lecturer"""
+        if obj.lecturer:
+            return obj.lecturer.get_full_name()
+        return None
 
     @extend_schema_field(serializers.BooleanField)
     def get_can_join(self, obj):
