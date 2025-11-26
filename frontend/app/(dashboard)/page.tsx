@@ -421,7 +421,7 @@ export default function HomePage() {
                     <div
                       className={`h-20 ${course.color} relative flex items-center justify-center rounded-t-xl`}
                     >
-                      <div className="absolute top-2 right-2">
+                      <div className="absolute z-10 top-2 right-2">
                         {course.programType === "diploma" ? (
                           <GraduationCap
                             className={`h-4 w-4 ${course.textColor}`}

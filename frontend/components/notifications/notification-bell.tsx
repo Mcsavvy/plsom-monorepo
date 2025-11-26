@@ -75,11 +75,15 @@ export function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[380px] p-0" align="end" sideOffset={8}>
+      <PopoverContent
+        className="flex max-h-[70vh] w-[380px] flex-col p-0 sm:h-[400px]"
+        align="end"
+        sideOffset={8}
+      >
         <div className="flex items-center justify-between border-b p-4">
           <h3 className="font-semibold">Notifications</h3>
         </div>
-        <div className="h-[400px]">
+        <div className="min-h-0 flex-1">
           <NotificationList
             notifications={notifications}
             isLoading={isLoading}
