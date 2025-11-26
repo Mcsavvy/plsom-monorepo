@@ -29,6 +29,7 @@ import { Button } from './ui/button';
 import { RefreshCcw } from 'lucide-react';
 import React from 'react';
 import { UserIdentity } from '@/types/user';
+import { NotificationBell } from './notifications';
 
 export function AppSidebar() {
   const { data: user } = useGetIdentity<UserIdentity>();
@@ -57,42 +58,45 @@ export function AppSidebar() {
     <SidebarErrorBoundary>
       <Sidebar variant='inset' className='border-r-0 bg-background'>
         <SidebarHeader className='p-4'>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton size='lg' asChild>
-                <Link to='/' className='flex items-center gap-3'>
-                  <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-white shadow-sm border'>
-                    <img
-                      src='/logo.png'
-                      alt='PLSOM Logo'
-                      className='size-6 object-contain'
-                      onError={e => {
-                        // Fallback to text if logo fails to load
-                        e.currentTarget.style.display = 'none';
-                        (
-                          e.currentTarget.nextElementSibling as HTMLElement
-                        ).style.display = 'flex';
-                      }}
-                    />
-                    <div
-                      className='size-6 items-center justify-center text-xs font-bold text-primary hidden'
-                      style={{ display: 'none' }}
-                    >
-                      P
+          <div className='flex items-center justify-between gap-2'>
+            <SidebarMenu className='flex-1'>
+              <SidebarMenuItem>
+                <SidebarMenuButton size='lg' asChild>
+                  <Link to='/' className='flex items-center gap-3'>
+                    <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-white shadow-sm border'>
+                      <img
+                        src='/logo.png'
+                        alt='PLSOM Logo'
+                        className='size-6 object-contain'
+                        onError={e => {
+                          // Fallback to text if logo fails to load
+                          e.currentTarget.style.display = 'none';
+                          (
+                            e.currentTarget.nextElementSibling as HTMLElement
+                          ).style.display = 'flex';
+                        }}
+                      />
+                      <div
+                        className='size-6 items-center justify-center text-xs font-bold text-primary hidden'
+                        style={{ display: 'none' }}
+                      >
+                        P
+                      </div>
                     </div>
-                  </div>
-                  <div className='grid flex-1 text-left leading-tight'>
-                    <span className='truncate font-semibold text-sm'>
-                      PLSOM
-                    </span>
-                    <span className='truncate text-xs text-muted-foreground'>
-                      Admin Portal
-                    </span>
-                  </div>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+                    <div className='grid flex-1 text-left leading-tight'>
+                      <span className='truncate font-semibold text-sm'>
+                        PLSOM
+                      </span>
+                      <span className='truncate text-xs text-muted-foreground'>
+                        Admin Portal
+                      </span>
+                    </div>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            <NotificationBell />
+          </div>
         </SidebarHeader>
 
         <SidebarContent className='px-3'>
@@ -104,60 +108,62 @@ export function AppSidebar() {
               <SidebarMenu className='space-y-2'>
                 {menuItems.length === 0 ? (
                   // Loading skeleton
-                  (<div className='space-y-0'>
+                  <div className='space-y-0'>
                     {[...Array(4)].map((_, i) => (
                       <div
                         key={i}
                         className='h-8 bg-muted rounded-md animate-pulse'
                       />
                     ))}
-                  </div>)
+                  </div>
                 ) : menuItems.length > 0 ? (
-                  menuItems.filter(item => item.name != "attendance").map(item => {
-                    const isActive =
-                      selectedKey === item.key ||
-                      isActiveRoute(item.route || '');
+                  menuItems
+                    .filter(item => item.name != 'attendance')
+                    .map(item => {
+                      const isActive =
+                        selectedKey === item.key ||
+                        isActiveRoute(item.route || '');
 
-                    return (
-                      <SidebarMenuItem key={item.key}>
-                        <SidebarMenuButton
-                          tooltip={item.label}
-                          asChild
-                          className={`h-8 px-2 hover:bg-accent rounded-md transition-colors ${isActive ? 'bg-accent font-medium' : ''}`}
-                        >
-                          <Link
-                            to={item.route || '#'}
-                            className='flex items-center gap-3'
+                      return (
+                        <SidebarMenuItem key={item.key}>
+                          <SidebarMenuButton
+                            tooltip={item.label}
+                            asChild
+                            className={`h-8 px-2 hover:bg-accent rounded-md transition-colors ${isActive ? 'bg-accent font-medium' : ''}`}
                           >
-                            {item.icon ? (
-                              React.isValidElement(item.icon) ? (
-                                React.cloneElement(
-                                  item.icon as React.ReactElement,
-                                  { className: 'size-4' }
+                            <Link
+                              to={item.route || '#'}
+                              className='flex items-center gap-3'
+                            >
+                              {item.icon ? (
+                                React.isValidElement(item.icon) ? (
+                                  React.cloneElement(
+                                    item.icon as React.ReactElement,
+                                    { className: 'size-4' }
+                                  )
+                                ) : (
+                                  <span className='size-4 flex items-center justify-center'>
+                                    {typeof item.icon === 'function'
+                                      ? React.createElement(item.icon, {
+                                          className: 'size-4',
+                                        })
+                                      : item.icon}
+                                  </span>
                                 )
                               ) : (
-                                <span className='size-4 flex items-center justify-center'>
-                                  {typeof item.icon === 'function'
-                                    ? React.createElement(item.icon, {
-                                        className: 'size-4',
-                                      })
-                                    : item.icon}
-                                </span>
-                              )
-                            ) : (
-                              <div className='size-4 rounded bg-muted flex items-center justify-center'>
-                                <span className='text-xs'>•</span>
-                              </div>
-                            )}
-                            <span className='text-sm'>{item.label}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })
+                                <div className='size-4 rounded bg-muted flex items-center justify-center'>
+                                  <span className='text-xs'>•</span>
+                                </div>
+                              )}
+                              <span className='text-sm'>{item.label}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })
                 ) : (
                   // Empty state
-                  (<div className='text-center py-8'>
+                  <div className='text-center py-8'>
                     <AlertCircle className='h-6 w-6 mx-auto text-muted-foreground mb-2' />
                     <p className='text-sm text-muted-foreground mb-2'>
                       No menu items available
@@ -170,7 +176,7 @@ export function AppSidebar() {
                       <RefreshCcw className='h-4 w-4 mr-2' />
                       Reload
                     </Button>
-                  </div>)
+                  </div>
                 )}
               </SidebarMenu>
             </SidebarGroupContent>
