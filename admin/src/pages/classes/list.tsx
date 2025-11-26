@@ -394,11 +394,7 @@ export const ClassesList: React.FC = () => {
   });
 
   const {
-    reactTable: {
-      getHeaderGroups,
-      getRowModel,
-
-    },
+    reactTable: { getHeaderGroups, getRowModel },
     refineCore: {
       tableQuery: { data, isLoading, isError, error },
       filters,

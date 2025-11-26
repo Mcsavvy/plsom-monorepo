@@ -84,14 +84,16 @@ interface Invitation {
 export const InvitationsEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { list } = useNavigation();
-  const { mutate: updateInvitation, mutation: {
-    isPending: isUpdating
-  } } = useUpdate();
+  const {
+    mutate: updateInvitation,
+    mutation: { isPending: isUpdating },
+  } = useUpdate();
   const [error, setError] = useState<string>('');
 
-  const { result: invitationData, query: {
-    isLoading
-  } } = useOne<Invitation>({
+  const {
+    result: invitationData,
+    query: { isLoading },
+  } = useOne<Invitation>({
     resource: 'invitations',
     id: id,
   });

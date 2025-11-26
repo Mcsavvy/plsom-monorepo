@@ -35,7 +35,7 @@ import { transformSubmission } from '@/utils/dataTransformers';
 
 export const SubmissionGrade: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const goBack = useBack()
+  const goBack = useBack();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gradingData, setGradingData] = useState<{
@@ -53,11 +53,7 @@ export const SubmissionGrade: React.FC = () => {
 
   const {
     result: submission,
-    query: {
-      isLoading,
-      isError,
-      error
-    }
+    query: { isLoading, isError, error },
   } = useOne<Submission>({
     resource: 'submissions',
     id,
@@ -236,9 +232,11 @@ export const SubmissionGrade: React.FC = () => {
           <div className='space-y-3'>
             {/* Available Options */}
             <div>
-              <p className='text-sm font-medium text-gray-700 mb-2'>Available Options:</p>
+              <p className='text-sm font-medium text-gray-700 mb-2'>
+                Available Options:
+              </p>
               <div className='space-y-1'>
-                {answer.questionOptions.map((option) => (
+                {answer.questionOptions.map(option => (
                   <div
                     key={option.id}
                     className={`flex items-center space-x-2 p-2 rounded-md border ${
@@ -247,20 +245,24 @@ export const SubmissionGrade: React.FC = () => {
                         : 'bg-gray-50 border-gray-200'
                     }`}
                   >
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      answer.selectedOptions.includes(option.id)
-                        ? 'border-blue-500 bg-blue-500'
-                        : 'border-gray-300'
-                    }`}>
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        answer.selectedOptions.includes(option.id)
+                          ? 'border-blue-500 bg-blue-500'
+                          : 'border-gray-300'
+                      }`}
+                    >
                       {answer.selectedOptions.includes(option.id) && (
                         <div className='w-2 h-2 bg-white rounded-full' />
                       )}
                     </div>
-                    <span className={`text-sm ${
-                      answer.selectedOptions.includes(option.id)
-                        ? 'text-blue-900 font-medium'
-                        : 'text-gray-600'
-                    }`}>
+                    <span
+                      className={`text-sm ${
+                        answer.selectedOptions.includes(option.id)
+                          ? 'text-blue-900 font-medium'
+                          : 'text-gray-600'
+                      }`}
+                    >
                       {option.text}
                     </span>
                     {option.isCorrect && (

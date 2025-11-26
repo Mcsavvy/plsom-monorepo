@@ -142,7 +142,8 @@ export const TestsCreate: React.FC = () => {
       randomize_questions: false,
       status: 'draft',
       available_from_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      available_until_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      available_until_timezone:
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
       questions: [
         {
           question_type: 'text',
@@ -656,11 +657,17 @@ export const TestsCreate: React.FC = () => {
                               value={field.value}
                               onChange={(value, timezone) => {
                                 field.onChange(value);
-                                form.setValue('available_from_timezone', timezone);
+                                form.setValue(
+                                  'available_from_timezone',
+                                  timezone
+                                );
                               }}
                               timezone={form.watch('available_from_timezone')}
-                              onTimezoneChange={(timezone) => {
-                                form.setValue('available_from_timezone', timezone);
+                              onTimezoneChange={timezone => {
+                                form.setValue(
+                                  'available_from_timezone',
+                                  timezone
+                                );
                               }}
                             />
                           </FormControl>
@@ -683,11 +690,17 @@ export const TestsCreate: React.FC = () => {
                               value={field.value}
                               onChange={(value, timezone) => {
                                 field.onChange(value);
-                                form.setValue('available_until_timezone', timezone);
+                                form.setValue(
+                                  'available_until_timezone',
+                                  timezone
+                                );
                               }}
                               timezone={form.watch('available_until_timezone')}
-                              onTimezoneChange={(timezone) => {
-                                form.setValue('available_until_timezone', timezone);
+                              onTimezoneChange={timezone => {
+                                form.setValue(
+                                  'available_until_timezone',
+                                  timezone
+                                );
                               }}
                             />
                           </FormControl>

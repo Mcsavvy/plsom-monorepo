@@ -286,11 +286,7 @@ export const EnrollmentsList: React.FC = () => {
   });
 
   const {
-    reactTable: {
-      getHeaderGroups,
-      getRowModel,
-
-    },
+    reactTable: { getHeaderGroups, getRowModel },
     refineCore: {
       tableQuery: { data, isLoading, error },
       filters,

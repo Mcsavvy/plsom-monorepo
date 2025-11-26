@@ -108,11 +108,11 @@ export const RESOURCES: ResourceProps[] = [
     },
   },
   {
-    name: "attendance",
-    list: "/classes/:id/attendance",
+    name: 'attendance',
+    list: '/classes/:id/attendance',
     meta: {
-      icon: React.createElement(Users)
-    }
+      icon: React.createElement(Users),
+    },
   },
   {
     name: 'tests',
@@ -177,4 +177,4 @@ export const USER_TITLE_OPTIONS = [
   'Elder',
 ] as const;
 
-export type UserTitle = typeof USER_TITLE_OPTIONS[number];
+export type UserTitle = (typeof USER_TITLE_OPTIONS)[number];

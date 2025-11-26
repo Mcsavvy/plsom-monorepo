@@ -48,54 +48,57 @@ export const Dashboard = () => {
   };
 
   // Prepare chart data
-  const userDistributionData = (stats && stats.user_stats)
-    ? [
-        {
-          name: 'Students',
-          value: stats.user_stats.total_students,
-          color: '#3b82f6',
-        },
-        {
-          name: 'Lecturers',
-          value: stats.user_stats.total_lecturers,
-          color: '#10b981',
-        },
-        {
-          name: 'Admins',
-          value: stats.user_stats.total_admins,
-          color: '#f59e0b',
-        },
-      ]
-    : [];
+  const userDistributionData =
+    stats && stats.user_stats
+      ? [
+          {
+            name: 'Students',
+            value: stats.user_stats.total_students,
+            color: '#3b82f6',
+          },
+          {
+            name: 'Lecturers',
+            value: stats.user_stats.total_lecturers,
+            color: '#10b981',
+          },
+          {
+            name: 'Admins',
+            value: stats.user_stats.total_admins,
+            color: '#f59e0b',
+          },
+        ]
+      : [];
 
-  const courseProgramData = ( stats && stats.course_stats)
-    ? Object.entries(stats.course_stats.courses_by_program).map(
-        ([program, count]) => ({
-          name: program === 'certificate' ? 'Certificate' : 'Diploma',
-          courses: count,
-        })
-      )
-    : [];
+  const courseProgramData =
+    stats && stats.course_stats
+      ? Object.entries(stats.course_stats.courses_by_program).map(
+          ([program, count]) => ({
+            name: program === 'certificate' ? 'Certificate' : 'Diploma',
+            courses: count,
+          })
+        )
+      : [];
 
-  const testStatusData = ( stats && stats.assessment_stats)
-    ? [
-        {
-          name: 'Published',
-          value: stats.assessment_stats.published_tests,
-          color: '#10b981',
-        },
-        {
-          name: 'Draft',
-          value: stats.assessment_stats.draft_tests,
-          color: '#f59e0b',
-        },
-        {
-          name: 'Archived',
-          value: stats.assessment_stats.archived_tests,
-          color: '#6b7280',
-        },
-      ]
-    : [];
+  const testStatusData =
+    stats && stats.assessment_stats
+      ? [
+          {
+            name: 'Published',
+            value: stats.assessment_stats.published_tests,
+            color: '#10b981',
+          },
+          {
+            name: 'Draft',
+            value: stats.assessment_stats.draft_tests,
+            color: '#f59e0b',
+          },
+          {
+            name: 'Archived',
+            value: stats.assessment_stats.archived_tests,
+            color: '#6b7280',
+          },
+        ]
+      : [];
 
   if (error) {
     return (
@@ -541,7 +544,7 @@ export const Dashboard = () => {
                 <div className='space-y-2'>
                   {stats.recent_activity.recent_classes
                     .slice(0, 3)
-                    .map((classItem) => (
+                    .map(classItem => (
                       <div
                         key={classItem.id}
                         className='flex items-center gap-2'
@@ -566,7 +569,7 @@ export const Dashboard = () => {
                   Latest Tests
                 </h4>
                 <div className='space-y-2'>
-                  {stats.recent_activity.recent_tests.slice(0, 3).map((test) => (
+                  {stats.recent_activity.recent_tests.slice(0, 3).map(test => (
                     <div key={test.id} className='flex items-center gap-2'>
                       <ClipboardCheck className='h-3 w-3 text-green-500' />
                       <span className='text-sm truncate'>{test.title}</span>
@@ -592,7 +595,7 @@ export const Dashboard = () => {
                   <div className='space-y-2'>
                     {stats.recent_activity.recent_enrollments
                       .slice(0, 3)
-                      .map((enrollment) => (
+                      .map(enrollment => (
                         <div
                           key={enrollment.id}
                           className='flex items-center gap-2'

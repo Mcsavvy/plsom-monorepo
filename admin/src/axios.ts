@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { API_URL, REFRESH_TOKEN_KEY, TOKEN_KEY } from './constants';
 import { convertDRFErrorToHttpError } from './lib/errorUtils';
-import * as Sentry from "@sentry/react";
+import * as Sentry from '@sentry/react';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -49,14 +49,17 @@ const axiosProxy = new Proxy(axiosInstance, {
     const methods = ['get', 'post', 'put', 'delete', 'patch'];
     if (methods.includes(prop)) {
       return (...args: any[]) => {
-        return Sentry.startSpan({
-          name: 'backend.request',
-          op: `${prop.toUpperCase()} ${args[0]}`
-        }, async () => {
-          // @ts-ignore - prop is a string
-          const response = await target[prop](...args);
-          return response;
-        });
+        return Sentry.startSpan(
+          {
+            name: 'backend.request',
+            op: `${prop.toUpperCase()} ${args[0]}`,
+          },
+          async () => {
+            // @ts-ignore - prop is a string
+            const response = await target[prop](...args);
+            return response;
+          }
+        );
       };
     }
     return target[prop];

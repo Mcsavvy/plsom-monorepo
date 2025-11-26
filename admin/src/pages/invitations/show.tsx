@@ -48,9 +48,10 @@ export const InvitationsShow: React.FC = () => {
   const { mutate: resendInvitation } = useCustomMutation();
   const [loading, setLoading] = useState(false);
 
-  const { result: invitationData, query: {
-    isLoading
-  } } = useOne<Invitation>({
+  const {
+    result: invitationData,
+    query: { isLoading },
+  } = useOne<Invitation>({
     resource: 'invitations',
     id: id,
   });

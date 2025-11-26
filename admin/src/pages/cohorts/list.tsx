@@ -1,9 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import {
-  useNavigation,
-  useDelete,
-  useCustomMutation,
-} from '@refinedev/core';
+import { useNavigation, useDelete, useCustomMutation } from '@refinedev/core';
 import { useTable } from '@refinedev/react-table';
 import { format } from 'date-fns';
 import {
@@ -382,11 +378,7 @@ export const CohortsList: React.FC = () => {
   });
 
   const {
-    reactTable: {
-      getHeaderGroups,
-      getRowModel,
-
-    },
+    reactTable: { getHeaderGroups, getRowModel },
     refineCore: {
       tableQuery: { data, isLoading, isError, error },
       filters,
@@ -396,7 +388,6 @@ export const CohortsList: React.FC = () => {
       pageCount,
     },
   } = tableResult;
-
 
   const pagination = useTablePagination({
     table: {

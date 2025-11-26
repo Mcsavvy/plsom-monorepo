@@ -70,10 +70,10 @@ export const StaffList: React.FC = () => {
   const [globalFilter, setGlobalFilter] = useState('');
 
   const { show, edit } = useNavigation();
-  const { mutate: promoteOrDemote, mutation: {
-    isPending: isPromotingDemoting
-  } } =
-    useCustomMutation();
+  const {
+    mutate: promoteOrDemote,
+    mutation: { isPending: isPromotingDemoting },
+  } = useCustomMutation();
 
   const getRoleColor = (role: 'admin' | 'lecturer') => {
     switch (role) {
@@ -464,11 +464,7 @@ export const StaffList: React.FC = () => {
   });
 
   const {
-    reactTable: {
-      getHeaderGroups,
-      getRowModel,
-
-    },
+    reactTable: { getHeaderGroups, getRowModel },
     refineCore: {
       tableQuery: { data, isLoading, isError, error },
       filters,

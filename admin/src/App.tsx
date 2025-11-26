@@ -1,7 +1,13 @@
 import { Refine, Authenticated } from '@refinedev/core';
 
 import routerBindings from '@refinedev/react-router';
-import { BrowserRouter, Route, Routes as ReactRoutes, Outlet, Navigate, useRoutes } from 'react-router';
+import {
+  BrowserRouter,
+  Route,
+  Routes as ReactRoutes,
+  Outlet,
+  Navigate,
+} from 'react-router';
 import './App.css';
 import { authProvider } from './providers/authProvider';
 import { dataProvider } from './providers/dataProvider';
@@ -165,7 +171,7 @@ function App() {
                 afterCreate: 'show',
                 afterClone: 'list',
                 afterEdit: 'list',
-              }
+              },
             }}
           >
             <Suspense fallback={<FullPageLoader />}>
@@ -226,7 +232,10 @@ function App() {
                     element={<EnhancedClassesEdit />}
                   />
                   <Route path='classes/:id' element={<EnhancedClassesShow />} />
-                  <Route path='classes/:id/attendance' element={<EnhancedClassAttendance />} />
+                  <Route
+                    path='classes/:id/attendance'
+                    element={<EnhancedClassAttendance />}
+                  />
                   <Route path='tests' element={<EnhancedTestsList />} />
                   <Route
                     path='tests/create'

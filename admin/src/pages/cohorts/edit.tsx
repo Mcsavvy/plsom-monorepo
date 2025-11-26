@@ -89,9 +89,10 @@ export const CohortsEdit: React.FC = () => {
   const { list } = useNavigation();
   const { mutate: updateCohort } = useUpdate();
 
-  const { result: cohortData, query: {
-    isLoading
-  } } = useOne<Cohort>({
+  const {
+    result: cohortData,
+    query: { isLoading },
+  } = useOne<Cohort>({
     resource: 'cohorts',
     id: id,
   });

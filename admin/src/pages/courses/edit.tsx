@@ -66,9 +66,10 @@ export const CoursesEdit: React.FC = () => {
   const { list } = useNavigation();
   const { mutate: updateCourse } = useUpdate();
 
-  const { result: courseData, query: {
-    isLoading
-  } } = useOne<Course>({
+  const {
+    result: courseData,
+    query: { isLoading },
+  } = useOne<Course>({
     resource: 'courses',
     id: id,
     meta: {
@@ -77,18 +78,17 @@ export const CoursesEdit: React.FC = () => {
   });
 
   // Fetch lecturers for selection
-  const { result: lecturersData, query: {
-    isLoading: isLoadingLecturers
-  } } = useList<Staff>(
-    {
-      resource: 'staff',
-      pagination: { mode: 'off' },
-      filters: [{ field: 'is_active', operator: 'eq', value: true }],
-      meta: {
-        transform: true,
-      },
-    }
-  );
+  const {
+    result: lecturersData,
+    query: { isLoading: isLoadingLecturers },
+  } = useList<Staff>({
+    resource: 'staff',
+    pagination: { mode: 'off' },
+    filters: [{ field: 'is_active', operator: 'eq', value: true }],
+    meta: {
+      transform: true,
+    },
+  });
 
   const course = courseData;
   const lecturers = lecturersData?.data || [];
@@ -284,7 +284,7 @@ export const CoursesEdit: React.FC = () => {
                         max={50}
                         placeholder='Enter module count'
                         {...field}
-                        onChange={(e) => {
+                        onChange={e => {
                           const value = parseInt(e.target.value);
                           field.onChange(isNaN(value) ? 1 : value);
                         }}

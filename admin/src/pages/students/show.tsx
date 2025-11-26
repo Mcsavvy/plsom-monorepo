@@ -71,11 +71,7 @@ export const StudentsShow: React.FC = () => {
 
   const {
     result: studentData,
-    query: {
-      isLoading,
-      isError,
-      error
-    }
+    query: { isLoading, isError, error },
   } = useOne<Student>({
     resource: 'students',
     id: id,

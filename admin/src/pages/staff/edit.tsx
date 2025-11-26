@@ -57,17 +57,14 @@ export const StaffEdit: React.FC = () => {
   const { open } = useNotification();
   const [error, setError] = useState<string>('');
 
-  const { mutate: updateStaff, mutation: {
-    isPending: isUpdating
-  } } = useUpdate();
+  const {
+    mutate: updateStaff,
+    mutation: { isPending: isUpdating },
+  } = useUpdate();
 
   const {
     result: staffData,
-    query: {
-      isLoading,
-      isError,
-      error: fetchError
-    }
+    query: { isLoading, isError, error: fetchError },
   } = useOne<Staff>({
     resource: 'staff',
     id: id,

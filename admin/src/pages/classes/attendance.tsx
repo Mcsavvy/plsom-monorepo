@@ -120,12 +120,9 @@ export const ClassAttendance: React.FC = () => {
 
   // Get attendance summary for the class from URL
   const {
-    query: {
-      isLoading,
-      refetch
-    },
+    query: { isLoading, refetch },
 
-    result: attendanceData
+    result: attendanceData,
   } = useCustom<AttendanceSummary>({
     url: 'attendance/class-summary/',
     method: 'get',
@@ -140,7 +137,9 @@ export const ClassAttendance: React.FC = () => {
     },
   });
 
-  const absentStudents = attendanceData?.data?.attendance_list?.filter(student => student.status === 'absent');
+  const absentStudents = attendanceData?.data?.attendance_list?.filter(
+    student => student.status === 'absent'
+  );
 
   const handleVerifyAttendance = useCallback(
     (attendanceId: number) => {
@@ -158,7 +157,7 @@ export const ClassAttendance: React.FC = () => {
             });
             refetch();
           },
-          onError: (error) => {
+          onError: error => {
             toast({
               title: 'Error',
               description: error.message || 'Failed to verify attendance.',
@@ -187,7 +186,7 @@ export const ClassAttendance: React.FC = () => {
             });
             refetch();
           },
-          onError: (error) => {
+          onError: error => {
             toast({
               title: 'Error',
               description: error.message || 'Failed to unverify attendance.',
@@ -206,7 +205,7 @@ export const ClassAttendance: React.FC = () => {
     updateAttendance(
       {
         resource: 'attendance',
-        id:  `${id}/bulk-verify`,
+        id: `${id}/bulk-verify`,
         values: {},
         meta: {
           query: { class_id: id },
@@ -222,10 +221,11 @@ export const ClassAttendance: React.FC = () => {
           });
           refetch();
         },
-        onError: (error) => {
+        onError: error => {
           toast({
             title: 'Error',
-            description: error.message || 'Failed to verify attendance records.',
+            description:
+              error.message || 'Failed to verify attendance records.',
             variant: 'destructive',
           });
         },
@@ -242,8 +242,11 @@ export const ClassAttendance: React.FC = () => {
         values: {
           class_session_id: parseInt(id),
           student_id: parseInt(selectedStudentId),
-          join_time: attendanceData?.data?.class_info?.scheduled_at || new Date().toISOString(),
-          duration_minutes: attendanceData?.data?.class_info?.duration_minutes || 90,
+          join_time:
+            attendanceData?.data?.class_info?.scheduled_at ||
+            new Date().toISOString(),
+          duration_minutes:
+            attendanceData?.data?.class_info?.duration_minutes || 90,
           via_recording: false,
         },
       },
@@ -257,7 +260,7 @@ export const ClassAttendance: React.FC = () => {
           setSelectedStudentId('');
           refetch();
         },
-        onError: (error) => {
+        onError: error => {
           toast({
             title: 'Error',
             description: error.message || 'Failed to add manual attendance.',
@@ -277,7 +280,12 @@ export const ClassAttendance: React.FC = () => {
           <div className='flex items-center space-x-3'>
             <Avatar className='h-8 w-8'>
               <AvatarImage
-                src={row.original.student.profile_picture?.replace("b2l/", "b2/") || ''}
+                src={
+                  row.original.student.profile_picture?.replace(
+                    'b2l/',
+                    'b2/'
+                  ) || ''
+                }
                 alt={row.original.student.name}
               />
               <AvatarFallback className='text-xs'>
@@ -286,7 +294,9 @@ export const ClassAttendance: React.FC = () => {
             </Avatar>
             <div>
               <div className='font-medium'>{row.original.student.name}</div>
-              <div className='text-sm text-gray-500'>{row.original.student.email}</div>
+              <div className='text-sm text-gray-500'>
+                {row.original.student.email}
+              </div>
             </div>
           </div>
         ),
@@ -296,7 +306,9 @@ export const ClassAttendance: React.FC = () => {
         header: 'Status',
         cell: ({ row }) => (
           <Badge
-            variant={row.original.status === 'attended' ? 'default' : 'secondary'}
+            variant={
+              row.original.status === 'attended' ? 'default' : 'secondary'
+            }
             className='flex items-center gap-1'
           >
             {row.original.status === 'attended' ? (
@@ -318,20 +330,24 @@ export const ClassAttendance: React.FC = () => {
         header: 'Attendance Details',
         cell: ({ row }) => {
           const attendance = row.original.attendance;
-          if (!attendance) return <span className='text-gray-400'>No attendance record</span>;
+          if (!attendance)
+            return <span className='text-gray-400'>No attendance record</span>;
 
           return (
             <div className='space-y-1'>
               <div className='text-sm'>
-                <span className='font-medium'>Join:</span> {new Date(attendance.join_time).toLocaleTimeString()}
+                <span className='font-medium'>Join:</span>{' '}
+                {new Date(attendance.join_time).toLocaleTimeString()}
               </div>
               {attendance.leave_time && (
                 <div className='text-sm'>
-                  <span className='font-medium'>Leave:</span> {new Date(attendance.leave_time).toLocaleTimeString()}
+                  <span className='font-medium'>Leave:</span>{' '}
+                  {new Date(attendance.leave_time).toLocaleTimeString()}
                 </div>
               )}
               <div className='text-sm'>
-                <span className='font-medium'>Duration:</span> {attendance.duration_minutes}m
+                <span className='font-medium'>Duration:</span>{' '}
+                {attendance.duration_minutes}m
               </div>
               {attendance.via_recording && (
                 <Badge variant='outline' className='text-xs'>
@@ -348,7 +364,8 @@ export const ClassAttendance: React.FC = () => {
         header: 'Verification',
         cell: ({ row }) => {
           const attendance = row.original.attendance;
-          if (!attendance) return <span className='text-gray-400'>Not Attended</span>;
+          if (!attendance)
+            return <span className='text-gray-400'>Not Attended</span>;
 
           return (
             <div className='flex items-center gap-2'>
@@ -423,24 +440,26 @@ export const ClassAttendance: React.FC = () => {
             <Users className='h-8 w-8' />
             {metaLoading ? (
               <Skeleton className='h-8 w-64' />
+            ) : classMeta?.name ? (
+              `${classMeta.name} - Attendance`
             ) : (
-              classMeta?.name ? `${classMeta.name} - Attendance` : 'Class Attendance Management'
+              'Class Attendance Management'
             )}
           </h1>
           <p className='text-muted-foreground'>
-            {classMeta?.description || 'View and manage attendance for class sessions'}
+            {classMeta?.description ||
+              'View and manage attendance for class sessions'}
           </p>
         </div>
         <div className='flex gap-2'>
-          <Button
-            variant='outline'
-            onClick={() => refetch()}
-            disabled={!id}
-          >
+          <Button variant='outline' onClick={() => refetch()} disabled={!id}>
             <RefreshCw className='h-4 w-4 mr-2' />
             Refresh
           </Button>
-          <Dialog open={isAddAttendanceOpen} onOpenChange={setIsAddAttendanceOpen}>
+          <Dialog
+            open={isAddAttendanceOpen}
+            onOpenChange={setIsAddAttendanceOpen}
+          >
             <DialogTrigger asChild>
               <Button disabled={!id}>
                 <Plus className='h-4 w-4 mr-2' />
@@ -451,19 +470,26 @@ export const ClassAttendance: React.FC = () => {
               <DialogHeader>
                 <DialogTitle>Add Manual Attendance</DialogTitle>
                 <DialogDescription>
-                  Add attendance for a student who attended without using the platform.
+                  Add attendance for a student who attended without using the
+                  platform.
                 </DialogDescription>
               </DialogHeader>
               <div className='space-y-4'>
                 <div>
                   <Label htmlFor='student'>Select Student</Label>
-                  <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                  <Select
+                    value={selectedStudentId}
+                    onValueChange={setSelectedStudentId}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder='Choose a student' />
                     </SelectTrigger>
                     <SelectContent>
-                      {absentStudents?.map((student) => (
-                        <SelectItem key={student.student.id} value={student.student.id.toString()}>
+                      {absentStudents?.map(student => (
+                        <SelectItem
+                          key={student.student.id}
+                          value={student.student.id.toString()}
+                        >
                           {student.student.name} ({student.student.email})
                         </SelectItem>
                       ))}
@@ -471,10 +497,16 @@ export const ClassAttendance: React.FC = () => {
                   </Select>
                 </div>
                 <div className='flex justify-end gap-2'>
-                  <Button variant='outline' onClick={() => setIsAddAttendanceOpen(false)}>
+                  <Button
+                    variant='outline'
+                    onClick={() => setIsAddAttendanceOpen(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={handleAddManualAttendance} disabled={!selectedStudentId}>
+                  <Button
+                    onClick={handleAddManualAttendance}
+                    disabled={!selectedStudentId}
+                  >
                     Add Attendance
                   </Button>
                 </div>
@@ -491,20 +523,28 @@ export const ClassAttendance: React.FC = () => {
             <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
               <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>Total Enrolled</CardTitle>
+                  <CardTitle className='text-sm font-medium'>
+                    Total Enrolled
+                  </CardTitle>
                   <Users className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
-                  <div className='text-2xl font-bold'>{summary.total_enrolled}</div>
+                  <div className='text-2xl font-bold'>
+                    {summary.total_enrolled}
+                  </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>Attended</CardTitle>
+                  <CardTitle className='text-sm font-medium'>
+                    Attended
+                  </CardTitle>
                   <UserCheck className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
-                  <div className='text-2xl font-bold text-green-600'>{summary.total_attended}</div>
+                  <div className='text-2xl font-bold text-green-600'>
+                    {summary.total_attended}
+                  </div>
                   <p className='text-xs text-muted-foreground'>
                     {summary.attendance_rate}% attendance rate
                   </p>
@@ -516,16 +556,22 @@ export const ClassAttendance: React.FC = () => {
                   <UserX className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
-                  <div className='text-2xl font-bold text-red-600'>{summary.total_absent}</div>
+                  <div className='text-2xl font-bold text-red-600'>
+                    {summary.total_absent}
+                  </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>Verified</CardTitle>
+                  <CardTitle className='text-sm font-medium'>
+                    Verified
+                  </CardTitle>
                   <CheckCircle className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
-                  <div className='text-2xl font-bold text-blue-600'>{summary.total_verified}</div>
+                  <div className='text-2xl font-bold text-blue-600'>
+                    {summary.total_verified}
+                  </div>
                   <p className='text-xs text-muted-foreground'>
                     {summary.verification_rate}% verification rate
                   </p>
@@ -540,7 +586,9 @@ export const ClassAttendance: React.FC = () => {
               <CardHeader>
                 <CardTitle>{classInfo.title}</CardTitle>
                 <CardDescription>
-                  {classInfo.course_name} • {new Date(classInfo.scheduled_at).toLocaleDateString()} • {classInfo.duration_minutes} minutes
+                  {classInfo.course_name} •{' '}
+                  {new Date(classInfo.scheduled_at).toLocaleDateString()} •{' '}
+                  {classInfo.duration_minutes} minutes
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -559,7 +607,8 @@ export const ClassAttendance: React.FC = () => {
             <CardHeader>
               <CardTitle>Attendance Records</CardTitle>
               <CardDescription>
-                {summary && `${summary.total_attended} of ${summary.total_enrolled} students attended`}
+                {summary &&
+                  `${summary.total_attended} of ${summary.total_enrolled} students attended`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -567,7 +616,9 @@ export const ClassAttendance: React.FC = () => {
                 <Input
                   placeholder='Search students...'
                   value={globalFilter ?? ''}
-                  onChange={event => setGlobalFilter(String(event.target.value))}
+                  onChange={event =>
+                    setGlobalFilter(String(event.target.value))
+                  }
                   className='max-w-sm'
                 />
               </div>
@@ -622,7 +673,10 @@ export const ClassAttendance: React.FC = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={columns.length} className='h-24 text-center'>
+                          <TableCell
+                            colSpan={columns.length}
+                            className='h-24 text-center'
+                          >
                             No attendance records found.
                           </TableCell>
                         </TableRow>

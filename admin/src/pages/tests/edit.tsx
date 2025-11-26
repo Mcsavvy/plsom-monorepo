@@ -129,9 +129,10 @@ export const TestsEdit: React.FC = () => {
   const { list } = useNavigation();
   const { mutate: updateTest } = useUpdate();
 
-  const { result: testData, query: {
-    isLoading
-  } } = useOne<TestDetail>({
+  const {
+    result: testData,
+    query: { isLoading },
+  } = useOne<TestDetail>({
     resource: 'tests',
     id: id,
     meta: {
@@ -750,11 +751,17 @@ export const TestsEdit: React.FC = () => {
                               value={field.value}
                               onChange={(value, timezone) => {
                                 field.onChange(value);
-                                form.setValue('available_from_timezone', timezone);
+                                form.setValue(
+                                  'available_from_timezone',
+                                  timezone
+                                );
                               }}
                               timezone={form.watch('available_from_timezone')}
-                              onTimezoneChange={(timezone) => {
-                                form.setValue('available_from_timezone', timezone);
+                              onTimezoneChange={timezone => {
+                                form.setValue(
+                                  'available_from_timezone',
+                                  timezone
+                                );
                               }}
                             />
                           </FormControl>
@@ -777,11 +784,17 @@ export const TestsEdit: React.FC = () => {
                               value={field.value}
                               onChange={(value, timezone) => {
                                 field.onChange(value);
-                                form.setValue('available_until_timezone', timezone);
+                                form.setValue(
+                                  'available_until_timezone',
+                                  timezone
+                                );
                               }}
                               timezone={form.watch('available_until_timezone')}
-                              onTimezoneChange={(timezone) => {
-                                form.setValue('available_until_timezone', timezone);
+                              onTimezoneChange={timezone => {
+                                form.setValue(
+                                  'available_until_timezone',
+                                  timezone
+                                );
                               }}
                             />
                           </FormControl>

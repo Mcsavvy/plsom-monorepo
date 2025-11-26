@@ -73,10 +73,10 @@ export const Onboard: React.FC = () => {
 
   // Refine hooks for API calls
   const { mutateAsync: verifyToken } = useCustomMutation();
-  const { mutateAsync: completeOnboarding, mutation: {
-    isPending: isSubmitting
-  } } =
-    useCustomMutation();
+  const {
+    mutateAsync: completeOnboarding,
+    mutation: { isPending: isSubmitting },
+  } = useCustomMutation();
 
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),

@@ -426,18 +426,13 @@ export const SubmissionsList: React.FC = () => {
     [columns]
   );
 
-
   const tableResult = useTable<SubmissionListItem>({
     columns,
     refineCoreProps,
   });
 
   const {
-    reactTable: {
-      getHeaderGroups,
-      getRowModel,
-
-    },
+    reactTable: { getHeaderGroups, getRowModel },
     refineCore: {
       tableQuery: { data, isLoading, isError, error },
       filters,

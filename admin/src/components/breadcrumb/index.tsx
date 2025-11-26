@@ -116,7 +116,7 @@ const parseRouteForMeta = (
       potentialId &&
       (/^\d+$/.test(potentialId) || potentialId === params.id || params.id)
     ) {
-      console.log(resource, potentialId, segments[2])
+      console.log(resource, potentialId, segments[2]);
       return {
         resource,
         id: params.id || potentialId,
@@ -166,8 +166,10 @@ export const Breadcrumb = () => {
 
           // Add the action as a separate breadcrumb item
           items.push({
-            label: ACTION_DISPLAY_NAMES[routeMeta.action] || 
-                   routeMeta.action.charAt(0).toUpperCase() + routeMeta.action.slice(1),
+            label:
+              ACTION_DISPLAY_NAMES[routeMeta.action] ||
+              routeMeta.action.charAt(0).toUpperCase() +
+                routeMeta.action.slice(1),
             isLast: true,
             isAction: true,
           });
@@ -193,8 +195,9 @@ export const Breadcrumb = () => {
 
             // Add the action as a separate breadcrumb item
             items.push({
-              label: ACTION_DISPLAY_NAMES[currentAction] || 
-                     currentAction.charAt(0).toUpperCase() + currentAction.slice(1),
+              label:
+                ACTION_DISPLAY_NAMES[currentAction] ||
+                currentAction.charAt(0).toUpperCase() + currentAction.slice(1),
               isLast: true,
               isAction: true,
             });

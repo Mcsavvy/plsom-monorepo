@@ -25,13 +25,9 @@ export const useMeta = (
   const shouldFetch = enabled && Boolean(resource) && Boolean(id);
 
   const {
-    query: {
-      isLoading,
-      error,
-      refetch
-    },
+    query: { isLoading, error, refetch },
 
-    result: data
+    result: data,
   } = useCustom<MetaData>({
     url: `meta/${resource}/${id}/`,
     method: 'get',

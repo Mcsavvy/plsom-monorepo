@@ -1,9 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import {
-  useNavigation,
-  useDelete,
-  useCustomMutation,
-} from '@refinedev/core';
+import { useNavigation, useDelete, useCustomMutation } from '@refinedev/core';
 import { useTable } from '@refinedev/react-table';
 import { format } from 'date-fns';
 import {
@@ -376,7 +372,6 @@ export const InvitationsList: React.FC = () => {
   );
 
   const refineCoreProps = useMemo(
-
     () => ({
       resource: 'invitations',
       pagination: {
@@ -407,11 +402,7 @@ export const InvitationsList: React.FC = () => {
   });
 
   const {
-    reactTable: {
-      getHeaderGroups,
-      getRowModel,
-
-    },
+    reactTable: { getHeaderGroups, getRowModel },
     refineCore: {
       tableQuery: { data, isLoading, isError, error },
       filters,

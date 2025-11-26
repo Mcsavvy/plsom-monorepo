@@ -3,7 +3,7 @@ import axiosInstance from '../axios';
 import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '../constants';
 import { UserResponse, UserIdentity } from '@/types/user';
 import { transformUser } from '@/utils/dataTransformers';
-import * as Sentry from "@sentry/react";
+import * as Sentry from '@sentry/react';
 
 interface LoginResponse {
   access: string;

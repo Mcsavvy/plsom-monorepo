@@ -93,9 +93,10 @@ export const ClassesEdit: React.FC = () => {
   const { list } = useNavigation();
   const { mutate: updateClass } = useUpdate();
 
-  const { result: classData, query: {
-    isLoading
-  } } = useOne<Class>({
+  const {
+    result: classData,
+    query: { isLoading },
+  } = useOne<Class>({
     resource: 'classes',
     id: id,
     meta: {
@@ -104,9 +105,10 @@ export const ClassesEdit: React.FC = () => {
   });
 
   // Fetch courses for selection
-  const { result: coursesData, query: {
-    isLoading: isLoadingCourses
-  } } = useList<Course>({
+  const {
+    result: coursesData,
+    query: { isLoading: isLoadingCourses },
+  } = useList<Course>({
     resource: 'courses',
     pagination: { mode: 'off' },
     filters: [
@@ -122,29 +124,29 @@ export const ClassesEdit: React.FC = () => {
   });
 
   // Fetch lecturers for selection
-  const { result: lecturersData, query: {
-    isLoading: isLoadingLecturers
-  } } = useList<Staff>(
-    {
-      resource: 'staff',
-      pagination: { mode: 'off' },
-      filters: [
-        {
-          field: 'is_active',
-          operator: 'eq',
-          value: true,
-        },
-      ],
-      meta: {
-        transform: true,
+  const {
+    result: lecturersData,
+    query: { isLoading: isLoadingLecturers },
+  } = useList<Staff>({
+    resource: 'staff',
+    pagination: { mode: 'off' },
+    filters: [
+      {
+        field: 'is_active',
+        operator: 'eq',
+        value: true,
       },
-    }
-  );
+    ],
+    meta: {
+      transform: true,
+    },
+  });
 
   // Fetch cohorts for selection
-  const { result: cohortsData, query: {
-    isLoading: isLoadingCohorts
-  } } = useList<Cohort>({
+  const {
+    result: cohortsData,
+    query: { isLoading: isLoadingCohorts },
+  } = useList<Cohort>({
     resource: 'cohorts',
     pagination: { mode: 'off' },
     filters: [
@@ -499,7 +501,7 @@ export const ClassesEdit: React.FC = () => {
                             form.setValue('timezone', timezone);
                           }}
                           timezone={form.watch('timezone')}
-                          onTimezoneChange={(timezone) => {
+                          onTimezoneChange={timezone => {
                             form.setValue('timezone', timezone);
                           }}
                         />

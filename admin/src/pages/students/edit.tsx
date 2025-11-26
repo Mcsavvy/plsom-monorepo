@@ -54,17 +54,14 @@ export const StudentsEdit: React.FC = () => {
   const { open } = useNotification();
   const [error, setError] = useState<string>('');
 
-  const { mutate: updateStudent, mutation: {
-    isPending: isUpdating
-  } } = useUpdate();
+  const {
+    mutate: updateStudent,
+    mutation: { isPending: isUpdating },
+  } = useUpdate();
 
   const {
     result: studentData,
-    query: {
-      isLoading,
-      isError,
-      error: fetchError
-    }
+    query: { isLoading, isError, error: fetchError },
   } = useOne<Student>({
     resource: 'students',
     id: id,

@@ -37,11 +37,7 @@ export const AuditLogsShow: React.FC = () => {
 
   const {
     result: auditLogData,
-    query: {
-      isLoading,
-      isError,
-      error
-    }
+    query: { isLoading, isError, error },
   } = useOne<AuditLog>({
     resource: 'audit-logs',
     id: id,

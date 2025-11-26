@@ -78,13 +78,9 @@ export const useDashboardStats = (options: UseDashboardStatsOptions = {}) => {
   const { enabled = true } = options;
 
   const {
-    query: {
-      isLoading,
-      error,
-      refetch
-    },
+    query: { isLoading, error, refetch },
 
-    result: data
+    result: data,
   } = useCustom<DashboardStats>({
     url: '/dashboard/stats/',
     method: 'get',

@@ -22,9 +22,10 @@ export const EnrollmentsShow: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { show } = useNavigation();
 
-  const { result: enrollmentData, query: {
-    isLoading
-  } } = useOne<Enrollment>({
+  const {
+    result: enrollmentData,
+    query: { isLoading },
+  } = useOne<Enrollment>({
     resource: 'enrollments',
     id: id,
     meta: {

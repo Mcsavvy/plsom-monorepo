@@ -53,9 +53,10 @@ export const TestsShow: React.FC = () => {
   const { mutate: createTest } = useCreate();
   const { mutate: customAction } = useCustomMutation();
 
-  const { result: testData, query: {
-    isLoading
-  } } = useOne<TestDetail>({
+  const {
+    result: testData,
+    query: { isLoading },
+  } = useOne<TestDetail>({
     resource: 'tests',
     id: id,
     meta: {
@@ -64,20 +65,17 @@ export const TestsShow: React.FC = () => {
   });
 
   const {
-    query: {
-      isLoading: isLoadingStats
-    },
+    query: { isLoading: isLoadingStats },
 
-    result: statisticsData
-  } =
-    useCustom<TestStatistics>({
-      url: `/tests/${id}/statistics/`,
-      method: 'get',
-      meta: {
-        transform: (data: TestStatisticsResponse) =>
-          transformTestStatistics(data),
-      },
-    });
+    result: statisticsData,
+  } = useCustom<TestStatistics>({
+    url: `/tests/${id}/statistics/`,
+    method: 'get',
+    meta: {
+      transform: (data: TestStatisticsResponse) =>
+        transformTestStatistics(data),
+    },
+  });
 
   const test = testData;
   const statistics = statisticsData?.data;

@@ -30,7 +30,6 @@ import {
   SubmissionAnswer,
 } from '@/types/submission';
 
-
 export function getInitials(name: string): string {
   return name
     .split(' ')
@@ -78,7 +77,7 @@ export function transformUser(user: UserResponse): UserIdentity {
     title: user.title,
     email: user.email,
     role: user.role,
-    avatar: user.profile_picture?.replace("b2l/", "b2/"),
+    avatar: user.profile_picture?.replace('b2l/', 'b2/'),
     isActive: user.is_active,
     isSetupComplete: user.is_setup_complete,
     whatsappNumber: user.whatsapp_number,
@@ -137,7 +136,7 @@ export function transformStudent(studentResponse: StudentResponse): Student {
     title: studentResponse.title || undefined,
     initials,
     whatsappNumber: studentResponse.whatsapp_number,
-    profilePicture: studentResponse.profile_picture?.replace("b2l/", "b2/"),
+    profilePicture: studentResponse.profile_picture?.replace('b2l/', 'b2/'),
     isSetupComplete: studentResponse.is_setup_complete,
     isActive: studentResponse.is_active,
     status,
@@ -165,7 +164,7 @@ export function transformStaff(staffResponse: StaffResponse): Staff {
     title: staffResponse.title,
     role: staffResponse.role,
     whatsappNumber: staffResponse.whatsapp_number,
-    profilePicture: staffResponse.profile_picture?.replace("b2l/", "b2/"),
+    profilePicture: staffResponse.profile_picture?.replace('b2l/', 'b2/'),
     isSetupComplete: staffResponse.is_setup_complete,
     isActive: staffResponse.is_active,
     coursesTaught: staffResponse.courses_taught.map(course =>
@@ -206,7 +205,8 @@ export function transformEnrollment(
       initials: studentInitials,
       title: enrollment.student.title,
       email: enrollment.student.email,
-      profilePicture: enrollment.student.profile_picture?.replace("b2l/", "b2/") || '',
+      profilePicture:
+        enrollment.student.profile_picture?.replace('b2l/', 'b2/') || '',
     },
     enrolledAt: enrollment.enrolled_at,
   };
@@ -231,7 +231,10 @@ export function transformCourse(courseResponse: CourseResponse): Course {
       displayName: lecturerDisplayName,
       title: courseResponse.lecturer.title,
       email: courseResponse.lecturer.email,
-      profilePicture: courseResponse.lecturer.profile_picture?.replace("b2l/", "b2/"),
+      profilePicture: courseResponse.lecturer.profile_picture?.replace(
+        'b2l/',
+        'b2/'
+      ),
       initials: lecturerInitials,
     };
   }
@@ -281,7 +284,10 @@ export function transformClass(classResponse: ClassResponse): Class {
       displayName: lecturerDisplayName,
       title: classResponse.course.lecturer.title,
       email: classResponse.course.lecturer.email,
-      profilePicture: classResponse.course.lecturer.profile_picture?.replace("b2l/", "b2/"),
+      profilePicture: classResponse.course.lecturer.profile_picture?.replace(
+        'b2l/',
+        'b2/'
+      ),
       initials: lecturerInitials,
       role: classResponse.course.lecturer.role,
       whatsappNumber: classResponse.course.lecturer.whatsapp_number,
@@ -306,7 +312,10 @@ export function transformClass(classResponse: ClassResponse): Class {
     displayName: classLecturerDisplayName,
     title: classResponse.lecturer.title,
     email: classResponse.lecturer.email,
-    profilePicture: classResponse.lecturer.profile_picture?.replace("b2l/", "b2/"),
+    profilePicture: classResponse.lecturer.profile_picture?.replace(
+      'b2l/',
+      'b2/'
+    ),
     initials: classLecturerInitials,
     role: classResponse.lecturer.role,
     whatsappNumber: classResponse.lecturer.whatsapp_number,

@@ -40,19 +40,14 @@ export const StaffShow: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
 
-  const { mutate: promoteOrDemote, mutation: {
-    isPending: isPromotingDemoting
-  } } =
-    useCustomMutation();
+  const {
+    mutate: promoteOrDemote,
+    mutation: { isPending: isPromotingDemoting },
+  } = useCustomMutation();
 
   const {
     result: staffData,
-    query: {
-      isLoading,
-      isError,
-      error,
-      refetch
-    }
+    query: { isLoading, isError, error, refetch },
   } = useOne<Staff>({
     resource: 'staff',
     id: id,

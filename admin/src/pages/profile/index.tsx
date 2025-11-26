@@ -65,21 +65,22 @@ type PasswordFormData = z.infer<typeof passwordFormSchema>;
 export const Profile = () => {
   const { data: user, isLoading: isLoadingUser } =
     useGetIdentity<UserIdentity>();
-  const { mutate: updateUser, mutation: {
-    isPending: isUpdatingProfile
-  } } = useUpdate();
-  const { mutate: updatePassword, mutation: {
-    isPending: isUpdatingPassword
-  } } =
-    useCustomMutation();
-  const { mutate: uploadProfilePicture, mutation: {
-    isPending: isUploadingPicture
-  } } =
-    useCustomMutation();
-  const { mutate: deleteProfilePicture, mutation: {
-    isPending: isDeletingPicture
-  } } =
-    useCustomMutation();
+  const {
+    mutate: updateUser,
+    mutation: { isPending: isUpdatingProfile },
+  } = useUpdate();
+  const {
+    mutate: updatePassword,
+    mutation: { isPending: isUpdatingPassword },
+  } = useCustomMutation();
+  const {
+    mutate: uploadProfilePicture,
+    mutation: { isPending: isUploadingPicture },
+  } = useCustomMutation();
+  const {
+    mutate: deleteProfilePicture,
+    mutation: { isPending: isDeletingPicture },
+  } = useCustomMutation();
 
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
