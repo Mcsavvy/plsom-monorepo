@@ -220,7 +220,7 @@ class TestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create test with nested questions and options."""
         questions_data = validated_data.pop("questions", [])
-        
+
         # Remove timezone fields that are not model fields
         validated_data.pop("available_from_timezone", None)
         validated_data.pop("available_until_timezone", None)
@@ -239,7 +239,7 @@ class TestSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Update test with breaking change detection and handling."""
         questions_data = validated_data.pop("questions", None)
-        
+
         # Remove timezone fields that are not model fields
         validated_data.pop("available_from_timezone", None)
         validated_data.pop("available_until_timezone", None)
@@ -434,9 +434,10 @@ class TestSerializer(serializers.ModelSerializer):
         option_mapping = {}
 
         # Get the highest existing order value to avoid conflicts
-        max_existing_order = test.questions.aggregate(
-            max_order=models.Max('order')
-        )['max_order'] or -1
+        max_existing_order = (
+            test.questions.aggregate(max_order=models.Max("order"))["max_order"]
+            or -1
+        )
 
         # Step 1: Create new questions and options
         for order, question_data in enumerate(questions_data):
@@ -469,7 +470,7 @@ class TestSerializer(serializers.ModelSerializer):
 
         # Step 3: Clean up old questions and options (after references are updated)
         self._cleanup_old_instances(test, question_mapping.keys())
-        
+
         # Step 4: Reorder questions to be sequential starting from 0
         self._reorder_questions_sequentially(test)
 
@@ -523,10 +524,10 @@ class TestSerializer(serializers.ModelSerializer):
 
     def _reorder_questions_sequentially(self, test):
         """Reorder all questions in a test to be sequential starting from 0."""
-        questions = test.questions.all().order_by('order', 'created_at')
+        questions = test.questions.all().order_by("order", "created_at")
         for index, question in enumerate(questions):
             question.order = index
-            question.save(update_fields=['order'])
+            question.save(update_fields=["order"])
 
     def _safe_update_questions(self, test, questions_data):
         """Safely update questions, protecting existing answers from being deleted."""

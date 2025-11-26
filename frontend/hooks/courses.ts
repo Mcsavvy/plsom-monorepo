@@ -26,7 +26,9 @@ async function _getMyCourses(
     const response = await client.get("/courses/my-courses/");
     if (response.status === 200) {
       // Handle paginated response
-      const paginatedResponse = paginatedCoursesResponseSchema.parse(response.data);
+      const paginatedResponse = paginatedCoursesResponseSchema.parse(
+        response.data
+      );
       return paginatedResponse.results;
     }
     throw new Error("Failed to fetch courses");
@@ -34,7 +36,6 @@ async function _getMyCourses(
     throw error;
   }
 }
-
 
 /**
  * Get detailed information about a specific course for the current student
@@ -44,7 +45,9 @@ async function _getCourseDetails(
   courseId: number
 ): Promise<Course> {
   try {
-    const response = await client.get<Course>(`/courses/${courseId}/my-course/`);
+    const response = await client.get<Course>(
+      `/courses/${courseId}/my-course/`
+    );
     if (response.status === 200) {
       const course = courseSchema.parse(response.data);
       return course;

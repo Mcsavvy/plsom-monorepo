@@ -27,7 +27,7 @@ export function ResponsiveLayout({
   // Set different defaults for mobile vs desktop
   const mobileInstallVariant = installButtonVariant || "banner";
   const desktopInstallVariant = installButtonVariant || "card";
-  
+
   const mobileNetworkVariant = networkStatusVariant || "toast";
   const desktopNetworkVariant = networkStatusVariant || "minimal";
 

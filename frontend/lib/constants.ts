@@ -1,7 +1,7 @@
 // User title options
 export const USER_TITLE_OPTIONS = [
   "Mr",
-  "Mrs", 
+  "Mrs",
   "Ms",
   "Miss",
   "Dr",
@@ -16,4 +16,4 @@ export const USER_TITLE_OPTIONS = [
   "Elder",
 ] as const;
 
-export type UserTitle = typeof USER_TITLE_OPTIONS[number];
+export type UserTitle = (typeof USER_TITLE_OPTIONS)[number];

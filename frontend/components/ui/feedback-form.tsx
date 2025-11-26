@@ -23,26 +23,38 @@ interface FeedbackData {
   screenshot?: File;
 }
 
-export function FeedbackForm({ isOpen, onClose, onSubmit, isLoading = false }: FeedbackFormProps) {
+export function FeedbackForm({
+  isOpen,
+  onClose,
+  onSubmit,
+  isLoading = false,
+}: FeedbackFormProps) {
   const { user } = useAuth();
   const [formData, setFormData] = useState<FeedbackData>({
-    name: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "",
+    name:
+      user?.firstName && user?.lastName
+        ? `${user.firstName} ${user.lastName}`
+        : "",
     email: user?.email || "",
     message: "",
   });
   const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(
+    null
+  );
 
   const handleInputChange = (field: keyof FeedbackData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleScreenshotChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleScreenshotChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       setScreenshot(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         setScreenshotPreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
@@ -69,7 +81,10 @@ export function FeedbackForm({ isOpen, onClose, onSubmit, isLoading = false }: F
   const handleClose = () => {
     // Reset form when closing
     setFormData({
-      name: user?.firstName && user?.lastName ? `${user.firstName} ${user?.lastName}` : "",
+      name:
+        user?.firstName && user?.lastName
+          ? `${user.firstName} ${user?.lastName}`
+          : "",
       email: user?.email || "",
       message: "",
     });
@@ -80,15 +95,15 @@ export function FeedbackForm({ isOpen, onClose, onSubmit, isLoading = false }: F
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="right" className="w-full sm:max-w-md p-4">
+      <SheetContent side="right" className="w-full p-4 sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5 text-primary" />
+            <Send className="text-primary h-5 w-5" />
             Help Us Improve
           </SheetTitle>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name">Name (Optional)</Label>
@@ -97,7 +112,7 @@ export function FeedbackForm({ isOpen, onClose, onSubmit, isLoading = false }: F
               type="text"
               placeholder="Your Name"
               value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
+              onChange={e => handleInputChange("name", e.target.value)}
             />
           </div>
 
@@ -109,7 +124,7 @@ export function FeedbackForm({ isOpen, onClose, onSubmit, isLoading = false }: F
               type="email"
               placeholder="your.email@example.com"
               value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
+              onChange={e => handleInputChange("email", e.target.value)}
             />
           </div>
 
@@ -120,7 +135,7 @@ export function FeedbackForm({ isOpen, onClose, onSubmit, isLoading = false }: F
               id="message"
               placeholder="Describe the issue, share feedback, or report a bug..."
               value={formData.message}
-              onChange={(e) => handleInputChange("message", e.target.value)}
+              onChange={e => handleInputChange("message", e.target.value)}
               rows={4}
               required
             />
@@ -159,14 +174,14 @@ export function FeedbackForm({ isOpen, onClose, onSubmit, isLoading = false }: F
                 </Button>
               )}
             </div>
-            
+
             {/* Screenshot Preview */}
             {screenshotPreview && (
               <div className="relative inline-block">
                 <img
                   src={screenshotPreview}
                   alt="Screenshot preview"
-                  className="max-w-full h-32 object-contain border rounded-md"
+                  className="h-32 max-w-full rounded-md border object-contain"
                 />
               </div>
             )}
@@ -219,16 +234,15 @@ export function useFeedbackForm() {
     try {
       // Here you can send the feedback to your backend or Sentry
       console.log("Feedback submitted:", data);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Close form after successful submission
       closeForm();
-      
+
       // You could show a success toast here
       console.log("Feedback sent successfully!");
-      
     } catch (error) {
       console.error("Failed to send feedback:", error);
       // You could show an error toast here

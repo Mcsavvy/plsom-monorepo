@@ -19,11 +19,7 @@ export function GlobalTransitions({ children }: GlobalTransitionsProps) {
 
   // Prevent flash of unstyled content
   if (!mounted) {
-    return (
-      <div style={{ visibility: "hidden" }}>
-        {children}
-      </div>
-    );
+    return <div style={{ visibility: "hidden" }}>{children}</div>;
   }
 
   return (
@@ -33,12 +29,17 @@ export function GlobalTransitions({ children }: GlobalTransitionsProps) {
         html {
           scroll-behavior: smooth;
         }
-        
+
         * {
-          transition: background-color 0.2s ease, border-color 0.2s ease,
-                      color 0.2s ease, fill 0.2s ease, stroke 0.2s ease,
-                      opacity 0.2s ease, box-shadow 0.2s ease,
-                      transform 0.2s ease;
+          transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            color 0.2s ease,
+            fill 0.2s ease,
+            stroke 0.2s ease,
+            opacity 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
         /* Prevent layout shift during transitions */
@@ -73,10 +74,10 @@ export function GlobalTransitions({ children }: GlobalTransitionsProps) {
           user-select: none;
         }
       `}</style>
-      
+
       {/* Route change indicator */}
       <RouteChangeIndicator />
-      
+
       {children}
     </>
   );
@@ -95,7 +96,7 @@ function RouteChangeIndicator() {
 
   return (
     <motion.div
-      className="fixed top-0 left-0 right-0 h-1 bg-primary z-50"
+      className="bg-primary fixed top-0 right-0 left-0 z-50 h-1"
       initial={{ scaleX: 0 }}
       animate={{ scaleX: isLoading ? 1 : 0 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}

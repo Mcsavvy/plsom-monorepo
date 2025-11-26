@@ -7,7 +7,11 @@ import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/hooks/auth";
 import { useProfile } from "@/hooks/profile";
-import { StudentProfile, UserUpdateRequest, ChangePasswordRequestNew } from "@/types/auth";
+import {
+  StudentProfile,
+  UserUpdateRequest,
+  ChangePasswordRequestNew,
+} from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { ProfileView } from "@/components/profile/profile-view";
 import { ProfileEditForm } from "@/components/profile/profile-edit-form";
@@ -26,7 +30,13 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   const { user, refreshCurrentUser } = useAuth();
-  const { getStudentProfile, updateUserProfile, uploadProfilePicture, deleteProfilePicture, changePassword } = useProfile();
+  const {
+    getStudentProfile,
+    updateUserProfile,
+    uploadProfilePicture,
+    deleteProfilePicture,
+    changePassword,
+  } = useProfile();
   const router = useRouter();
 
   const loadProfile = async () => {
@@ -96,21 +106,17 @@ export default function ProfilePage() {
   };
 
   if (!user) {
-    return (
-      <LoadingSpinner />
-    );
+    return <LoadingSpinner />;
   }
 
   if (isLoading) {
-    return (
-      <LoadingSpinner />
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-none border-none">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md border-none shadow-none">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/20">
@@ -120,17 +126,17 @@ export default function ProfilePage() {
                 <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">
                   Failed to Load Profile
                 </h3>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                <p className="mt-1 text-sm text-red-700 dark:text-red-300">
                   {error}
                 </p>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => router.push("/")}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="mr-2 h-4 w-4" />
                   Go Back
                 </Button>
                 <Button onClick={loadProfile}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
+                  <RefreshCw className="mr-2 h-4 w-4" />
                   Try Again
                 </Button>
               </div>
@@ -143,13 +149,13 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-none border-none">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md border-none shadow-none">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <p className="text-muted-foreground">Profile not found</p>
               <Button variant="outline" onClick={() => router.push("/")}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Go Back
               </Button>
             </div>
@@ -160,9 +166,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Content */}
-      <div className="container max-w-6xl mx-auto px-4 py-8">
+      <div className="container mx-auto max-w-6xl px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

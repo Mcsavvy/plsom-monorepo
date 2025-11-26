@@ -38,6 +38,7 @@ class Command(BaseCommand):
             )
 
         self.stdout.write(
-            self.style.SUCCESS("Successfully set up scheduled notification tasks")
+            self.style.SUCCESS(
+                "Successfully set up scheduled notification tasks"
+            )
         )
-

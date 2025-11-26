@@ -2,7 +2,7 @@ packages:
   - .
 
 onlyBuiltDependencies:
-  - '@sentry/cli'
-  - '@tailwindcss/oxide'
+  - "@sentry/cli"
+  - "@tailwindcss/oxide"
   - sharp
   - unrs-resolver

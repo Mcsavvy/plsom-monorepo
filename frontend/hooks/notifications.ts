@@ -69,16 +69,16 @@ export function useNotifications() {
   const markAsRead = useCallback(async (notificationId: number) => {
     try {
       await client.post(`/notifications/${notificationId}/mark-read/`);
-      
+
       // Update local state
-      setNotifications((prev) =>
-        prev.map((notif) =>
+      setNotifications(prev =>
+        prev.map(notif =>
           notif.id === notificationId
             ? { ...notif, read: true, read_at: new Date().toISOString() }
             : notif
         )
       );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -88,10 +88,10 @@ export function useNotifications() {
   const markAllAsRead = useCallback(async () => {
     try {
       await client.post("/notifications/mark-all-read/");
-      
+
       // Update local state
-      setNotifications((prev) =>
-        prev.map((notif) => ({
+      setNotifications(prev =>
+        prev.map(notif => ({
           ...notif,
           read: true,
           read_at: new Date().toISOString(),
@@ -136,4 +136,3 @@ export function useNotifications() {
     refetch: fetchNotifications,
   };
 }
-

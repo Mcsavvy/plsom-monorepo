@@ -106,7 +106,10 @@ class RefineDataProviderPagination(PageNumberPagination):
         if start is None and end is None:
             # Create a mock page object for compatibility with get_paginated_response
             from django.core.paginator import Paginator
-            paginator = Paginator(queryset, queryset.count() if queryset.count() > 0 else 1)
+
+            paginator = Paginator(
+                queryset, queryset.count() if queryset.count() > 0 else 1
+            )
             self.page = paginator.page(1)
             return list(queryset)
 

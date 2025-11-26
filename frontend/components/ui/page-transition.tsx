@@ -44,7 +44,7 @@ export function PageTransition({ children }: PageTransitionProps) {
         exit="out"
         variants={pageVariants}
         transition={pageTransition}
-        className="flex-1 w-full"
+        className="w-full flex-1"
         style={{
           // Prevent layout shift during transitions
           minHeight: "100vh",
@@ -93,7 +93,7 @@ export function MobilePageTransition({ children }: MobilePageTransitionProps) {
           ease: "easeInOut",
           duration: 0.25,
         }}
-        className="flex-1 w-full"
+        className="w-full flex-1"
         style={{
           minHeight: "100vh",
           willChange: "transform, opacity",
@@ -111,7 +111,10 @@ interface LoadingTransitionProps {
   children: ReactNode;
 }
 
-export function LoadingTransition({ isLoading, children }: LoadingTransitionProps) {
+export function LoadingTransition({
+  isLoading,
+  children,
+}: LoadingTransitionProps) {
   return (
     <AnimatePresence mode="wait">
       {isLoading ? (
@@ -121,12 +124,12 @@ export function LoadingTransition({ isLoading, children }: LoadingTransitionProp
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="flex items-center justify-center min-h-[200px]"
+          className="flex min-h-[200px] items-center justify-center"
         >
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-75"></div>
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-150"></div>
+            <div className="bg-primary h-2 w-2 animate-pulse rounded-full"></div>
+            <div className="bg-primary h-2 w-2 animate-pulse rounded-full delay-75"></div>
+            <div className="bg-primary h-2 w-2 animate-pulse rounded-full delay-150"></div>
           </div>
         </motion.div>
       ) : (

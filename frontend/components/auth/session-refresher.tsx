@@ -21,11 +21,14 @@ export function SessionRefresher({
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isRefreshingRef = useRef<boolean>(false);
 
-  const log = useCallback((message: string, ...args: any[]) => {
-    if (debug) {
-      console.log(`[SessionRefresher] ${message}`, ...args);
-    }
-  }, [debug]);
+  const log = useCallback(
+    (message: string, ...args: any[]) => {
+      if (debug) {
+        console.log(`[SessionRefresher] ${message}`, ...args);
+      }
+    },
+    [debug]
+  );
 
   const scheduleNextRefresh = useCallback(() => {
     if (!session?.tokens.access_expires_at) {
@@ -61,7 +64,6 @@ export function SessionRefresher({
     }
   }, [session, refreshBufferMs, log]);
 
-
   const handleRefresh = useCallback(async () => {
     if (!session) {
       log("No active session to refresh");
@@ -93,7 +95,12 @@ export function SessionRefresher({
       }
 
       // If the error is a 401, logout the user
-      if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 401) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "statusCode" in error &&
+        error.statusCode === 401
+      ) {
         console.log("401 error, logging out");
         logout();
         return; // Don't retry after logout
@@ -158,7 +165,6 @@ export function SessionRefresher({
       clearAllTimeouts();
     };
   }, [session, log, clearAllTimeouts, scheduleNextRefresh, startPeriodicCheck]);
-
 
   // Effect to handle refresh buffer changes
   useEffect(() => {

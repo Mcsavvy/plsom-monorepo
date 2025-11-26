@@ -39,7 +39,12 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         description="Get count of unread notifications",
         summary="Get unread count",
-        responses={200: {"type": "object", "properties": {"count": {"type": "integer"}}}},
+        responses={
+            200: {
+                "type": "object",
+                "properties": {"count": {"type": "integer"}},
+            }
+        },
     )
     @action(detail=False, methods=["get"], url_path="unread-count")
     def unread_count(self, request):
@@ -63,14 +68,21 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         description="Mark all notifications as read",
         summary="Mark all as read",
-        responses={200: {"type": "object", "properties": {"updated": {"type": "integer"}}}},
+        responses={
+            200: {
+                "type": "object",
+                "properties": {"updated": {"type": "integer"}},
+            }
+        },
     )
     @action(detail=False, methods=["post"], url_path="mark-all-read")
     def mark_all_read(self, request):
         """Mark all user's notifications as read"""
         now = timezone.now()
-        updated = self.get_queryset().filter(read=False).update(
-            read=True, read_at=now
+        updated = (
+            self.get_queryset()
+            .filter(read=False)
+            .update(read=True, read_at=now)
         )
         return Response({"updated": updated})
 
@@ -118,7 +130,8 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
         endpoint = request.data.get("endpoint")
         if not endpoint:
             return Response(
-                {"error": "endpoint is required"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "endpoint is required"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         deleted_count, _ = PushSubscription.objects.filter(
@@ -128,6 +141,6 @@ class PushSubscriptionViewSet(viewsets.ModelViewSet):
         if deleted_count > 0:
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
-            {"error": "Subscription not found"}, status=status.HTTP_404_NOT_FOUND
+            {"error": "Subscription not found"},
+            status=status.HTTP_404_NOT_FOUND,
         )
-

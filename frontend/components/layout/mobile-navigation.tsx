@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Home, BookOpen, Calendar, Settings, User, LogOut, ArrowLeft, FileText, Presentation } from "lucide-react";
+import {
+  Home,
+  BookOpen,
+  Calendar,
+  Settings,
+  User,
+  LogOut,
+  ArrowLeft,
+  FileText,
+  Presentation,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -24,7 +34,10 @@ interface NavigationItem {
 
 interface HeaderMapEntry {
   pattern: RegExp;
-  component: React.ComponentType<{ user: any; handleLogout: () => Promise<void> }>;
+  component: React.ComponentType<{
+    user: any;
+    handleLogout: () => Promise<void>;
+  }>;
 }
 
 interface DefaultHeaderProps {
@@ -63,8 +76,8 @@ function getGenericHeader(title: string) {
   function GenericHeader({ user }: DefaultHeaderProps) {
     const router = useRouter();
     return (
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container max-w-6xl mx-auto px-4 py-3">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 border-b backdrop-blur">
+        <div className="container mx-auto max-w-6xl px-4 py-3">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
@@ -75,13 +88,13 @@ function getGenericHeader(title: string) {
               <ArrowLeft className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Back</span>
             </Button>
-            <h1 className="text-lg md:text-2xl font-bold truncate">{title}</h1>
+            <h1 className="truncate text-lg font-bold md:text-2xl">{title}</h1>
             <Avatar className="h-8 w-8">
               {user?.profilePicture ? (
                 <img
                   src={user.profilePicture}
                   alt="Profile"
-                  className="h-full w-full object-fit"
+                  className="object-fit h-full w-full"
                 />
               ) : (
                 <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
@@ -144,7 +157,7 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
                   <img
                     src={user.profilePicture}
                     alt="Profile"
-                    className="h-full w-full object-fit"
+                    className="object-fit h-full w-full"
                   />
                 ) : (
                   <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
@@ -154,7 +167,7 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
               </Avatar>
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 z-50" align="end">
+          <PopoverContent className="z-50 w-80" align="end">
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-12 w-12">
@@ -162,7 +175,7 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
                     <img
                       src={user.profilePicture}
                       alt="Profile"
-                      className="h-full w-full object-fit"
+                      className="object-fit h-full w-full"
                     />
                   ) : (
                     <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
@@ -172,23 +185,21 @@ function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
                 </Avatar>
                 <div>
                   <p className="font-semibold">{user?.displayName}</p>
-                  <p className="text-muted-foreground text-sm">
-                    {user?.email}
-                  </p>
+                  <p className="text-muted-foreground text-sm">{user?.email}</p>
                 </div>
               </div>
               <div className="space-y-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full justify-start touch-manipulation"
+                  className="w-full touch-manipulation justify-start"
                   asChild
                 >
-                  <Link 
+                  <Link
                     href="/profile"
                     prefetch
-                    className="flex items-center w-full"
-                    style={{ pointerEvents: 'auto' }}
+                    className="flex w-full items-center"
+                    style={{ pointerEvents: "auto" }}
                   >
                     <User className="mr-2 h-4 w-4" />
                     View Profile

@@ -6,7 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, Loader2, Save, X, CheckCircle } from "lucide-react";
 
-import { ChangePasswordRequestNew, changePasswordRequestSchema } from "@/types/auth";
+import {
+  ChangePasswordRequestNew,
+  changePasswordRequestSchema,
+} from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,12 +45,12 @@ export function PasswordChangeForm({
   const onSubmit = async (data: ChangePasswordRequestNew) => {
     setError(null);
     setSuccess(false);
-    
+
     try {
       await onSave(data);
       setSuccess(true);
       form.reset();
-      
+
       // Auto close after success
       setTimeout(() => {
         onCancel();
@@ -73,7 +76,7 @@ export function PasswordChangeForm({
               <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
                 Password Changed Successfully
               </h3>
-              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+              <p className="mt-1 text-sm text-green-700 dark:text-green-300">
                 Your password has been updated. You'll be redirected shortly.
               </p>
             </div>
@@ -97,13 +100,17 @@ export function PasswordChangeForm({
             onClick={onCancel}
             disabled={isLoading}
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="mr-2 h-4 w-4" />
             Cancel
           </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" autoComplete="on">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6"
+          autoComplete="on"
+        >
           {error && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -114,10 +121,13 @@ export function PasswordChangeForm({
             </motion.div>
           )}
 
-          <input id="email" type="hidden" value={email} disabled/>
+          <input id="email" type="hidden" value={email} disabled />
 
           <div className="space-y-2">
-            <label htmlFor="current_password" className="text-foreground text-sm font-medium">
+            <label
+              htmlFor="current_password"
+              className="text-foreground text-sm font-medium"
+            >
               Current Password
             </label>
             <div className="relative">
@@ -152,7 +162,10 @@ export function PasswordChangeForm({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="new_password" className="text-foreground text-sm font-medium">
+            <label
+              htmlFor="new_password"
+              className="text-foreground text-sm font-medium"
+            >
               New Password
             </label>
             <div className="relative">
@@ -184,13 +197,16 @@ export function PasswordChangeForm({
                 {form.formState.errors.new_password.message}
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Password must be at least 8 characters long
             </p>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="confirm_password" className="text-foreground text-sm font-medium">
+            <label
+              htmlFor="confirm_password"
+              className="text-foreground text-sm font-medium"
+            >
               Confirm New Password
             </label>
             <div className="relative">
@@ -240,8 +256,8 @@ export function PasswordChangeForm({
             </Button>
           </div>
 
-          <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
-            <h4 className="font-medium mb-2">Password Requirements:</h4>
+          <div className="text-muted-foreground bg-muted/50 rounded-lg p-3 text-sm">
+            <h4 className="mb-2 font-medium">Password Requirements:</h4>
             <ul className="space-y-1 text-xs">
               <li>• At least 8 characters long</li>
               <li>• Must be different from your current password</li>

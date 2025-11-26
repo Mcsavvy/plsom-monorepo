@@ -44,12 +44,7 @@ export function PublicPageWrapper({
       redirectIfAuthenticated
     ) {
       router.push(redirectTo);
-    } else if (
-      !loading &&
-      isAuthenticated &&
-      user &&
-      !user.isActive
-    ) {
+    } else if (!loading && isAuthenticated && user && !user.isActive) {
       // Redirect inactive users to inactive page
       router.push("/account-inactive");
     }
@@ -60,7 +55,7 @@ export function PublicPageWrapper({
     router,
     redirectTo,
     redirectIfAuthenticated,
-    user
+    user,
   ]);
 
   // Show loading state during session restoration

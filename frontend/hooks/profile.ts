@@ -42,13 +42,17 @@ async function _uploadProfilePicture(
 ): Promise<AuthUser> {
   const formData = new FormData();
   formData.append("profile_picture", file);
-  
-  const response = await client.post<AuthUser>("/users/me/profile-picture/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  
+
+  const response = await client.post<AuthUser>(
+    "/users/me/profile-picture/",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
   if (response.status === 200) {
     const updatedUser = authUserSchema.parse(response.data);
     const profilePicture = updatedUser.profile_picture?.replace("b2l/", "b2/");
@@ -85,7 +89,10 @@ export function useProfile() {
     async (userId: number): Promise<StudentProfile> => {
       const studentProfile = await _getStudentProfile(client, userId);
       if (studentProfile.profile_picture) {
-        studentProfile.profile_picture = studentProfile.profile_picture.replace("b2l/", "b2/");
+        studentProfile.profile_picture = studentProfile.profile_picture.replace(
+          "b2l/",
+          "b2/"
+        );
       } else {
         studentProfile.profile_picture = null;
       }
@@ -108,12 +115,9 @@ export function useProfile() {
     [client]
   );
 
-  const deleteProfilePicture = useCallback(
-    async (): Promise<AuthUser> => {
-      return await _deleteProfilePicture(client);
-    },
-    [client]
-  );
+  const deleteProfilePicture = useCallback(async (): Promise<AuthUser> => {
+    return await _deleteProfilePicture(client);
+  }, [client]);
 
   const changePassword = useCallback(
     async (data: ChangePasswordRequestNew): Promise<void> => {

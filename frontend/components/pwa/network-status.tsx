@@ -59,12 +59,18 @@ export function NetworkStatus({
 
     window.addEventListener("online", updateOnlineStatus);
     window.addEventListener("offline", updateOnlineStatus);
-    window.addEventListener("networkstatuschange", handleServiceWorkerMessage as EventListener);
+    window.addEventListener(
+      "networkstatuschange",
+      handleServiceWorkerMessage as EventListener
+    );
 
     return () => {
       window.removeEventListener("online", updateOnlineStatus);
       window.removeEventListener("offline", updateOnlineStatus);
-      window.removeEventListener("networkstatuschange", handleServiceWorkerMessage as EventListener);
+      window.removeEventListener(
+        "networkstatuschange",
+        handleServiceWorkerMessage as EventListener
+      );
     };
   }, [isOnline]);
 

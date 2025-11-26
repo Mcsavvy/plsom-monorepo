@@ -179,7 +179,7 @@
   bottom: 80px; /* Above the bottom navigation */
   right: 20px;
   z-index: 1000;
-  
+
   /* Custom styling to match your app's design */
   --foreground: #6b7280;
   --background: #ffffff;
@@ -190,7 +190,7 @@
   --muted-foreground: #6b7280;
   --accent: #f3f4f6;
   --accent-foreground: #374151;
-  
+
   /* Smooth transitions */
   transition: all 0.2s ease-in-out;
 }
@@ -281,7 +281,7 @@
     right: 15px;
     left: 15px;
   }
-  
+
   #plsom-feedback-widget [data-sentry-feedback-form] {
     width: 100%;
     max-width: none;

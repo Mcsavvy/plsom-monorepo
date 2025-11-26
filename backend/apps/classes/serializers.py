@@ -191,7 +191,10 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
         if instance and instance.scheduled_at < timezone.now():
             # For past classes, only allow updating recording-related fields
             allowed_fields = {
-                'recording_url', 'password_for_recording', 'title', 'description'
+                "recording_url",
+                "password_for_recording",
+                "title",
+                "description",
             }
             # Filter out restricted fields instead of raising an error
             restricted_fields = set(attrs.keys()) - allowed_fields
@@ -199,10 +202,18 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
                 attrs.pop(field, None)
 
         # Original cross-field validation logic
-        course_id = attrs.get("course_id", instance.course_id if instance else None)
-        lecturer_id = attrs.get("lecturer_id", instance.lecturer_id if instance else None)
-        cohort_id = attrs.get("cohort_id", instance.cohort_id if instance else None)
-        scheduled_at = attrs.get("scheduled_at", instance.scheduled_at if instance else None)
+        course_id = attrs.get(
+            "course_id", instance.course_id if instance else None
+        )
+        lecturer_id = attrs.get(
+            "lecturer_id", instance.lecturer_id if instance else None
+        )
+        cohort_id = attrs.get(
+            "cohort_id", instance.cohort_id if instance else None
+        )
+        scheduled_at = attrs.get(
+            "scheduled_at", instance.scheduled_at if instance else None
+        )
 
         # Import models
         from apps.courses.models import Course
@@ -232,7 +243,10 @@ class ClassCreateUpdateSerializer(serializers.ModelSerializer):
 
         # Check for scheduling conflicts (same lecturer, overlapping time)
         if lecturer_id and scheduled_at:
-            duration = attrs.get("duration_minutes", instance.duration_minutes if instance else None)
+            duration = attrs.get(
+                "duration_minutes",
+                instance.duration_minutes if instance else None,
+            )
             scheduled_at + timezone.timedelta(minutes=duration)
 
         return attrs

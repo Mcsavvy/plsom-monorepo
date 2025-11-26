@@ -15,13 +15,8 @@ import type { Notification } from "./notification-item";
 
 export function NotificationBell() {
   const router = useRouter();
-  const {
-    notifications,
-    unreadCount,
-    isLoading,
-    markAsRead,
-    markAllAsRead,
-  } = useNotifications();
+  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } =
+    useNotifications();
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read
@@ -50,7 +45,9 @@ export function NotificationBell() {
       case "submission_graded":
       case "submission_returned":
         if (data.submission_id) {
-          router.push(`/tests/${data.test_id}/submissions/${data.submission_id}`);
+          router.push(
+            `/tests/${data.test_id}/submissions/${data.submission_id}`
+          );
         }
         break;
       default:
@@ -71,19 +68,15 @@ export function NotificationBell() {
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px]"
+              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center p-0 text-[10px]"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="w-[380px] p-0"
-        align="end"
-        sideOffset={8}
-      >
-        <div className="flex items-center justify-between p-4 border-b">
+      <PopoverContent className="w-[380px] p-0" align="end" sideOffset={8}>
+        <div className="flex items-center justify-between border-b p-4">
           <h3 className="font-semibold">Notifications</h3>
         </div>
         <div className="h-[400px]">
@@ -98,4 +91,3 @@ export function NotificationBell() {
     </Popover>
   );
 }
-

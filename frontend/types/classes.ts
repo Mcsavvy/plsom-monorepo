@@ -15,7 +15,7 @@ export const classSchema = z.object({
   id: z.number(),
   course_name: z.string(),
   lecturer_name: z.preprocess(
-    (val) => val === undefined ? null : val,
+    val => (val === undefined ? null : val),
     z.string().nullable()
   ),
   title: z.string().max(200),
@@ -55,7 +55,9 @@ export const classesQuerySchema = z.object({
 export type Class = z.infer<typeof classSchema>;
 export type ClassesList = z.infer<typeof classesListSchema>;
 export type ClassAttendance = z.infer<typeof classAttendanceSchema>;
-export type PaginatedClassesResponse = z.infer<typeof paginatedClassesResponseSchema>;
+export type PaginatedClassesResponse = z.infer<
+  typeof paginatedClassesResponseSchema
+>;
 export type ClassesQuery = z.infer<typeof classesQuerySchema>;
 
 // Additional types for UI components
@@ -92,8 +94,10 @@ export interface CalendarDay {
 export function transformClassToCardData(classData: Class): ClassCardData {
   const scheduledAt = new Date(classData.scheduled_at);
   const now = new Date();
-  const endTime = new Date(scheduledAt.getTime() + classData.duration_minutes * 60000);
-  
+  const endTime = new Date(
+    scheduledAt.getTime() + classData.duration_minutes * 60000
+  );
+
   // Determine status
   let status: ClassCardData["status"] = "upcoming";
   if (now > endTime) {
@@ -111,7 +115,7 @@ export function transformClassToCardData(classData: Class): ClassCardData {
     { bg: "bg-pink-100", text: "text-pink-800" },
     { bg: "bg-indigo-100", text: "text-indigo-800" },
   ];
-  
+
   const colorIndex = classData.course_name.length % colors.length;
   const selectedColor = colors[colorIndex];
 

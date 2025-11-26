@@ -69,7 +69,9 @@ class PushSubscription(models.Model):
     p256dh = models.CharField(
         max_length=255, help_text="Public key for encryption (p256dh)"
     )
-    auth = models.CharField(max_length=255, help_text="Auth secret for encryption")
+    auth = models.CharField(
+        max_length=255, help_text="Auth secret for encryption"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -83,4 +85,3 @@ class PushSubscription(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.endpoint[:50]}..."
-

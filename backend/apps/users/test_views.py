@@ -620,7 +620,9 @@ class StudentEnrollmentActionSerializerTestCase(TestCase):
     def setUp(self):
         today = timezone.now().date()
         self.cohort = Cohort.objects.create(
-            name="Test Cohort", start_date=today, end_date=today + timedelta(days=30)
+            name="Test Cohort",
+            start_date=today,
+            end_date=today + timedelta(days=30),
         )
 
     def test_valid_cohort_id(self):

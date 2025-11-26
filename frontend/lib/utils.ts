@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Utility function to toast error messages with comprehensive error type handling
- * 
+ *
  * @param error - The error to display. Can be:
  *   - HttpError (custom error type from axios hook)
  *   - Error instance
@@ -38,7 +38,12 @@ export function toastError(
     Sentry.captureException(error);
 
     // Handle custom HttpError type
-    if (error && typeof error === "object" && "message" in error && "statusCode" in error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "message" in error &&
+      "statusCode" in error
+    ) {
       const httpError = error as HttpError;
       message = httpError.message || fallbackMessage;
     }
@@ -53,7 +58,10 @@ export function toastError(
     // Handle objects with message property
     else if (error && typeof error === "object" && "message" in error) {
       const errorObj = error as { message: unknown };
-      message = typeof errorObj.message === "string" ? errorObj.message : fallbackMessage;
+      message =
+        typeof errorObj.message === "string"
+          ? errorObj.message
+          : fallbackMessage;
     }
     // Fallback for any other type
     else {
@@ -67,12 +75,15 @@ export function toastError(
   }
 
   // Show the error toast
-  toast.error(options?.prefix ? `${options.prefix}: ${message}` : message, options);
+  toast.error(
+    options?.prefix ? `${options.prefix}: ${message}` : message,
+    options
+  );
 }
 
 /**
  * Utility function to toast success messages
- * 
+ *
  * @param message - The success message to display
  * @param options - Additional toast options
  */
@@ -88,7 +99,7 @@ export function toastSuccess(
 
 /**
  * Utility function to toast warning messages
- * 
+ *
  * @param message - The warning message to display
  * @param options - Additional toast options
  */
@@ -104,7 +115,7 @@ export function toastWarning(
 
 /**
  * Utility function to toast info messages
- * 
+ *
  * @param message - The info message to display
  * @param options - Additional toast options
  */

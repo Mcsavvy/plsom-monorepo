@@ -183,7 +183,7 @@ export function createAxiosInstance({
     error => {
       const customError = parseError(error);
       Sentry.captureException(customError);
-      
+
       // Handle 401 errors with proper cleanup
       if (customError.statusCode === 401) {
         if (onAuthFail) {
@@ -192,7 +192,7 @@ export function createAxiosInstance({
           // Return a proper error object instead of undefined
           return Promise.reject({
             message: "Authentication failed. Please log in again.",
-            statusCode: 401
+            statusCode: 401,
           });
         }
       }
@@ -207,7 +207,7 @@ export function useClient() {
   const handleAuthFail = useCallback(() => {
     session && clearSession();
   }, [clearSession, session]);
-  
+
   const client = useMemo(() => {
     if (!session) throw "No session is active";
     const axiosInstance = createAxiosInstance({

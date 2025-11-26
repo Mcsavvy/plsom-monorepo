@@ -1,13 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { User, Mail, Phone, Edit3, Camera, Trash2, Loader2, Lock } from "lucide-react";
+import {
+  User,
+  Mail,
+  Phone,
+  Edit3,
+  Camera,
+  Trash2,
+  Loader2,
+  Lock,
+} from "lucide-react";
 
 import { StudentProfile } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 import { toastError, toastSuccess } from "@/lib/utils";
 
 interface ProfileViewProps {
@@ -34,9 +43,17 @@ export function ProfileView({
       : `${profile.first_name} ${profile.last_name}`
   ).trim();
 
-  const initials = displayName.split(' ').filter(n => n !== '').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  const initials = displayName
+    .split(" ")
+    .filter(n => n !== "")
+    .slice(0, 2)
+    .map(n => n[0])
+    .join("")
+    .toUpperCase();
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -116,25 +133,30 @@ export function ProfileView({
         <div className="flex flex-col items-center space-y-4">
           <div className="relative">
             <Avatar className="h-24 w-24">
-              <AvatarImage className="object-fit" src={profile.profile_picture || undefined} />
-              <AvatarFallback className="text-4xl bg-primary text-primary-foreground">{initials}</AvatarFallback>
+              <AvatarImage
+                className="object-fit"
+                src={profile.profile_picture || undefined}
+              />
+              <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
+                {initials}
+              </AvatarFallback>
             </Avatar>
-            
+
             {/* Upload/Delete Picture Buttons */}
-            <div className="absolute -bottom-2 -right-2 flex gap-1">
+            <div className="absolute -right-2 -bottom-2 flex gap-1">
               <div className="relative">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleFileUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   disabled={isUploadingPicture || isDeletingPicture}
                   title="Upload profile picture"
                 />
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 w-8 p-0 rounded-full"
+                  className="h-8 w-8 rounded-full p-0"
                   disabled={isUploadingPicture || isDeletingPicture}
                   title="Upload profile picture"
                 >
@@ -145,12 +167,12 @@ export function ProfileView({
                   )}
                 </Button>
               </div>
-              
+
               {profile.profile_picture && (
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 w-8 p-0 rounded-full text-red-600 hover:text-red-700"
+                  className="h-8 w-8 rounded-full p-0 text-red-600 hover:text-red-700"
                   onClick={handleDeletePicture}
                   disabled={isUploadingPicture || isDeletingPicture}
                   title="Remove profile picture"
@@ -167,11 +189,13 @@ export function ProfileView({
 
           <div className="text-center">
             <h2 className="text-2xl font-bold">{displayName}</h2>
-            <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="mt-2 flex items-center justify-center gap-2">
               <Badge variant={profile.is_active ? "default" : "secondary"}>
                 {profile.is_active ? "Active" : "Inactive"}
               </Badge>
-              <Badge variant={profile.is_setup_complete ? "default" : "outline"}>
+              <Badge
+                variant={profile.is_setup_complete ? "default" : "outline"}
+              >
                 {profile.is_setup_complete ? "Setup Complete" : "Setup Pending"}
               </Badge>
             </div>
@@ -180,39 +204,47 @@ export function ProfileView({
 
         {/* Profile Details */}
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">First Name</label>
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <User className="h-4 w-4 text-muted-foreground" />
+              <label className="text-muted-foreground text-sm font-medium">
+                First Name
+              </label>
+              <div className="bg-muted/50 flex items-center gap-2 rounded-md p-3">
+                <User className="text-muted-foreground h-4 w-4" />
                 <span>{profile.first_name}</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Last Name</label>
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <User className="h-4 w-4 text-muted-foreground" />
+              <label className="text-muted-foreground text-sm font-medium">
+                Last Name
+              </label>
+              <div className="bg-muted/50 flex items-center gap-2 rounded-md p-3">
+                <User className="text-muted-foreground h-4 w-4" />
                 <span>{profile.last_name}</span>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Email Address</label>
-            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-              <Mail className="h-4 w-4 text-muted-foreground" />
+            <label className="text-muted-foreground text-sm font-medium">
+              Email Address
+            </label>
+            <div className="bg-muted/50 flex items-center gap-2 rounded-md p-3">
+              <Mail className="text-muted-foreground h-4 w-4" />
               <span>{profile.email}</span>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Email cannot be changed. Contact your administrator if needed.
             </p>
           </div>
 
           {profile.title && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Title</label>
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+              <label className="text-muted-foreground text-sm font-medium">
+                Title
+              </label>
+              <div className="bg-muted/50 flex items-center gap-2 rounded-md p-3">
                 <Badge variant="outline">{profile.title}</Badge>
               </div>
             </div>
@@ -220,9 +252,11 @@ export function ProfileView({
 
           {profile.whatsapp_number && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">WhatsApp Number</label>
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <Phone className="h-4 w-4 text-muted-foreground" />
+              <label className="text-muted-foreground text-sm font-medium">
+                WhatsApp Number
+              </label>
+              <div className="bg-muted/50 flex items-center gap-2 rounded-md p-3">
+                <Phone className="text-muted-foreground h-4 w-4" />
                 <span>{profile.whatsapp_number}</span>
               </div>
             </div>

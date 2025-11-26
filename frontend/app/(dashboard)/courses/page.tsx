@@ -4,12 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCourses } from "@/hooks/courses";
 import { CourseCardData } from "@/types/courses";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
@@ -35,7 +30,7 @@ interface CourseCardProps {
 function CourseCard({ course, onViewDetails }: CourseCardProps) {
   const formatNextClassDate = (nextClass: any) => {
     if (!nextClass?.scheduled_at) return null;
-    
+
     try {
       const date = new Date(nextClass.scheduled_at);
       return date.toLocaleDateString("en-US", {
@@ -53,10 +48,12 @@ function CourseCard({ course, onViewDetails }: CourseCardProps) {
   const nextClassDate = formatNextClassDate(course.nextClass);
 
   return (
-    <Card className="h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 pt-0">
+    <Card className="h-full pt-0 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
       <CardContent className="p-0">
         {/* Course Header with Color */}
-        <div className={`h-32 ${course.color} flex items-center justify-center rounded-t-xl relative overflow-hidden`}>
+        <div
+          className={`h-32 ${course.color} relative flex items-center justify-center overflow-hidden rounded-t-xl`}
+        >
           <div className="absolute top-2 right-2">
             {course.programType === "diploma" ? (
               <GraduationCap className={`h-5 w-5 ${course.textColor}`} />
@@ -64,19 +61,23 @@ function CourseCard({ course, onViewDetails }: CourseCardProps) {
               <Award className={`h-5 w-5 ${course.textColor}`} />
             )}
           </div>
-          <div className="text-center px-4">
+          <div className="px-4 text-center">
             <BookOpen className={`h-8 w-8 ${course.textColor} mx-auto mb-2`} />
-            <h3 className={`text-sm font-semibold ${course.textColor} line-clamp-2`}>
+            <h3
+              className={`text-sm font-semibold ${course.textColor} line-clamp-2`}
+            >
               {course.title}
             </h3>
           </div>
         </div>
 
         {/* Course Details */}
-        <div className="p-4 space-y-3">
+        <div className="space-y-3 p-4">
           <div>
-            <h4 className="font-semibold text-lg line-clamp-1">{course.title}</h4>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
+            <h4 className="line-clamp-1 text-lg font-semibold">
+              {course.title}
+            </h4>
+            <p className="text-muted-foreground flex items-center gap-1 text-sm">
               <Users className="h-3 w-3" />
               {course.instructor}
             </p>
@@ -84,16 +85,20 @@ function CourseCard({ course, onViewDetails }: CourseCardProps) {
 
           {/* Program Type Badge */}
           <div className="flex items-center gap-2">
-            <Badge variant={course.programType === "diploma" ? "default" : "secondary"}>
+            <Badge
+              variant={
+                course.programType === "diploma" ? "default" : "secondary"
+              }
+            >
               {course.programType === "diploma" ? "Diploma" : "Certificate"}
             </Badge>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {course.moduleCount} modules
             </span>
           </div>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground line-clamp-2">
+          <p className="text-muted-foreground line-clamp-2 text-sm">
             {course.description}
           </p>
 
@@ -112,7 +117,7 @@ function CourseCard({ course, onViewDetails }: CourseCardProps) {
                 </span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
                 <AlertCircle className="h-4 w-4" />
                 <span>No classes scheduled</span>
               </div>
@@ -120,24 +125,26 @@ function CourseCard({ course, onViewDetails }: CourseCardProps) {
 
             {/* Next Class */}
             {nextClassDate && (
-              <div className="flex items-center gap-2 text-sm bg-primary/5 p-2 rounded">
-                <Calendar className="h-4 w-4 text-primary" />
+              <div className="bg-primary/5 flex items-center gap-2 rounded p-2 text-sm">
+                <Calendar className="text-primary h-4 w-4" />
                 <div>
-                  <p className="font-medium text-primary">Next Class</p>
-                  <p className="text-xs text-muted-foreground">{nextClassDate}</p>
+                  <p className="text-primary font-medium">Next Class</p>
+                  <p className="text-muted-foreground text-xs">
+                    {nextClassDate}
+                  </p>
                 </div>
               </div>
             )}
           </div>
 
           {/* Action Button */}
-          <Button 
+          <Button
             onClick={() => onViewDetails(course.id)}
             className="w-full"
             variant="outline"
           >
             View Details
-            <ExternalLink className="h-4 w-4 ml-2" />
+            <ExternalLink className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </CardContent>
@@ -178,7 +185,7 @@ export default function CoursesPage() {
   const inactiveCourses = courses.filter(course => !course.isActive);
 
   if (loading) {
-    return ( <LoadingSpinner />);
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -193,7 +200,7 @@ export default function CoursesPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto space-y-6 p-4">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">My Courses</h1>
@@ -203,42 +210,49 @@ export default function CoursesPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <BookOpen className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <BookOpen className="text-primary mx-auto mb-2 h-6 w-6" />
             <div className="text-2xl font-bold">{activeCourses.length}</div>
-            <div className="text-xs text-muted-foreground">Active Courses</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Clock className="h-6 w-6 mx-auto mb-2 text-orange-500" />
-            <div className="text-2xl font-bold">
-              {activeCourses.reduce((sum, course) => sum + course.upcomingClasses, 0)}
-            </div>
-            <div className="text-xs text-muted-foreground">Upcoming Classes</div>
+            <div className="text-muted-foreground text-xs">Active Courses</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <GraduationCap className="h-6 w-6 mx-auto mb-2 text-blue-500" />
+            <Clock className="mx-auto mb-2 h-6 w-6 text-orange-500" />
+            <div className="text-2xl font-bold">
+              {activeCourses.reduce(
+                (sum, course) => sum + course.upcomingClasses,
+                0
+              )}
+            </div>
+            <div className="text-muted-foreground text-xs">
+              Upcoming Classes
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 text-center">
+            <GraduationCap className="mx-auto mb-2 h-6 w-6 text-blue-500" />
             <div className="text-2xl font-bold">
               {courses.filter(c => c.programType === "diploma").length}
             </div>
-            <div className="text-xs text-muted-foreground">Diploma Programs</div>
+            <div className="text-muted-foreground text-xs">
+              Diploma Programs
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <Award className="h-6 w-6 mx-auto mb-2 text-green-500" />
+            <Award className="mx-auto mb-2 h-6 w-6 text-green-500" />
             <div className="text-2xl font-bold">
               {courses.filter(c => c.programType === "certificate").length}
             </div>
-            <div className="text-xs text-muted-foreground">Certificates</div>
+            <div className="text-muted-foreground text-xs">Certificates</div>
           </CardContent>
         </Card>
       </div>
@@ -246,11 +260,11 @@ export default function CoursesPage() {
       {/* Active Courses */}
       {activeCourses.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold flex items-center gap-2">
+          <h2 className="flex items-center gap-2 text-2xl font-semibold">
             <BookOpen className="h-6 w-6" />
             Active Courses
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {activeCourses.map(course => (
               <CourseCard
                 key={course.id}
@@ -265,11 +279,11 @@ export default function CoursesPage() {
       {/* Inactive Courses */}
       {inactiveCourses.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold flex items-center gap-2 text-muted-foreground">
+          <h2 className="text-muted-foreground flex items-center gap-2 text-2xl font-semibold">
             <BookOpen className="h-6 w-6" />
             Inactive Courses
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {inactiveCourses.map(course => (
               <CourseCard
                 key={course.id}
@@ -283,13 +297,13 @@ export default function CoursesPage() {
 
       {/* Empty State */}
       {courses.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">No Courses Yet</h3>
+        <div className="py-12 text-center">
+          <BookOpen className="text-muted-foreground mx-auto mb-4 h-16 w-16" />
+          <h3 className="mb-2 text-xl font-semibold">No Courses Yet</h3>
           <p className="text-muted-foreground mb-4">
             You haven&apos;t been enrolled in any courses yet.
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Contact your administrator for course enrollment.
           </p>
         </div>

@@ -45,7 +45,9 @@ export function DesktopLayout({
           <SidebarHeader>
             <div className="flex items-center gap-2 px-2 py-1">
               <SidebarTrigger />
-              <div className="font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">PLSOM LMS</div>
+              <div className="text-sidebar-foreground font-semibold group-data-[collapsible=icon]:hidden">
+                PLSOM LMS
+              </div>
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -58,18 +60,18 @@ export function DesktopLayout({
                 <PWAInstallButton variant="button" />
               </div>
             )}
-            
+
             {/* Feedback Button in Sidebar */}
             <div className="px-2 py-1">
-              <FeedbackButton 
-                variant="ghost" 
-                size="sm" 
+              <FeedbackButton
+                variant="ghost"
+                size="sm"
                 className="w-full justify-start text-xs"
               >
                 Report Issue
               </FeedbackButton>
             </div>
-            
+
             {/* Network Status in Sidebar */}
             {showNetworkStatus && networkStatusVariant === "minimal" && (
               <div className="flex items-center justify-center p-2">

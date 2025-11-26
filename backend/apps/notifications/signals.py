@@ -4,4 +4,3 @@ This file will be populated with signal handlers when integrating with other app
 """
 
 # Signal handlers will be added here during integration phase
-

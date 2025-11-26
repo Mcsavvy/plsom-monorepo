@@ -1,5 +1,10 @@
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist, NetworkFirst, CacheFirst, StaleWhileRevalidate } from "serwist";
+import {
+  Serwist,
+  NetworkFirst,
+  CacheFirst,
+  StaleWhileRevalidate,
+} from "serwist";
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -72,7 +77,8 @@ const serwist = new Serwist({
     },
     // Cache other pages with NetworkFirst
     {
-      matcher: ({ request }: { request: Request }) => request.mode === "navigate",
+      matcher: ({ request }: { request: Request }) =>
+        request.mode === "navigate",
       handler: new NetworkFirst({
         cacheName: "navigation-cache",
         networkTimeoutSeconds: 3,
@@ -83,7 +89,8 @@ const serwist = new Serwist({
     entries: [
       {
         url: "/offline",
-        matcher: ({ request }: { request: Request }) => request.destination === "document",
+        matcher: ({ request }: { request: Request }) =>
+          request.destination === "document",
       },
     ],
   },
@@ -95,8 +102,8 @@ serwist.addEventListeners();
 self.addEventListener("online", () => {
   console.log("📶 Back online!");
   // Notify all clients about online status
-  self.clients.matchAll().then((clients) => {
-    clients.forEach((client) => {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
       client.postMessage({
         type: "NETWORK_STATUS_CHANGED",
         payload: { online: true },
@@ -108,8 +115,8 @@ self.addEventListener("online", () => {
 self.addEventListener("offline", () => {
   console.log("📵 Gone offline!");
   // Notify all clients about offline status
-  self.clients.matchAll().then((clients) => {
-    clients.forEach((client) => {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
       client.postMessage({
         type: "NETWORK_STATUS_CHANGED",
         payload: { online: false },
@@ -119,7 +126,7 @@ self.addEventListener("offline", () => {
 });
 
 // Handle background sync for form submissions
-self.addEventListener("sync", (event) => {
+self.addEventListener("sync", event => {
   if (event.tag === "form-sync") {
     event.waitUntil(syncForms());
   }
@@ -129,7 +136,7 @@ async function syncForms() {
   try {
     // Retrieve pending form submissions from IndexedDB or cache
     const pendingSubmissions = await getPendingSubmissions();
-    
+
     for (const submission of pendingSubmissions) {
       try {
         const response = await fetch(submission.url, {
@@ -137,7 +144,7 @@ async function syncForms() {
           headers: submission.headers,
           body: submission.body,
         });
-        
+
         if (response.ok) {
           // Remove successful submission from queue
           await removePendingSubmission(submission.id);
@@ -172,7 +179,7 @@ async function removePendingSubmission(id: string) {
 }
 
 // Handle push notifications
-self.addEventListener("push", (event) => {
+self.addEventListener("push", event => {
   if (!event.data) return;
 
   const payload = event.data.json();
@@ -225,7 +232,7 @@ self.addEventListener("push", (event) => {
 });
 
 // Handle notification click
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener("notificationclick", event => {
   event.notification.close();
 
   if (event.action === "close") {
@@ -235,25 +242,29 @@ self.addEventListener("notificationclick", (event) => {
   if (event.action === "open" || event.action === "") {
     const url = event.notification.data?.url || "/";
     event.waitUntil(
-      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-        // Check if there is already a window/tab open
-        for (const client of clients) {
-          // If found, focus it and navigate to the URL
-          if ("focus" in client) {
-            client.focus();
-            if ("navigate" in client) {
-              client.navigate(url);
+      self.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then(clients => {
+          // Check if there is already a window/tab open
+          for (const client of clients) {
+            // If found, focus it and navigate to the URL
+            if ("focus" in client) {
+              client.focus();
+              if ("navigate" in client) {
+                client.navigate(url);
+              }
+              return;
             }
-            return;
           }
-        }
-        // If no window/tab is already open, open a new one
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(url);
-        }
-      })
+          // If no window/tab is already open, open a new one
+          if (self.clients.openWindow) {
+            return self.clients.openWindow(url);
+          }
+        })
     );
   }
 });
 
-console.log("🔧 Service Worker loaded with enhanced caching and offline support");
+console.log(
+  "🔧 Service Worker loaded with enhanced caching and offline support"
+);

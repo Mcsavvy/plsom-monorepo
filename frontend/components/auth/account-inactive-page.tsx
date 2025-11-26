@@ -129,8 +129,7 @@ export function AccountInactivePage() {
             {user && (
               <div className="space-y-2 text-center">
                 <p className="text-muted-foreground text-sm">
-                  Account:{" "}
-                  <span className="font-medium">{user.email}</span>
+                  Account: <span className="font-medium">{user.email}</span>
                 </p>
                 <p className="text-muted-foreground text-sm">
                   Name:{" "}

@@ -57,9 +57,7 @@ class UserModelTestCase(TestCase):
         with self.assertRaises(TypeError) as context:
             User.objects.create_user(**user_data)
 
-        self.assertIn(
-            "email", str(context.exception)
-        )
+        self.assertIn("email", str(context.exception))
 
     def test_create_user_with_empty_email(self):
         """Test user creation with empty email raises ValueError."""

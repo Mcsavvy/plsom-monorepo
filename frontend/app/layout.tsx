@@ -65,18 +65,54 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="PLSOM LMS" />
         <meta name="mobile-web-app-capable" content="yes" />
-        
+
         {/* iOS splash screen images */}
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="/splash-ios-430x932.png" />
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" href="/splash-ios-393x852.png" />
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" href="/splash-ios-428x926.png" />
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" href="/splash-ios-390x844.png" />
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="/splash-ios-375x812.png" />
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" href="/splash-ios-414x896.png" />
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" href="/splash-ios-414x896@2x.png" />
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="/splash-ios-375x667@2x.png" />
-        <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="/splash-ios-320x568@2x.png" />
-        
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-ios-430x932.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-ios-393x852.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-ios-428x926.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-ios-390x844.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-ios-375x812.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-ios-414x896.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)"
+          href="/splash-ios-414x896@2x.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"
+          href="/splash-ios-375x667@2x.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)"
+          href="/splash-ios-320x568@2x.png"
+        />
+
         {/* Default splash screen for other devices */}
         <link rel="apple-touch-startup-image" href="/splash-ios-default.png" />
       </head>
@@ -89,9 +125,7 @@ export default function RootLayout({
         >
           <SessionProvider>
             <ServiceWorkerRegister />
-            <GlobalTransitions>
-              {children}
-            </GlobalTransitions>
+            <GlobalTransitions>{children}</GlobalTransitions>
           </SessionProvider>
         </ThemeProvider>
         <Toaster />

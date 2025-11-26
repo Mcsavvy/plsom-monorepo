@@ -30,15 +30,16 @@ async function _getMyTests(
 ): Promise<TestListItem[]> {
   try {
     const params = new URLSearchParams();
-    
+
     if (query?.ordering) params.append("ordering", query.ordering);
     if (query?.page) params.append("page", query.page.toString());
-    if (query?.page_size) params.append("page_size", query.page_size.toString());
+    if (query?.page_size)
+      params.append("page_size", query.page_size.toString());
     if (query?.search) params.append("search", query.search);
 
     const url = `/tests/my-tests/${params.toString() ? `?${params.toString()}` : ""}`;
     const response = await client.get<PaginatedTestsResponse>(url);
-    
+
     if (response.status === 200) {
       const paginatedTests = paginatedTestsResponseSchema.parse(response.data);
       return paginatedTests.results;
@@ -65,7 +66,7 @@ async function _getTestDetails(
     throw new Error("Failed to fetch test details");
   } catch (error) {
     throw error;
-    }
+  }
 }
 
 /**
@@ -97,7 +98,7 @@ async function _saveAnswers(
 ): Promise<Submission> {
   try {
     const response = await client.post<Submission>(
-      `/submissions/${submissionId}/answers/`, 
+      `/submissions/${submissionId}/answers/`,
       { answers }
     );
     if (response.status === 200) {
@@ -143,19 +144,19 @@ async function _uploadFile(
 ): Promise<Submission> {
   try {
     const formData = new FormData();
-    formData.append('question', questionId);
-    formData.append('file', file);
+    formData.append("question", questionId);
+    formData.append("file", file);
 
     const response = await client.post<Submission>(
       `/submissions/${submissionId}/upload/`,
       formData,
       {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       }
     );
-    
+
     if (response.status === 200) {
       toastSuccess("File uploaded successfully.");
       return response.data;
@@ -184,7 +185,7 @@ async function _deleteDocument(
         },
       }
     );
-    
+
     if (response.status === 200) {
       toastSuccess("Document deleted successfully.");
       return response.data;
@@ -204,7 +205,9 @@ async function _getSubmissionDetail(
   submissionId: number
 ): Promise<SubmissionDetail> {
   try {
-    const response = await client.get<SubmissionDetail>(`/submissions/${submissionId}/`);
+    const response = await client.get<SubmissionDetail>(
+      `/submissions/${submissionId}/`
+    );
     if (response.status === 200) {
       return submissionDetailSchema.parse(response.data);
     }
@@ -227,19 +230,25 @@ function transformAnswersToFrontend(
     if (!backendAnswer.has_answer) return; // Skip empty answers
 
     const questionId = backendAnswer.question;
-    
+
     // Handle different answer types based on what's populated
     if (backendAnswer.text_answer) {
       frontendAnswers[questionId] = {
         question_id: questionId,
         text_answer: backendAnswer.text_answer,
       };
-    } else if (backendAnswer.boolean_answer !== null && backendAnswer.boolean_answer !== undefined) {
+    } else if (
+      backendAnswer.boolean_answer !== null &&
+      backendAnswer.boolean_answer !== undefined
+    ) {
       frontendAnswers[questionId] = {
         question_id: questionId,
         boolean_answer: backendAnswer.boolean_answer,
       };
-    } else if (backendAnswer.selected_options && backendAnswer.selected_options.length > 0) {
+    } else if (
+      backendAnswer.selected_options &&
+      backendAnswer.selected_options.length > 0
+    ) {
       frontendAnswers[questionId] = {
         question_id: questionId,
         selected_options: backendAnswer.selected_options,
@@ -263,20 +272,20 @@ function transformAnswersToBackend(
   flaggedQuestions?: Set<string>
 ): BackendAnswer[] {
   return Object.values(answers)
-    .filter(answer => !('file_answer' in answer)) // Exclude file uploads - they're handled separately
+    .filter(answer => !("file_answer" in answer)) // Exclude file uploads - they're handled separately
     .map(answer => {
       const backendAnswer: BackendAnswer = {
         question: answer.question_id,
       };
 
       // Handle different answer types
-      if ('text_answer' in answer) {
+      if ("text_answer" in answer) {
         backendAnswer.text_answer = answer.text_answer;
-      } else if ('boolean_answer' in answer) {
+      } else if ("boolean_answer" in answer) {
         backendAnswer.boolean_answer = answer.boolean_answer;
-      } else if ('selected_options' in answer) {
+      } else if ("selected_options" in answer) {
         backendAnswer.selected_options = answer.selected_options;
-      } else if ('scripture_references' in answer) {
+      } else if ("scripture_references" in answer) {
         // Convert scripture references to text format for backend
         const refs = answer.scripture_references.map(ref => {
           let refText = `${ref.book} ${ref.chapter}:${ref.verse_start}`;
@@ -284,7 +293,7 @@ function transformAnswersToBackend(
           refText += ` (${ref.translation})`;
           return refText;
         });
-        backendAnswer.text_answer = refs.join('; ');
+        backendAnswer.text_answer = refs.join("; ");
       }
 
       return backendAnswer;
@@ -401,10 +410,7 @@ export function useTests() {
    * Delete an uploaded document for a document upload question
    */
   const deleteDocument = useCallback(
-    async (
-      submissionId: number,
-      questionId: string
-    ): Promise<Submission> => {
+    async (submissionId: number, questionId: string): Promise<Submission> => {
       return await _deleteDocument(client, submissionId, questionId);
     },
     [client]

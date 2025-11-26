@@ -4,14 +4,29 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, User, Lock, Phone, Loader2, Mail, GraduationCap } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  User,
+  Lock,
+  Phone,
+  Loader2,
+  Mail,
+  GraduationCap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useOnboarding } from "@/hooks/onboarding";
 import { OnboardingRequest, onboardingRequestSchema } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -32,13 +47,19 @@ interface OnboardingFormProps {
   onSuccess?: () => void;
 }
 
-export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingFormProps) {
+export function OnboardingForm({
+  token,
+  invitationData,
+  onSuccess,
+}: OnboardingFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verificationError, setVerificationError] = useState<string | null>(
+    null
+  );
 
   const { verifyInvitation, completeOnboarding } = useOnboarding();
   const router = useRouter();
@@ -66,14 +87,15 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
   const verifyToken = async () => {
     setIsVerifying(true);
     setVerificationError(null);
-    
+
     try {
       await verifyInvitation({ token });
       // If verification succeeds, we'll get the data from the parent component
       // or we can redirect to show the form
     } catch (err: any) {
       setVerificationError(
-        err?.message || "Invalid or expired invitation token. Please contact your administrator."
+        err?.message ||
+          "Invalid or expired invitation token. Please contact your administrator."
       );
     } finally {
       setIsVerifying(false);
@@ -88,7 +110,9 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
       await completeOnboarding(data);
       onSuccess?.();
       // Redirect to login page after successful onboarding
-      router.push("/login?message=Account setup complete. Please sign in with your new credentials.");
+      router.push(
+        "/login?message=Account setup complete. Please sign in with your new credentials."
+      );
     } catch (err: any) {
       setError(
         err?.message || "Failed to complete onboarding. Please try again."
@@ -101,11 +125,11 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
   if (isVerifying) {
     return (
       <div className="from-background to-secondary/20 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
-        <Card className="shadow-lg w-full max-w-md">
+        <Card className="w-full max-w-md shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-center text-muted-foreground">
+              <Loader2 className="text-primary h-8 w-8 animate-spin" />
+              <p className="text-muted-foreground text-center">
                 Verifying your invitation...
               </p>
             </div>
@@ -118,7 +142,7 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
   if (verificationError) {
     return (
       <div className="from-background to-secondary/20 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
-        <Card className="shadow-lg w-full max-w-md">
+        <Card className="w-full max-w-md shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/20">
@@ -128,7 +152,7 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
                 <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">
                   Invalid Invitation
                 </h3>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                <p className="mt-1 text-sm text-red-700 dark:text-red-300">
                   {verificationError}
                 </p>
               </div>
@@ -165,7 +189,7 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
             </div>
             {invitationData && (
               <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                <div className="flex items-center space-x-2 text-muted-foreground">
+                <div className="text-muted-foreground flex items-center space-x-2">
                   <GraduationCap className="h-4 w-4" />
                   <span>{invitationData.cohort_name}</span>
                 </div>
@@ -173,7 +197,11 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
             )}
           </CardHeader>
           <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" autoComplete="on">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+              autoComplete="on"
+            >
               {error && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
@@ -186,7 +214,10 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="first_name" className="text-foreground text-sm font-medium">
+                  <label
+                    htmlFor="first_name"
+                    className="text-foreground text-sm font-medium"
+                  >
                     First Name
                   </label>
                   <div className="relative">
@@ -208,7 +239,10 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="last_name" className="text-foreground text-sm font-medium">
+                  <label
+                    htmlFor="last_name"
+                    className="text-foreground text-sm font-medium"
+                  >
                     Last Name
                   </label>
                   <div className="relative">
@@ -231,7 +265,10 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="email" className="text-foreground text-sm font-medium">
+                <label
+                  htmlFor="email"
+                  className="text-foreground text-sm font-medium"
+                >
                   Email Address
                 </label>
                 <div className="relative">
@@ -241,22 +278,26 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
                     type="email"
                     value={invitationData?.email || ""}
                     disabled
-                    className="pl-10 bg-muted/50 cursor-not-allowed"
+                    className="bg-muted/50 cursor-not-allowed pl-10"
                     autoComplete="email"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  This email is associated with your invitation and cannot be changed
+                <p className="text-muted-foreground text-xs">
+                  This email is associated with your invitation and cannot be
+                  changed
                 </p>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="title" className="text-foreground text-sm font-medium">
+                <label
+                  htmlFor="title"
+                  className="text-foreground text-sm font-medium"
+                >
                   Title (Optional)
                 </label>
                 <Select
                   value={form.watch("title") || ""}
-                  onValueChange={(value) => {
+                  onValueChange={value => {
                     if (value === "none") {
                       form.setValue("title", undefined);
                     } else {
@@ -270,14 +311,19 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
                   <SelectContent>
                     <SelectItem value="none">No title</SelectItem>
                     {USER_TITLE_OPTIONS.map(title => (
-                      <SelectItem key={title} value={title}>{title}</SelectItem>
+                      <SelectItem key={title} value={title}>
+                        {title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="whatsapp_number" className="text-foreground text-sm font-medium">
+                <label
+                  htmlFor="whatsapp_number"
+                  className="text-foreground text-sm font-medium"
+                >
                   WhatsApp Number (Optional)
                 </label>
                 <div className="relative">
@@ -300,7 +346,10 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="text-foreground text-sm font-medium">
+                <label
+                  htmlFor="password"
+                  className="text-foreground text-sm font-medium"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -335,7 +384,10 @@ export function OnboardingForm({ token, invitationData, onSuccess }: OnboardingF
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password_confirm" className="text-foreground text-sm font-medium">
+                <label
+                  htmlFor="password_confirm"
+                  className="text-foreground text-sm font-medium"
+                >
                   Confirm Password
                 </label>
                 <div className="relative">

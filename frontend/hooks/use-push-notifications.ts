@@ -13,7 +13,8 @@ interface PushSubscriptionData {
 export function usePushNotifications() {
   const { isAuthenticated } = useAuth();
   const [isSupported, setIsSupported] = useState(false);
-  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [permission, setPermission] =
+    useState<NotificationPermission>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -66,7 +67,9 @@ export function usePushNotifications() {
   // Subscribe to push notifications
   const subscribe = useCallback(async () => {
     if (!isSupported || !isAuthenticated) {
-      console.error("Push notifications not supported or user not authenticated");
+      console.error(
+        "Push notifications not supported or user not authenticated"
+      );
       return false;
     }
 
@@ -165,4 +168,3 @@ export function usePushNotifications() {
     unsubscribe,
   };
 }
-

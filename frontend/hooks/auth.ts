@@ -94,15 +94,19 @@ async function _resetPassword(
   }
 }
 
-
-
 function _transformUser(user: AuthUser): User {
   const displayName = (
     user.title
       ? `${user.title} ${user.first_name} ${user.last_name}`
       : `${user.first_name} ${user.last_name}`
   ).trim();
-  const initials = displayName.split(' ').filter(n => n !== '').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  const initials = displayName
+    .split(" ")
+    .filter(n => n !== "")
+    .slice(0, 2)
+    .map(n => n[0])
+    .join("")
+    .toUpperCase();
   return {
     id: user.id,
     email: user.email,
@@ -148,7 +152,7 @@ export function useAuth() {
 
   const refreshLogin = useCallback(async () => {
     if (!session) throw "No session is active";
-    
+
     // Create a fresh client instance for token refresh to avoid stale tokens
     const refreshClient = createAxiosInstance({});
     const tokenResponse = await _refreshToken(
@@ -164,7 +168,11 @@ export function useAuth() {
     try {
       // Create a fresh client instance for logout to avoid stale tokens
       const logoutClient = createAxiosInstance({});
-      await _logout(logoutClient, session.tokens.access, session.tokens.refresh);
+      await _logout(
+        logoutClient,
+        session.tokens.access,
+        session.tokens.refresh
+      );
     } catch (error) {
       console.error("Failed to logout", error);
     } finally {
@@ -178,10 +186,13 @@ export function useAuth() {
 
   const refreshCurrentUser = useCallback(async () => {
     if (!session) throw "No session is active";
-    
+
     // Create a fresh client instance to ensure we use the latest token
     const userClient = createAxiosInstance({});
-    const userResponse = await _getCurrentUser(userClient, session.tokens.access);
+    const userResponse = await _getCurrentUser(
+      userClient,
+      session.tokens.access
+    );
     setSession({ ...session, user: userResponse });
   }, [setSession, session]);
 
@@ -201,8 +212,6 @@ export function useAuth() {
     },
     [client]
   );
-
-
 
   return {
     login,

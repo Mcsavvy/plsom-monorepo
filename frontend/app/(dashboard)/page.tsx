@@ -9,10 +9,7 @@ import { useTests } from "@/hooks/tests";
 import { CourseCardData } from "@/types/courses";
 import { ClassCardData } from "@/types/classes";
 import { TestCardData } from "@/types/tests";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
@@ -55,7 +52,7 @@ export default function HomePage() {
       try {
         setLoading(true);
         setError(null);
-        
+
         const [coursesData, classesData, testsData] = await Promise.all([
           getMyCoursesForUI().catch(err => {
             console.error("Error fetching courses:", err);
@@ -70,25 +67,32 @@ export default function HomePage() {
             return [];
           }),
         ]);
-        
+
         setCourses(coursesData);
         setClasses(classesData);
         setTests(testsData);
       } catch (err) {
         // Handle undefined errors and provide proper error handling
         if (err === undefined || err === null) {
-          console.warn("Received undefined error, likely due to authentication redirect");
+          console.warn(
+            "Received undefined error, likely due to authentication redirect"
+          );
           setError("Session expired. Please log in again.");
           return;
         }
-        
+
         // Check if it's an authentication error
-        if (err && typeof err === 'object' && 'statusCode' in err && err.statusCode === 401) {
+        if (
+          err &&
+          typeof err === "object" &&
+          "statusCode" in err &&
+          err.statusCode === 401
+        ) {
           console.log("401 error, logging out");
           setError("Session expired. Please log in again.");
           return;
         }
-        
+
         toastError(err, "Failed to load dashboard data. Please try again.");
         setError("Failed to load dashboard data. Please try again.");
       } finally {
@@ -104,12 +108,19 @@ export default function HomePage() {
   const upcomingClasses = classes.filter(c => c.isUpcoming).slice(0, 3);
   const ongoingClasses = classes.filter(c => c.status === "ongoing");
   const todayClasses = classes.filter(c => c.isToday);
-  const availableTests = tests.filter(t => t.isAvailable && t.status === "not_started" && t.canAttempt);
-  const inProgressTests = tests.filter(t => t.status === "in_progress" || t.status === "returned");
-  const urgentTests = tests.filter(t => 
-    (t.isAvailable && t.status === "not_started" && t.canAttempt) || 
-    t.status === "in_progress"
-  ).slice(0, 2);
+  const availableTests = tests.filter(
+    t => t.isAvailable && t.status === "not_started" && t.canAttempt
+  );
+  const inProgressTests = tests.filter(
+    t => t.status === "in_progress" || t.status === "returned"
+  );
+  const urgentTests = tests
+    .filter(
+      t =>
+        (t.isAvailable && t.status === "not_started" && t.canAttempt) ||
+        t.status === "in_progress"
+    )
+    .slice(0, 2);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -136,8 +147,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
-      <div className="container mx-auto p-4 space-y-6">
+    <div className="from-background to-secondary/20 min-h-screen bg-gradient-to-br">
+      <div className="container mx-auto space-y-6 p-4">
         {/* Header with User Info */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -155,11 +166,13 @@ export default function HomePage() {
               )}
             </Avatar>
             <div>
-              <h1 className="text-xl font-bold">Welcome back, {user?.firstName || user?.lastName || "User"}!</h1>
-              <p className="text-sm text-muted-foreground">Student Dashboard</p>
+              <h1 className="text-xl font-bold">
+                Welcome back, {user?.firstName || user?.lastName || "User"}!
+              </h1>
+              <p className="text-muted-foreground text-sm">Student Dashboard</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">      
+          <div className="flex items-center space-x-2">
             {/* Notification Bell */}
             <NotificationBell />
           </div>
@@ -204,33 +217,47 @@ export default function HomePage() {
         <div className="grid grid-cols-2 gap-3">
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-4 text-center">
-              <BookOpen className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <div className="text-2xl font-bold text-primary">{activeCourses.length}</div>
-              <div className="text-xs text-muted-foreground">Active Courses</div>
+              <BookOpen className="text-primary mx-auto mb-2 h-6 w-6" />
+              <div className="text-primary text-2xl font-bold">
+                {activeCourses.length}
+              </div>
+              <div className="text-muted-foreground text-xs">
+                Active Courses
+              </div>
             </CardContent>
           </Card>
-          
-          <Card className="bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800">
+
+          <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/20">
             <CardContent className="p-4 text-center">
-              <Clock className="h-6 w-6 mx-auto mb-2 text-orange-600" />
-              <div className="text-2xl font-bold text-orange-600">{upcomingClasses.length}</div>
-              <div className="text-xs text-muted-foreground">Upcoming Classes</div>
+              <Clock className="mx-auto mb-2 h-6 w-6 text-orange-600" />
+              <div className="text-2xl font-bold text-orange-600">
+                {upcomingClasses.length}
+              </div>
+              <div className="text-muted-foreground text-xs">
+                Upcoming Classes
+              </div>
             </CardContent>
           </Card>
-          
-          <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
+
+          <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
             <CardContent className="p-4 text-center">
-              <FileText className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-              <div className="text-2xl font-bold text-blue-600">{availableTests.length}</div>
-              <div className="text-xs text-muted-foreground">Available Tests</div>
+              <FileText className="mx-auto mb-2 h-6 w-6 text-blue-600" />
+              <div className="text-2xl font-bold text-blue-600">
+                {availableTests.length}
+              </div>
+              <div className="text-muted-foreground text-xs">
+                Available Tests
+              </div>
             </CardContent>
           </Card>
-          
-          <Card className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800">
+
+          <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/20">
             <CardContent className="p-4 text-center">
-              <Timer className="h-6 w-6 mx-auto mb-2 text-yellow-600" />
-              <div className="text-2xl font-bold text-yellow-600">{inProgressTests.length}</div>
-              <div className="text-xs text-muted-foreground">In Progress</div>
+              <Timer className="mx-auto mb-2 h-6 w-6 text-yellow-600" />
+              <div className="text-2xl font-bold text-yellow-600">
+                {inProgressTests.length}
+              </div>
+              <div className="text-muted-foreground text-xs">In Progress</div>
             </CardContent>
           </Card>
         </div>
@@ -239,36 +266,48 @@ export default function HomePage() {
         {todayClasses.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
                 <Calendar className="h-5 w-5" />
                 Today's Classes
               </h2>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => router.push('/classes')}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/classes")}
                 className="text-primary"
               >
                 View All
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="space-y-2">
               {todayClasses.slice(0, 2).map(classItem => (
-                <Card key={classItem.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                <Card
+                  key={classItem.id}
+                  className="cursor-pointer transition-shadow hover:shadow-md"
+                >
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          classItem.status === "ongoing" ? "bg-green-500" :
-                          classItem.status === "completed" ? "bg-blue-500" :
-                          classItem.status === "missed" ? "bg-red-500" :
-                          "bg-orange-500"
-                        }`}></div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm truncate">{classItem.title}</h3>
-                          <p className="text-xs text-muted-foreground">{classItem.courseName}</p>
+                        <div
+                          className={`h-3 w-3 rounded-full ${
+                            classItem.status === "ongoing"
+                              ? "bg-green-500"
+                              : classItem.status === "completed"
+                                ? "bg-blue-500"
+                                : classItem.status === "missed"
+                                  ? "bg-red-500"
+                                  : "bg-orange-500"
+                          }`}
+                        ></div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-sm font-medium">
+                            {classItem.title}
+                          </h3>
+                          <p className="text-muted-foreground text-xs">
+                            {classItem.courseName}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -278,11 +317,14 @@ export default function HomePage() {
                             minute: "2-digit",
                           })}
                         </p>
-                        <Badge variant="outline" className="text-xs mt-1">
-                          {classItem.status === "ongoing" ? "Live" :
-                           classItem.status === "completed" ? "Done" :
-                           classItem.status === "missed" ? "Missed" :
-                           "Upcoming"}
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          {classItem.status === "ongoing"
+                            ? "Live"
+                            : classItem.status === "completed"
+                              ? "Done"
+                              : classItem.status === "missed"
+                                ? "Missed"
+                                : "Upcoming"}
                         </Badge>
                       </div>
                     </div>
@@ -297,32 +339,39 @@ export default function HomePage() {
         {urgentTests.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
                 <AlertCircle className="h-5 w-5 text-orange-500" />
                 Urgent Tests
               </h2>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => router.push('/tests')}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/tests")}
                 className="text-primary"
               >
                 View All
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="space-y-2">
               {urgentTests.map(test => (
-                <Card key={test.id} className="border-orange-200 bg-orange-50/30 dark:border-orange-800 dark:bg-orange-950/20">
+                <Card
+                  key={test.id}
+                  className="border-orange-200 bg-orange-50/30 dark:border-orange-800 dark:bg-orange-950/20"
+                >
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-sm truncate">{test.title}</h3>
-                        <p className="text-xs text-muted-foreground">{test.courseName}</p>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-sm font-medium">
+                          {test.title}
+                        </h3>
+                        <p className="text-muted-foreground text-xs">
+                          {test.courseName}
+                        </p>
                         {test.timeLimit && (
-                          <p className="text-xs text-orange-600 mt-1">
-                            <Timer className="h-3 w-3 inline mr-1" />
+                          <p className="mt-1 text-xs text-orange-600">
+                            <Timer className="mr-1 inline h-3 w-3" />
                             {test.timeLimit} min limit
                           </p>
                         )}
@@ -346,53 +395,67 @@ export default function HomePage() {
         {activeCourses.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
                 <BookOpen className="h-5 w-5" />
                 My Courses
               </h2>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => router.push('/courses')}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/courses")}
                 className="text-primary"
               >
                 View All
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-3">
               {activeCourses.slice(0, 3).map(course => (
-                <Card 
-                  key={course.id} 
-                  className="cursor-pointer hover:shadow-md transition-shadow pt-0"
+                <Card
+                  key={course.id}
+                  className="cursor-pointer pt-0 transition-shadow hover:shadow-md"
                   onClick={() => router.push(`/courses/${course.id}`)}
                 >
                   <CardContent className="p-0">
-                    <div className={`h-20 ${course.color} flex items-center justify-center rounded-t-xl relative`}>
+                    <div
+                      className={`h-20 ${course.color} relative flex items-center justify-center rounded-t-xl`}
+                    >
                       <div className="absolute top-2 right-2">
                         {course.programType === "diploma" ? (
-                          <GraduationCap className={`h-4 w-4 ${course.textColor}`} />
+                          <GraduationCap
+                            className={`h-4 w-4 ${course.textColor}`}
+                          />
                         ) : (
                           <Award className={`h-4 w-4 ${course.textColor}`} />
                         )}
                       </div>
-                      <div className="text-center px-4">
-                        <BookOpen className={`h-6 w-6 ${course.textColor} mx-auto mb-1`} />
-                        <p className={`text-xs font-medium ${course.textColor} line-clamp-1`}>
+                      <div className="px-4 text-center">
+                        <BookOpen
+                          className={`h-6 w-6 ${course.textColor} mx-auto mb-1`}
+                        />
+                        <p
+                          className={`text-xs font-medium ${course.textColor} line-clamp-1`}
+                        >
                           {course.title}
                         </p>
                       </div>
                     </div>
                     <div className="p-3">
-                      <h3 className="font-medium text-sm line-clamp-1">{course.title}</h3>
-                      <p className="text-xs text-muted-foreground">{course.instructor}</p>
-                      <div className="flex items-center justify-between mt-2">
+                      <h3 className="line-clamp-1 text-sm font-medium">
+                        {course.title}
+                      </h3>
+                      <p className="text-muted-foreground text-xs">
+                        {course.instructor}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between">
                         <Badge variant="outline" className="text-xs">
-                          {course.programType === "diploma" ? "Diploma" : "Certificate"}
+                          {course.programType === "diploma"
+                            ? "Diploma"
+                            : "Certificate"}
                         </Badge>
                         {course.upcomingClasses > 0 && (
-                          <span className="text-xs text-primary font-medium">
+                          <span className="text-primary text-xs font-medium">
                             {course.upcomingClasses} upcoming classes
                           </span>
                         )}
@@ -409,34 +472,34 @@ export default function HomePage() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-16 flex-col space-y-1"
-              onClick={() => router.push('/classes')}
+              onClick={() => router.push("/classes")}
             >
               <Calendar className="h-5 w-5" />
               <span className="text-xs">View Schedule</span>
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-16 flex-col space-y-1"
-              onClick={() => router.push('/tests')}
+              onClick={() => router.push("/tests")}
             >
               <FileText className="h-5 w-5" />
               <span className="text-xs">Take Tests</span>
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-16 flex-col space-y-1"
-              onClick={() => router.push('/courses')}
+              onClick={() => router.push("/courses")}
             >
               <BookOpen className="h-5 w-5" />
               <span className="text-xs">My Courses</span>
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-16 flex-col space-y-1"
-              onClick={() => router.push('/profile')}
+              onClick={() => router.push("/profile")}
             >
               <Users className="h-5 w-5" />
               <span className="text-xs">Profile</span>
@@ -445,18 +508,20 @@ export default function HomePage() {
         </div>
 
         {/* Empty State */}
-        {activeCourses.length === 0 && classes.length === 0 && tests.length === 0 && (
-          <div className="text-center py-12">
-            <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">Welcome to PLSOM!</h3>
-            <p className="text-muted-foreground mb-4">
-              You haven't been enrolled in any courses yet.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Contact your administrator for course enrollment.
-            </p>
-          </div>
-        )}
+        {activeCourses.length === 0 &&
+          classes.length === 0 &&
+          tests.length === 0 && (
+            <div className="py-12 text-center">
+              <BookOpen className="text-muted-foreground mx-auto mb-4 h-16 w-16" />
+              <h3 className="mb-2 text-xl font-semibold">Welcome to PLSOM!</h3>
+              <p className="text-muted-foreground mb-4">
+                You haven't been enrolled in any courses yet.
+              </p>
+              <p className="text-muted-foreground text-sm">
+                Contact your administrator for course enrollment.
+              </p>
+            </div>
+          )}
 
         {/* Setup Notice */}
         {!user?.isActive && (

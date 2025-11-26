@@ -51,7 +51,11 @@ class PushSubscriptionAdmin(ModelAdmin):
 
     def endpoint_short(self, obj):
         """Show shortened endpoint URL"""
-        return f"{obj.endpoint[:50]}..." if len(obj.endpoint) > 50 else obj.endpoint
+        return (
+            f"{obj.endpoint[:50]}..."
+            if len(obj.endpoint) > 50
+            else obj.endpoint
+        )
 
     endpoint_short.short_description = "Endpoint"
 
@@ -77,4 +81,3 @@ class PushSubscriptionAdmin(ModelAdmin):
             },
         ),
     )
-

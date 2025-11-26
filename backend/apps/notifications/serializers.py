@@ -33,7 +33,14 @@ class PushSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PushSubscription
-        fields = ["id", "endpoint", "p256dh", "auth", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "endpoint",
+            "p256dh",
+            "auth",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
     def create(self, validated_data):
@@ -51,4 +58,3 @@ class PushSubscriptionSerializer(serializers.ModelSerializer):
             },
         )
         return subscription
-

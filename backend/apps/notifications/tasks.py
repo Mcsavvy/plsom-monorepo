@@ -5,14 +5,11 @@ Background tasks for sending notifications using Django Q.
 import logging
 from typing import List, Optional
 from django.conf import settings
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
 from django.utils import timezone
 
 from apps.users.models import User
 from apps.classes.models import Class
 from apps.assessments.models import Test, Submission
-from apps.cohorts.models import Enrollment
 from .models import Notification, PushSubscription
 
 logger = logging.getLogger(__name__)
@@ -60,7 +57,9 @@ def create_notification(
         logger.error(f"User {user_id} not found for notification")
         return None
     except Exception as e:
-        logger.error(f"Error creating notification for user {user_id}: {str(e)}")
+        logger.error(
+            f"Error creating notification for user {user_id}: {str(e)}"
+        )
         return None
 
 
@@ -126,9 +125,7 @@ def send_push_notification(user_id: int, notification_id: int):
                 )
 
             except WebPushException as e:
-                logger.error(
-                    f"WebPush error for user {user_id}: {str(e)}"
-                )
+                logger.error(f"WebPush error for user {user_id}: {str(e)}")
                 # If subscription is no longer valid, delete it
                 if e.response and e.response.status_code in [404, 410]:
                     subscription.delete()
@@ -220,9 +217,9 @@ def send_test_notification(
         user_ids: Optional list of specific user IDs to notify
     """
     try:
-        test = Test.objects.select_related("course", "cohort", "created_by").get(
-            id=test_id
-        )
+        test = Test.objects.select_related(
+            "course", "cohort", "created_by"
+        ).get(id=test_id)
 
         # Get recipients
         if user_ids:
@@ -255,7 +252,9 @@ def send_test_notification(
             "test_deadline_reminder": f"Reminder: The test '{test.title}' deadline is today. Don't forget to submit!",
         }
 
-        title = notification_titles.get(notification_type, f"Test Notification: {test.title}")
+        title = notification_titles.get(
+            notification_type, f"Test Notification: {test.title}"
+        )
         message = notification_messages.get(
             notification_type,
             f"Update regarding test: {test.title}",
@@ -492,4 +491,3 @@ def check_upcoming_classes():
 
     except Exception as e:
         logger.error(f"Error checking upcoming classes: {str(e)}")
-

@@ -3,13 +3,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useClasses, useClassJoining } from "@/hooks/classes";
-import { ClassCardData, CalendarDay, formatTime, formatDate, getDurationText } from "@/types/classes";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  ClassCardData,
+  CalendarDay,
+  formatTime,
+  formatDate,
+  getDurationText,
+} from "@/types/classes";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -39,7 +40,7 @@ interface ClassCardProps {
 
 function ClassCard({ classData, onViewDetails }: ClassCardProps) {
   const { handleJoinClass, isJoining } = useClassJoining();
-  
+
   const getStatusIcon = () => {
     switch (classData.status) {
       case "ongoing":
@@ -90,17 +91,19 @@ function ClassCard({ classData, onViewDetails }: ClassCardProps) {
 
   return (
     <Card className="transition-all duration-200 hover:shadow-lg">
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="space-y-3 p-4">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg line-clamp-1">{classData.title}</h3>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <h3 className="line-clamp-1 text-lg font-semibold">
+              {classData.title}
+            </h3>
+            <p className="text-muted-foreground flex items-center gap-1 text-sm">
               <BookOpen className="h-3 w-3" />
               {classData.courseName}
             </p>
           </div>
-          <div className="flex items-center gap-2 ml-2">
+          <div className="ml-2 flex items-center gap-2">
             {getStatusIcon()}
             <Badge variant="outline" className={getStatusColor()}>
               {getStatusText()}
@@ -111,20 +114,26 @@ function ClassCard({ classData, onViewDetails }: ClassCardProps) {
         {/* Time and Duration */}
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{formatTime(classData.scheduledAt)}</span>
+            <Clock className="text-muted-foreground h-4 w-4" />
+            <span className="font-medium">
+              {formatTime(classData.scheduledAt)}
+            </span>
           </div>
-          <span className="text-muted-foreground">{getDurationText(classData.durationMinutes)}</span>
+          <span className="text-muted-foreground">
+            {getDurationText(classData.durationMinutes)}
+          </span>
         </div>
 
         {/* Lecturer */}
         <div className="flex items-center gap-2 text-sm">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">{classData.lecturerName}</span>
+          <Users className="text-muted-foreground h-4 w-4" />
+          <span className="text-muted-foreground">
+            {classData.lecturerName}
+          </span>
         </div>
 
         {/* Description */}
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-muted-foreground line-clamp-2 text-sm">
           {classData.description}
         </p>
 
@@ -137,19 +146,19 @@ function ClassCard({ classData, onViewDetails }: ClassCardProps) {
               onClick={handleJoinLive}
               disabled={isJoining}
             >
-              <Play className="h-4 w-4 mr-2" />
+              <Play className="mr-2 h-4 w-4" />
               {isJoining ? "Joining..." : "Join Live"}
             </Button>
           )}
-          
+
           {classData.status === "completed" && classData.recordingUrl && (
             <Button
               size="sm"
               variant="outline"
               className="flex-1"
-              onClick={() => window.open(classData.recordingUrl!, '_blank')}
+              onClick={() => window.open(classData.recordingUrl!, "_blank")}
             >
-              <Video className="h-4 w-4 mr-2" />
+              <Video className="mr-2 h-4 w-4" />
               Watch Recording
             </Button>
           )}
@@ -168,9 +177,15 @@ function ClassCard({ classData, onViewDetails }: ClassCardProps) {
   );
 }
 
-function CalendarView({ classes, onViewDetails }: { classes: ClassCardData[]; onViewDetails: (classId: number) => void }) {
+function CalendarView({
+  classes,
+  onViewDetails,
+}: {
+  classes: ClassCardData[];
+  onViewDetails: (classId: number) => void;
+}) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  
+
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -178,19 +193,19 @@ function CalendarView({ classes, onViewDetails }: { classes: ClassCardData[]; on
     const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
+
     const days: CalendarDay[] = [];
     const today = new Date();
-    
+
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
-      
+
       const dayClasses = classes.filter(classData => {
         const classDate = new Date(classData.scheduledAt);
         return classDate.toDateString() === date.toDateString();
       });
-      
+
       days.push({
         date,
         classes: dayClasses,
@@ -198,11 +213,14 @@ function CalendarView({ classes, onViewDetails }: { classes: ClassCardData[]; on
         isCurrentMonth: date.getMonth() === month,
       });
     }
-    
+
     return days;
   }, [currentDate, classes]);
 
-  const monthName = currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthName = currentDate.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
 
   const navigateMonth = (direction: "prev" | "next") => {
     setCurrentDate(prev => {
@@ -220,7 +238,7 @@ function CalendarView({ classes, onViewDetails }: { classes: ClassCardData[]; on
     <div className="space-y-4">
       {/* Calendar Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-2xl font-semibold">
           <Calendar className="h-6 w-6" />
           {monthName}
         </h2>
@@ -253,50 +271,53 @@ function CalendarView({ classes, onViewDetails }: { classes: ClassCardData[]; on
       <div className="grid grid-cols-7 gap-1">
         {/* Day headers */}
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-          <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
+          <div
+            key={day}
+            className="text-muted-foreground p-2 text-center text-sm font-medium"
+          >
             {day}
           </div>
         ))}
-        
+
         {/* Calendar days */}
         {calendarDays.map((day, index) => (
           <div
             key={index}
-            className={`min-h-[120px] p-2 border rounded-lg ${
+            className={`min-h-[120px] rounded-lg border p-2 ${
               day.isToday
                 ? "bg-primary/10 border-primary"
                 : day.isCurrentMonth
-                ? "bg-background border-border"
-                : "bg-muted/30 border-muted"
+                  ? "bg-background border-border"
+                  : "bg-muted/30 border-muted"
             }`}
           >
-            <div className="text-sm font-medium mb-1">
-              {day.date.getDate()}
-            </div>
-            
+            <div className="mb-1 text-sm font-medium">{day.date.getDate()}</div>
+
             {/* Classes for this day */}
             <div className="space-y-1">
               {day.classes.slice(0, 2).map(classData => (
                 <div
                   key={classData.id}
-                  className={`text-xs p-1 rounded cursor-pointer transition-colors ${
+                  className={`cursor-pointer rounded p-1 text-xs transition-colors ${
                     classData.status === "ongoing"
                       ? "bg-green-100 text-green-800"
                       : classData.status === "completed"
-                      ? "bg-blue-100 text-blue-800"
-                      : classData.status === "missed"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-orange-100 text-orange-800"
+                        ? "bg-blue-100 text-blue-800"
+                        : classData.status === "missed"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-orange-100 text-orange-800"
                   }`}
                   onClick={() => onViewDetails(classData.id)}
                 >
-                  <div className="font-medium truncate">{formatTime(classData.scheduledAt)}</div>
+                  <div className="truncate font-medium">
+                    {formatTime(classData.scheduledAt)}
+                  </div>
                   <div className="truncate">{classData.title}</div>
                 </div>
               ))}
-              
+
               {day.classes.length > 2 && (
-                <div className="text-xs text-muted-foreground text-center">
+                <div className="text-muted-foreground text-center text-xs">
                   +{day.classes.length - 2} more
                 </div>
               )}
@@ -313,7 +334,9 @@ export default function ClassesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
-  const [timeFilter, setTimeFilter] = useState<"all" | "upcoming" | "past">("all");
+  const [timeFilter, setTimeFilter] = useState<"all" | "upcoming" | "past">(
+    "all"
+  );
   const { getMyClassesForUI } = useClasses();
   const router = useRouter();
 
@@ -353,9 +376,7 @@ export default function ClassesPage() {
   const completedClasses = classes.filter(c => c.status === "completed");
 
   if (loading) {
-    return (
-      <LoadingSpinner/>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -370,7 +391,7 @@ export default function ClassesPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto space-y-6 p-4">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">My Classes</h1>
@@ -380,36 +401,36 @@ export default function ClassesPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <Clock className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <Clock className="text-primary mx-auto mb-2 h-6 w-6" />
             <div className="text-2xl font-bold">{upcomingClasses.length}</div>
-            <div className="text-xs text-muted-foreground">Upcoming</div>
+            <div className="text-muted-foreground text-xs">Upcoming</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 text-center">
-            <Play className="h-6 w-6 mx-auto mb-2 text-green-500" />
+            <Play className="mx-auto mb-2 h-6 w-6 text-green-500" />
             <div className="text-2xl font-bold">{ongoingClasses.length}</div>
-            <div className="text-xs text-muted-foreground">Live Now</div>
+            <div className="text-muted-foreground text-xs">Live Now</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <CheckCircle className="h-6 w-6 mx-auto mb-2 text-blue-500" />
+            <CheckCircle className="mx-auto mb-2 h-6 w-6 text-blue-500" />
             <div className="text-2xl font-bold">{completedClasses.length}</div>
-            <div className="text-xs text-muted-foreground">Completed</div>
+            <div className="text-muted-foreground text-xs">Completed</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <BookOpen className="h-6 w-6 mx-auto mb-2 text-purple-500" />
+            <BookOpen className="mx-auto mb-2 h-6 w-6 text-purple-500" />
             <div className="text-2xl font-bold">{classes.length}</div>
-            <div className="text-xs text-muted-foreground">Total Classes</div>
+            <div className="text-muted-foreground text-xs">Total Classes</div>
           </CardContent>
         </Card>
       </div>
@@ -460,7 +481,10 @@ export default function ClassesPage() {
 
       {/* Content */}
       {viewMode === "calendar" ? (
-        <CalendarView classes={filteredClasses} onViewDetails={handleViewDetails} />
+        <CalendarView
+          classes={filteredClasses}
+          onViewDetails={handleViewDetails}
+        />
       ) : (
         <div className="space-y-4">
           {filteredClasses.length > 0 ? (
@@ -474,16 +498,15 @@ export default function ClassesPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <Calendar className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">No Classes Found</h3>
+            <div className="py-12 text-center">
+              <Calendar className="text-muted-foreground mx-auto mb-4 h-16 w-16" />
+              <h3 className="mb-2 text-xl font-semibold">No Classes Found</h3>
               <p className="text-muted-foreground">
-                {timeFilter === "upcoming" 
+                {timeFilter === "upcoming"
                   ? "You have no upcoming classes scheduled."
                   : timeFilter === "past"
-                  ? "You have no past classes."
-                  : "You have no classes scheduled yet."
-                }
+                    ? "You have no past classes."
+                    : "You have no classes scheduled yet."}
               </p>
             </div>
           )}

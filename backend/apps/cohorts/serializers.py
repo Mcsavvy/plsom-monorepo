@@ -244,25 +244,29 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             "student_id",
             "cohort_id",
             "enrolled_at",
-            "end_date"
+            "end_date",
         ]
 
     def validate(self, attrs):
         """Validate enrollment rules"""
         student_id = attrs.get("student_id")
         cohort_id = attrs.get("cohort_id")
-        
+
         # Get student and cohort objects
         try:
             student = User.objects.get(id=student_id) if student_id else None
         except User.DoesNotExist:
-            raise serializers.ValidationError({"student_id": "Student with this ID does not exist."})
-            
+            raise serializers.ValidationError(
+                {"student_id": "Student with this ID does not exist."}
+            )
+
         try:
             cohort = Cohort.objects.get(id=cohort_id) if cohort_id else None
         except Cohort.DoesNotExist:
-            raise serializers.ValidationError({"cohort_id": "Cohort with this ID does not exist."})
-        
+            raise serializers.ValidationError(
+                {"cohort_id": "Cohort with this ID does not exist."}
+            )
+
         # Add the objects to validated_data for use in create/update
         attrs["student"] = student
         attrs["cohort"] = cohort

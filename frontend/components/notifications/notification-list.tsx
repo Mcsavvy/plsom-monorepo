@@ -21,7 +21,7 @@ export function NotificationList({
   onMarkAllRead,
   showMarkAllRead = true,
 }: NotificationListProps) {
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   if (isLoading) {
     return (
@@ -33,12 +33,12 @@ export function NotificationList({
 
   if (notifications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <BellOff className="w-8 h-8 text-muted-foreground" />
+      <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+        <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+          <BellOff className="text-muted-foreground h-8 w-8" />
         </div>
         <p className="text-sm font-medium">No notifications</p>
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-1 text-xs">
           You're all caught up!
         </p>
       </div>
@@ -46,10 +46,10 @@ export function NotificationList({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {showMarkAllRead && unreadCount > 0 && (
-        <div className="flex items-center justify-between p-3 border-b">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between border-b p-3">
+          <p className="text-muted-foreground text-sm">
             {unreadCount} unread notification{unreadCount !== 1 && "s"}
           </p>
           <Button
@@ -58,7 +58,7 @@ export function NotificationList({
             onClick={onMarkAllRead}
             className="h-8 text-xs"
           >
-            <CheckCheck className="w-4 h-4 mr-1" />
+            <CheckCheck className="mr-1 h-4 w-4" />
             Mark all read
           </Button>
         </div>
@@ -66,7 +66,7 @@ export function NotificationList({
 
       <ScrollArea className="flex-1">
         <div className="divide-y">
-          {notifications.map((notification) => (
+          {notifications.map(notification => (
             <NotificationItem
               key={notification.id}
               notification={notification}
@@ -78,4 +78,3 @@ export function NotificationList({
     </div>
   );
 }
-

@@ -83,7 +83,7 @@ export const questionTypeSchema = z.enum([
   "ministry_plan",
   "theological_position",
   "case_study",
-  "sermon_outline"
+  "sermon_outline",
 ]);
 
 // Test question schema
@@ -184,13 +184,15 @@ export const fileAnswerSchema = z.object({
 
 export const scriptureAnswerSchema = z.object({
   question_id: z.string().uuid(),
-  scripture_references: z.array(z.object({
-    book: z.string(),
-    chapter: z.number(),
-    verse_start: z.number(),
-    verse_end: z.number().optional(),
-    translation: z.string(),
-  })),
+  scripture_references: z.array(
+    z.object({
+      book: z.string(),
+      chapter: z.number(),
+      verse_start: z.number(),
+      verse_end: z.number().optional(),
+      translation: z.string(),
+    })
+  ),
 });
 
 // Union type for frontend answer handling
@@ -221,7 +223,9 @@ export type QuestionType = z.infer<typeof questionTypeSchema>;
 export type TestQuestion = z.infer<typeof testQuestionSchema>;
 export type TestDetail = z.infer<typeof testDetailSchema>;
 export type TestListItem = z.infer<typeof testListItemSchema>;
-export type PaginatedTestsResponse = z.infer<typeof paginatedTestsResponseSchema>;
+export type PaginatedTestsResponse = z.infer<
+  typeof paginatedTestsResponseSchema
+>;
 export type TestsQuery = z.infer<typeof testsQuerySchema>;
 export type BackendAnswer = z.infer<typeof backendAnswerSchema>;
 export type FrontendAnswer = z.infer<typeof frontendAnswerSchema>;
@@ -251,7 +255,13 @@ export interface TestCardData {
   availableUntil: Date | null;
   mySubmission: Submission | null;
   submissionStatus: string;
-  status: "not_started" | "in_progress" | "submitted" | "graded" | "returned" | "overdue";
+  status:
+    | "not_started"
+    | "in_progress"
+    | "submitted"
+    | "graded"
+    | "returned"
+    | "overdue";
   color: string;
   textColor: string;
 }
@@ -355,9 +365,13 @@ export const questionTypeInfo: Record<QuestionType, QuestionTypeInfo> = {
 // Helper functions
 export function transformTestToCardData(test: TestListItem): TestCardData {
   const now = new Date();
-  const availableFrom = test.available_from ? new Date(test.available_from) : null;
-  const availableUntil = test.available_until ? new Date(test.available_until) : null;
-  
+  const availableFrom = test.available_from
+    ? new Date(test.available_from)
+    : null;
+  const availableUntil = test.available_until
+    ? new Date(test.available_until)
+    : null;
+
   // Determine status
   let status: TestCardData["status"] = "not_started";
   if (test.my_submission) {
@@ -388,7 +402,7 @@ export function transformTestToCardData(test: TestListItem): TestCardData {
     { bg: "bg-pink-100", text: "text-pink-800" },
     { bg: "bg-indigo-100", text: "text-indigo-800" },
   ];
-  
+
   const colorIndex = test.course_name.length % colors.length;
   const selectedColor = colors[colorIndex];
 
@@ -418,18 +432,18 @@ export function transformTestToCardData(test: TestListItem): TestCardData {
 // Helper function to format time limit
 export function formatTimeLimit(minutes: number | null): string {
   if (!minutes) return "No time limit";
-  
+
   if (minutes < 60) {
     return `${minutes} minutes`;
   }
-  
+
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-  
+
   if (remainingMinutes === 0) {
-    return `${hours} hour${hours > 1 ? 's' : ''}`;
+    return `${hours} hour${hours > 1 ? "s" : ""}`;
   }
-  
+
   return `${hours}h ${remainingMinutes}m`;
 }
 

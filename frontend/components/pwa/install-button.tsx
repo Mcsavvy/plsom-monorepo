@@ -27,14 +27,9 @@ export function PWAInstallButton({
   onDismiss,
   showInstructions = false,
 }: PWAInstallButtonProps) {
-  const { 
-    isInstallable, 
-    isInstalled, 
-    isIOS, 
-    install, 
-    getInstallInstructions 
-  } = usePWA();
-  
+  const { isInstallable, isInstalled, isIOS, install, getInstallInstructions } =
+    usePWA();
+
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
@@ -77,7 +72,7 @@ export function PWAInstallButton({
     return (
       <Button
         variant="link"
-        onClick={() => window.location.href = '/install'}
+        onClick={() => (window.location.href = "/install")}
         className={className}
       >
         <ExternalLink className="mr-2 h-4 w-4" />
@@ -90,7 +85,9 @@ export function PWAInstallButton({
   if (variant === "button" && (isInstallable || isIOS)) {
     return (
       <Button
-        onClick={isIOS ? () => window.location.href = '/install' : handleInstallClick}
+        onClick={
+          isIOS ? () => (window.location.href = "/install") : handleInstallClick
+        }
         variant="outline"
         size="sm"
         className={className}
@@ -121,7 +118,11 @@ export function PWAInstallButton({
           </div>
           <div className="flex items-center space-x-2">
             <Button
-              onClick={isIOS ? () => window.location.href = '/install' : handleInstallClick}
+              onClick={
+                isIOS
+                  ? () => (window.location.href = "/install")
+                  : handleInstallClick
+              }
               variant="secondary"
               size="sm"
             >
@@ -162,14 +163,18 @@ export function PWAInstallButton({
               ? "Add PLSOM LMS to your home screen for quick access and a native app experience. Tap the Share button and select 'Add to Home Screen'."
               : "Install our app for faster loading, offline access, and a native app experience."}
           </CardDescription>
-          <Button 
-            onClick={isIOS ? () => window.location.href = '/install' : handleInstallClick} 
+          <Button
+            onClick={
+              isIOS
+                ? () => (window.location.href = "/install")
+                : handleInstallClick
+            }
             className="w-full"
           >
             <Download className="mr-2 h-4 w-4" />
             {isIOS ? "View Instructions" : "Install App"}
           </Button>
-          
+
           {showInstructions && isIOS && (
             <div className="text-muted-foreground bg-muted rounded-md p-3 text-sm">
               <p className="mb-1 font-medium">Quick steps:</p>

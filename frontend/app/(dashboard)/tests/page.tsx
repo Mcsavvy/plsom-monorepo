@@ -3,13 +3,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTests } from "@/hooks/tests";
-import { TestCardData, formatTimeLimit, getStatusColor, getStatusText } from "@/types/tests";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  TestCardData,
+  formatTimeLimit,
+  getStatusColor,
+  getStatusText,
+} from "@/types/tests";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -39,7 +39,13 @@ interface TestCardProps {
   onViewSubmission: (submissionId: number) => void;
 }
 
-function TestCard({ test, onViewDetails, onStartTest, onContinueTest, onViewSubmission }: TestCardProps) {
+function TestCard({
+  test,
+  onViewDetails,
+  onStartTest,
+  onContinueTest,
+  onViewSubmission,
+}: TestCardProps) {
   const getStatusIcon = () => {
     switch (test.status) {
       case "not_started":
@@ -63,7 +69,7 @@ function TestCard({ test, onViewDetails, onStartTest, onContinueTest, onViewSubm
     if (!test.isAvailable && test.status !== "graded") {
       return (
         <Button variant="outline" disabled className="flex-1">
-          <XCircle className="h-4 w-4 mr-2" />
+          <XCircle className="mr-2 h-4 w-4" />
           Not Available
         </Button>
       );
@@ -73,69 +79,97 @@ function TestCard({ test, onViewDetails, onStartTest, onContinueTest, onViewSubm
       case "not_started":
         return test.canAttempt ? (
           <Button onClick={() => onStartTest(test.id)} className="flex-1">
-            <PlayCircle className="h-4 w-4 mr-2" />
+            <PlayCircle className="mr-2 h-4 w-4" />
             Start Test
           </Button>
         ) : (
           <Button variant="outline" disabled className="flex-1">
-            <XCircle className="h-4 w-4 mr-2" />
+            <XCircle className="mr-2 h-4 w-4" />
             No Attempts Left
           </Button>
         );
       case "in_progress":
         return (
           <Button onClick={() => onContinueTest(test.id)} className="flex-1">
-            <Timer className="h-4 w-4 mr-2" />
+            <Timer className="mr-2 h-4 w-4" />
             Continue Test
           </Button>
         );
       case "submitted":
         return test.mySubmission ? (
-          <Button variant="outline" onClick={() => onViewSubmission(test.mySubmission!.id)} className="flex-1">
-            <Clock className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={() => onViewSubmission(test.mySubmission!.id)}
+            className="flex-1"
+          >
+            <Clock className="mr-2 h-4 w-4" />
             View Submission
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
-            <Clock className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={() => onViewDetails(test.id)}
+            className="flex-1"
+          >
+            <Clock className="mr-2 h-4 w-4" />
             View Details
           </Button>
         );
       case "graded":
         return test.mySubmission ? (
-          <Button variant="outline" onClick={() => onViewSubmission(test.mySubmission!.id)} className="flex-1">
-            <Trophy className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={() => onViewSubmission(test.mySubmission!.id)}
+            className="flex-1"
+          >
+            <Trophy className="mr-2 h-4 w-4" />
             View Results
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
-            <Trophy className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={() => onViewDetails(test.id)}
+            className="flex-1"
+          >
+            <Trophy className="mr-2 h-4 w-4" />
             View Details
           </Button>
         );
       case "returned":
         return test.mySubmission ? (
-          <Button variant="outline" onClick={() => onViewSubmission(test.mySubmission!.id)} className="flex-1">
-            <AlertCircle className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={() => onViewSubmission(test.mySubmission!.id)}
+            className="flex-1"
+          >
+            <AlertCircle className="mr-2 h-4 w-4" />
             View Returned Submission
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
-            <AlertCircle className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={() => onViewDetails(test.id)}
+            className="flex-1"
+          >
+            <AlertCircle className="mr-2 h-4 w-4" />
             View Details
           </Button>
         );
       case "overdue":
         return (
           <Button variant="outline" disabled className="flex-1">
-            <XCircle className="h-4 w-4 mr-2" />
+            <XCircle className="mr-2 h-4 w-4" />
             Overdue
           </Button>
         );
       default:
         return (
-          <Button variant="outline" onClick={() => onViewDetails(test.id)} className="flex-1">
-            <ExternalLink className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={() => onViewDetails(test.id)}
+            className="flex-1"
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
             View Details
           </Button>
         );
@@ -153,17 +187,17 @@ function TestCard({ test, onViewDetails, onStartTest, onContinueTest, onViewSubm
 
   return (
     <Card className="transition-all duration-200 hover:shadow-lg">
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="space-y-4 p-6">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg line-clamp-1">{test.title}</h3>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <h3 className="line-clamp-1 text-lg font-semibold">{test.title}</h3>
+            <p className="text-muted-foreground flex items-center gap-1 text-sm">
               <BookOpen className="h-3 w-3" />
               {test.courseName}
             </p>
           </div>
-          <div className="flex items-center gap-2 ml-4">
+          <div className="ml-4 flex items-center gap-2">
             {getStatusIcon()}
             <Badge variant="outline" className={getStatusColor(test.status)}>
               {getStatusText(test.status)}
@@ -172,61 +206,72 @@ function TestCard({ test, onViewDetails, onStartTest, onContinueTest, onViewSubm
         </div>
 
         {/* Description */}
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-muted-foreground line-clamp-2 text-sm">
           {test.description}
         </p>
 
         {/* Test Details */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <Target className="text-muted-foreground h-4 w-4" />
             <span>{test.totalQuestions} questions</span>
           </div>
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Clock className="text-muted-foreground h-4 w-4" />
             <span>{formatTimeLimit(test.timeLimit)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="text-muted-foreground h-4 w-4" />
             <span>{test.createdByName}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Timer className="h-4 w-4 text-muted-foreground" />
-            <span>{test.attemptsRemaining}/{test.maxAttempts} attempts</span>
+            <Timer className="text-muted-foreground h-4 w-4" />
+            <span>
+              {test.attemptsRemaining}/{test.maxAttempts} attempts
+            </span>
           </div>
         </div>
 
         {/* Availability */}
         {(test.availableFrom || test.availableUntil) && (
-          <div className="text-xs text-muted-foreground space-y-1">
+          <div className="text-muted-foreground space-y-1 text-xs">
             {test.availableFrom && (
-              <div>Available from: {formatAvailabilityDate(test.availableFrom)}</div>
+              <div>
+                Available from: {formatAvailabilityDate(test.availableFrom)}
+              </div>
             )}
             {test.availableUntil && (
-              <div>Available until: {formatAvailabilityDate(test.availableUntil)}</div>
+              <div>
+                Available until: {formatAvailabilityDate(test.availableUntil)}
+              </div>
             )}
           </div>
         )}
 
         {/* Submission Info */}
         {test.mySubmission && (
-          <div className="bg-muted/30 p-3 rounded-lg text-sm">
-            <div className="flex justify-between items-center">
+          <div className="bg-muted/30 rounded-lg p-3 text-sm">
+            <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Progress:</span>
-              <span className="font-medium">{test.mySubmission.completion_percentage}</span>
+              <span className="font-medium">
+                {test.mySubmission.completion_percentage}
+              </span>
             </div>
-            {test.mySubmission.score !== null && test.mySubmission.max_score !== null && (
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Score:</span>
-                <span className="font-medium">
-                  {test.mySubmission.score}/{test.mySubmission.max_score}
-                </span>
-              </div>
-            )}
+            {test.mySubmission.score !== null &&
+              test.mySubmission.max_score !== null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Score:</span>
+                  <span className="font-medium">
+                    {test.mySubmission.score}/{test.mySubmission.max_score}
+                  </span>
+                </div>
+              )}
             {test.mySubmission.time_spent_minutes && (
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Time spent:</span>
-                <span className="font-medium">{test.mySubmission.time_spent_minutes} minutes</span>
+                <span className="font-medium">
+                  {test.mySubmission.time_spent_minutes} minutes
+                </span>
               </div>
             )}
           </div>
@@ -252,7 +297,9 @@ export default function TestsPage() {
   const [tests, setTests] = useState<TestCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"all" | "available" | "in_progress" | "completed">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "available" | "in_progress" | "completed"
+  >("all");
   const { getMyTestsForUI } = useTests();
   const router = useRouter();
 
@@ -292,11 +339,13 @@ export default function TestsPage() {
 
   const filteredTests = useMemo(() => {
     if (statusFilter === "all") return tests;
-    
+
     return tests.filter(test => {
       switch (statusFilter) {
         case "available":
-          return test.isAvailable && test.status === "not_started" && test.canAttempt;
+          return (
+            test.isAvailable && test.status === "not_started" && test.canAttempt
+          );
         case "in_progress":
           return test.status === "in_progress";
         case "completed":
@@ -307,9 +356,15 @@ export default function TestsPage() {
     });
   }, [tests, statusFilter]);
 
-  const availableTests = tests.filter(t => t.isAvailable && t.status === "not_started" && t.canAttempt);
-  const inProgressTests = tests.filter(t => t.status === "in_progress" || t.status === "returned");
-  const completedTests = tests.filter(t => t.status === "submitted" || t.status === "graded");
+  const availableTests = tests.filter(
+    t => t.isAvailable && t.status === "not_started" && t.canAttempt
+  );
+  const inProgressTests = tests.filter(
+    t => t.status === "in_progress" || t.status === "returned"
+  );
+  const completedTests = tests.filter(
+    t => t.status === "submitted" || t.status === "graded"
+  );
 
   if (loading) {
     return <LoadingSpinner />;
@@ -327,7 +382,7 @@ export default function TestsPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto space-y-6 p-4">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">My Tests</h1>
@@ -337,36 +392,36 @@ export default function TestsPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <PlayCircle className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <PlayCircle className="text-primary mx-auto mb-2 h-6 w-6" />
             <div className="text-2xl font-bold">{availableTests.length}</div>
-            <div className="text-xs text-muted-foreground">Available</div>
+            <div className="text-muted-foreground text-xs">Available</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 text-center">
-            <Timer className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
+            <Timer className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
             <div className="text-2xl font-bold">{inProgressTests.length}</div>
-            <div className="text-xs text-muted-foreground">In Progress</div>
+            <div className="text-muted-foreground text-xs">In Progress</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <Trophy className="h-6 w-6 mx-auto mb-2 text-green-500" />
+            <Trophy className="mx-auto mb-2 h-6 w-6 text-green-500" />
             <div className="text-2xl font-bold">{completedTests.length}</div>
-            <div className="text-xs text-muted-foreground">Completed</div>
+            <div className="text-muted-foreground text-xs">Completed</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <FileText className="h-6 w-6 mx-auto mb-2 text-purple-500" />
+            <FileText className="mx-auto mb-2 h-6 w-6 text-purple-500" />
             <div className="text-2xl font-bold">{tests.length}</div>
-            <div className="text-xs text-muted-foreground">Total Tests</div>
+            <div className="text-muted-foreground text-xs">Total Tests</div>
           </CardContent>
         </Card>
       </div>
@@ -419,18 +474,17 @@ export default function TestsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">No Tests Found</h3>
+          <div className="py-12 text-center">
+            <FileText className="text-muted-foreground mx-auto mb-4 h-16 w-16" />
+            <h3 className="mb-2 text-xl font-semibold">No Tests Found</h3>
             <p className="text-muted-foreground">
-              {statusFilter === "available" 
+              {statusFilter === "available"
                 ? "You have no available tests at the moment."
                 : statusFilter === "in_progress"
-                ? "You have no tests in progress."
-                : statusFilter === "completed"
-                ? "You haven't completed any tests yet."
-                : "You have no tests assigned yet."
-              }
+                  ? "You have no tests in progress."
+                  : statusFilter === "completed"
+                    ? "You haven't completed any tests yet."
+                    : "You have no tests assigned yet."}
             </p>
           </div>
         )}

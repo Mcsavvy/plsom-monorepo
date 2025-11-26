@@ -4,12 +4,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toastError, toastSuccess } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { Upload, X } from "lucide-react";
-
 
 interface QuestionComponentProps {
   question: TestQuestion;
@@ -20,7 +25,11 @@ interface QuestionComponentProps {
 }
 
 // Text/Essay Question Component
-function TextQuestionComponent({ question, answer, onAnswerChange }: QuestionComponentProps) {
+function TextQuestionComponent({
+  question,
+  answer,
+  onAnswerChange,
+}: QuestionComponentProps) {
   const isEssay = question.question_type === "essay";
   const Component = isEssay ? Textarea : Input;
 
@@ -29,21 +38,28 @@ function TextQuestionComponent({ question, answer, onAnswerChange }: QuestionCom
       <Component
         placeholder={question.text_placeholder || "Enter your answer..."}
         value={answer?.text_answer || ""}
-        onChange={(e) => onAnswerChange({ question_id: question.id, text_answer: e.target.value })}
+        onChange={e =>
+          onAnswerChange({
+            question_id: question.id,
+            text_answer: e.target.value,
+          })
+        }
         maxLength={question.text_max_length || undefined}
         className={isEssay ? "min-h-[120px]" : undefined}
       />
 
       {question.min_word_count && (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           Minimum {question.min_word_count} words
-          {question.max_word_count && ` • Maximum ${question.max_word_count} words`}
+          {question.max_word_count &&
+            ` • Maximum ${question.max_word_count} words`}
         </div>
       )}
 
       {question.text_max_length && (
-        <div className="text-sm text-muted-foreground text-right">
-          {answer?.text_answer?.length || 0} / {question.text_max_length} characters
+        <div className="text-muted-foreground text-right text-sm">
+          {answer?.text_answer?.length || 0} / {question.text_max_length}{" "}
+          characters
         </div>
       )}
     </div>
@@ -51,36 +67,44 @@ function TextQuestionComponent({ question, answer, onAnswerChange }: QuestionCom
 }
 
 // Yes/No Question Component
-function YesNoQuestionComponent({ question, answer, onAnswerChange }: QuestionComponentProps) {
+function YesNoQuestionComponent({
+  question,
+  answer,
+  onAnswerChange,
+}: QuestionComponentProps) {
   const selectedValue = answer?.boolean_answer;
 
   return (
     <div className="space-y-3">
       <div className="flex gap-4">
-        <label className="flex items-center space-x-2 cursor-pointer">
+        <label className="flex cursor-pointer items-center space-x-2">
           <input
             type="radio"
             name={`question-${question.id}`}
             value="true"
             checked={selectedValue === true}
-            onChange={() => onAnswerChange({
-              question_id: question.id,
-              boolean_answer: true
-            })}
+            onChange={() =>
+              onAnswerChange({
+                question_id: question.id,
+                boolean_answer: true,
+              })
+            }
             className="text-primary"
           />
           <span>Yes</span>
         </label>
-        <label className="flex items-center space-x-2 cursor-pointer">
+        <label className="flex cursor-pointer items-center space-x-2">
           <input
             type="radio"
             name={`question-${question.id}`}
             value="false"
             checked={selectedValue === false}
-            onChange={() => onAnswerChange({
-              question_id: question.id,
-              boolean_answer: false
-            })}
+            onChange={() =>
+              onAnswerChange({
+                question_id: question.id,
+                boolean_answer: false,
+              })
+            }
             className="text-primary"
           />
           <span>No</span>
@@ -91,22 +115,31 @@ function YesNoQuestionComponent({ question, answer, onAnswerChange }: QuestionCo
 }
 
 // Single Choice Question Component
-function SingleChoiceQuestionComponent({ question, answer, onAnswerChange }: QuestionComponentProps) {
+function SingleChoiceQuestionComponent({
+  question,
+  answer,
+  onAnswerChange,
+}: QuestionComponentProps) {
   const selectedValue = answer?.selected_options?.[0] || "";
 
   return (
     <div className="space-y-3">
-      {question.options?.map((option) => (
-        <label key={option.id} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border hover:bg-muted/50">
+      {question.options?.map(option => (
+        <label
+          key={option.id}
+          className="hover:bg-muted/50 flex cursor-pointer items-center space-x-3 rounded-lg border p-3"
+        >
           <input
             type="radio"
             name={`question-${question.id}`}
             value={option.id}
             checked={selectedValue === option.id}
-            onChange={(e) => onAnswerChange({
-              question_id: question.id,
-              selected_options: [e.target.value]
-            })}
+            onChange={e =>
+              onAnswerChange({
+                question_id: question.id,
+                selected_options: [e.target.value],
+              })
+            }
             className="text-primary"
           />
           <span className="flex-1">{option.text}</span>
@@ -117,7 +150,11 @@ function SingleChoiceQuestionComponent({ question, answer, onAnswerChange }: Que
 }
 
 // Multiple Choice Question Component
-function MultipleChoiceQuestionComponent({ question, answer, onAnswerChange }: QuestionComponentProps) {
+function MultipleChoiceQuestionComponent({
+  question,
+  answer,
+  onAnswerChange,
+}: QuestionComponentProps) {
   const selectedOptions = answer?.selected_options || [];
 
   const handleOptionChange = (optionId: string, checked: boolean) => {
@@ -134,11 +171,16 @@ function MultipleChoiceQuestionComponent({ question, answer, onAnswerChange }: Q
 
   return (
     <div className="space-y-3">
-      {question.options?.map((option) => (
-        <label key={option.id} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border hover:bg-muted/50">
+      {question.options?.map(option => (
+        <label
+          key={option.id}
+          className="hover:bg-muted/50 flex cursor-pointer items-center space-x-3 rounded-lg border p-3"
+        >
           <Checkbox
             checked={selectedOptions.includes(option.id)}
-            onCheckedChange={(checked) => handleOptionChange(option.id, !!checked)}
+            onCheckedChange={checked =>
+              handleOptionChange(option.id, !!checked)
+            }
           />
           <span className="flex-1">{option.text}</span>
         </label>
@@ -148,12 +190,28 @@ function MultipleChoiceQuestionComponent({ question, answer, onAnswerChange }: Q
 }
 
 // Scripture Reference Question Component
-function ScriptureReferenceQuestionComponent({ question, answer, onAnswerChange }: QuestionComponentProps) {
-  const [book, setBook] = useState(answer?.scripture_references?.[0]?.book || "");
-  const [chapter, setChapter] = useState(answer?.scripture_references?.[0]?.chapter || "");
-  const [verseStart, setVerseStart] = useState(answer?.scripture_references?.[0]?.verse_start || "");
-  const [verseEnd, setVerseEnd] = useState(answer?.scripture_references?.[0]?.verse_end || "");
-  const [translation, setTranslation] = useState(answer?.scripture_references?.[0]?.translation || question.required_translation || "ESV");
+function ScriptureReferenceQuestionComponent({
+  question,
+  answer,
+  onAnswerChange,
+}: QuestionComponentProps) {
+  const [book, setBook] = useState(
+    answer?.scripture_references?.[0]?.book || ""
+  );
+  const [chapter, setChapter] = useState(
+    answer?.scripture_references?.[0]?.chapter || ""
+  );
+  const [verseStart, setVerseStart] = useState(
+    answer?.scripture_references?.[0]?.verse_start || ""
+  );
+  const [verseEnd, setVerseEnd] = useState(
+    answer?.scripture_references?.[0]?.verse_end || ""
+  );
+  const [translation, setTranslation] = useState(
+    answer?.scripture_references?.[0]?.translation ||
+      question.required_translation ||
+      "ESV"
+  );
 
   const updateAnswer = () => {
     if (book && chapter && verseStart) {
@@ -177,14 +235,14 @@ function ScriptureReferenceQuestionComponent({ question, answer, onAnswerChange 
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div>
           <Label htmlFor="book">Book</Label>
           <Input
             id="book"
             placeholder="e.g., Romans"
             value={book}
-            onChange={(e) => setBook(e.target.value)}
+            onChange={e => setBook(e.target.value)}
           />
         </div>
         <div>
@@ -194,7 +252,7 @@ function ScriptureReferenceQuestionComponent({ question, answer, onAnswerChange 
             type="number"
             placeholder="1"
             value={chapter}
-            onChange={(e) => setChapter(e.target.value)}
+            onChange={e => setChapter(e.target.value)}
           />
         </div>
         <div>
@@ -204,7 +262,7 @@ function ScriptureReferenceQuestionComponent({ question, answer, onAnswerChange 
             type="number"
             placeholder="1"
             value={verseStart}
-            onChange={(e) => setVerseStart(e.target.value)}
+            onChange={e => setVerseStart(e.target.value)}
           />
         </div>
         <div>
@@ -214,7 +272,7 @@ function ScriptureReferenceQuestionComponent({ question, answer, onAnswerChange 
             type="number"
             placeholder="5"
             value={verseEnd}
-            onChange={(e) => setVerseEnd(e.target.value)}
+            onChange={e => setVerseEnd(e.target.value)}
           />
         </div>
       </div>
@@ -236,7 +294,7 @@ function ScriptureReferenceQuestionComponent({ question, answer, onAnswerChange 
       </div>
 
       {question.required_translation && (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           Required translation: {question.required_translation}
         </div>
       )}
@@ -245,7 +303,13 @@ function ScriptureReferenceQuestionComponent({ question, answer, onAnswerChange 
 }
 
 // File Upload Question Component
-function FileUploadQuestionComponent({ question, answer, onAnswerChange, onFileUpload, onFileDelete }: QuestionComponentProps) {
+function FileUploadQuestionComponent({
+  question,
+  answer,
+  onAnswerChange,
+  onFileUpload,
+  onFileDelete,
+}: QuestionComponentProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -253,27 +317,38 @@ function FileUploadQuestionComponent({ question, answer, onAnswerChange, onFileU
 
   // Initialize existing file URL if available
   useEffect(() => {
-    if (answer && 'file_url' in answer && answer.file_url) {
+    if (answer && "file_url" in answer && answer.file_url) {
       setExistingFileUrl(answer.file_url);
     }
   }, [answer]);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !onFileUpload) return;
 
     // Check file size
-    if (question.max_file_size_mb && file.size > question.max_file_size_mb * 1024 * 1024) {
-      setUploadError(`File size must be less than ${question.max_file_size_mb}MB`);
+    if (
+      question.max_file_size_mb &&
+      file.size > question.max_file_size_mb * 1024 * 1024
+    ) {
+      setUploadError(
+        `File size must be less than ${question.max_file_size_mb}MB`
+      );
       return;
     }
 
     // Check file type
     if (question.allowed_file_types) {
-      const allowedTypes = question.allowed_file_types.split(',').map(t => t.trim().toLowerCase());
-      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      const allowedTypes = question.allowed_file_types
+        .split(",")
+        .map(t => t.trim().toLowerCase());
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
       if (fileExtension && !allowedTypes.includes(fileExtension)) {
-        setUploadError(`File type not allowed. Allowed types: ${question.allowed_file_types}`);
+        setUploadError(
+          `File type not allowed. Allowed types: ${question.allowed_file_types}`
+        );
         return;
       }
     }
@@ -326,47 +401,52 @@ function FileUploadQuestionComponent({ question, answer, onAnswerChange, onFileU
   return (
     <div className="space-y-4">
       {uploadError && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
           {uploadError}
         </div>
       )}
 
       {!selectedFile && !existingFileUrl ? (
-        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center relative">
-          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <div className="border-muted-foreground/25 relative rounded-lg border-2 border-dashed p-8 text-center">
+          <Upload className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
           <div className="space-y-2">
             <p className="text-sm font-medium">
               {uploading ? "Uploading..." : "Click to upload a file"}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {question.allowed_file_types && `Allowed: ${question.allowed_file_types}`}
-              {question.max_file_size_mb && ` • Max size: ${question.max_file_size_mb}MB`}
+            <p className="text-muted-foreground text-xs">
+              {question.allowed_file_types &&
+                `Allowed: ${question.allowed_file_types}`}
+              {question.max_file_size_mb &&
+                ` • Max size: ${question.max_file_size_mb}MB`}
             </p>
           </div>
           <input
             type="file"
             onChange={handleFileSelect}
             disabled={uploading}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-            accept={question.allowed_file_types?.split(',').map(t => `.${t.trim()}`).join(',')}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+            accept={question.allowed_file_types
+              ?.split(",")
+              .map(t => `.${t.trim()}`)
+              .join(",")}
           />
         </div>
       ) : (
-        <div className="border rounded-lg p-4 flex items-center justify-between">
+        <div className="flex items-center justify-between rounded-lg border p-4">
           <div className="flex items-center gap-3">
-            <FileText className="h-8 w-8 text-primary" />
+            <FileText className="text-primary h-8 w-8" />
             <div>
               {selectedFile ? (
                 <>
                   <p className="font-medium">{selectedFile.name}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </>
               ) : existingFileUrl ? (
                 <>
                   <p className="font-medium">Uploaded file</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     <a
                       href={existingFileUrl}
                       target="_blank"
@@ -385,7 +465,7 @@ function FileUploadQuestionComponent({ question, answer, onAnswerChange, onFileU
             size="sm"
             onClick={removeFile}
             disabled={uploading}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="text-red-600 hover:bg-red-50 hover:text-red-700"
           >
             {uploading ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-red-600" />
@@ -400,7 +480,13 @@ function FileUploadQuestionComponent({ question, answer, onAnswerChange, onFileU
 }
 
 // Generic Question Component
-function QuestionComponent({ question, answer, onAnswerChange, onFileUpload, onFileDelete }: QuestionComponentProps) {
+function QuestionComponent({
+  question,
+  answer,
+  onAnswerChange,
+  onFileUpload,
+  onFileDelete,
+}: QuestionComponentProps) {
   switch (question.question_type) {
     case "text":
     case "essay":
@@ -409,19 +495,63 @@ function QuestionComponent({ question, answer, onAnswerChange, onFileUpload, onF
     case "theological_position":
     case "case_study":
     case "sermon_outline":
-      return <TextQuestionComponent question={question} answer={answer} onAnswerChange={onAnswerChange} />;
+      return (
+        <TextQuestionComponent
+          question={question}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
+        />
+      );
     case "yes_no":
-      return <YesNoQuestionComponent question={question} answer={answer} onAnswerChange={onAnswerChange} />;
+      return (
+        <YesNoQuestionComponent
+          question={question}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
+        />
+      );
     case "single_choice":
-      return <SingleChoiceQuestionComponent question={question} answer={answer} onAnswerChange={onAnswerChange} />;
+      return (
+        <SingleChoiceQuestionComponent
+          question={question}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
+        />
+      );
     case "multiple_choice":
-      return <MultipleChoiceQuestionComponent question={question} answer={answer} onAnswerChange={onAnswerChange} />;
+      return (
+        <MultipleChoiceQuestionComponent
+          question={question}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
+        />
+      );
     case "scripture_reference":
-      return <ScriptureReferenceQuestionComponent question={question} answer={answer} onAnswerChange={onAnswerChange} />;
+      return (
+        <ScriptureReferenceQuestionComponent
+          question={question}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
+        />
+      );
     case "document_upload":
-      return <FileUploadQuestionComponent question={question} answer={answer} onAnswerChange={onAnswerChange} onFileUpload={onFileUpload} onFileDelete={onFileDelete} />;
+      return (
+        <FileUploadQuestionComponent
+          question={question}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
+          onFileUpload={onFileUpload}
+          onFileDelete={onFileDelete}
+        />
+      );
     default:
-      return <TextQuestionComponent question={question} answer={answer} onAnswerChange={onAnswerChange} />;
+      return (
+        <TextQuestionComponent
+          question={question}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
+        />
+      );
   }
 }
 

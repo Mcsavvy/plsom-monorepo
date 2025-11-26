@@ -48,7 +48,9 @@ export function useOnboarding() {
   }, []);
 
   const verifyInvitation = useCallback(
-    async (data: InvitationVerifyRequest): Promise<InvitationVerifyResponse> => {
+    async (
+      data: InvitationVerifyRequest
+    ): Promise<InvitationVerifyResponse> => {
       return await _verifyInvitation(client, data);
     },
     [client]

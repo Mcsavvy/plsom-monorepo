@@ -140,11 +140,15 @@ export function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps) {
 
               <div className="flex flex-col space-y-3">
                 <Button asChild className="w-full">
-                  <Link href="/forgot-password" prefetch>Request New Reset Link</Link>
+                  <Link href="/forgot-password" prefetch>
+                    Request New Reset Link
+                  </Link>
                 </Button>
 
                 <Button variant="outline" asChild className="w-full">
-                  <Link href="/login" prefetch>Back to Sign In</Link>
+                  <Link href="/login" prefetch>
+                    Back to Sign In
+                  </Link>
                 </Button>
               </div>
             </CardContent>

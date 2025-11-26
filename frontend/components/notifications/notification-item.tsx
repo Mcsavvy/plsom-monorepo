@@ -2,14 +2,14 @@
 
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { 
-  Bell, 
-  BookOpen, 
-  FileText, 
+import {
+  Bell,
+  BookOpen,
+  FileText,
   GraduationCap,
   CheckCircle,
   AlertCircle,
-  Video
+  Video,
 } from "lucide-react";
 
 export interface Notification {
@@ -68,7 +68,10 @@ const getNotificationColor = (type: string) => {
   }
 };
 
-export function NotificationItem({ notification, onClick }: NotificationItemProps) {
+export function NotificationItem({
+  notification,
+  onClick,
+}: NotificationItemProps) {
   const Icon = getNotificationIcon(notification.type);
   const iconColor = getNotificationColor(notification.type);
 
@@ -76,41 +79,44 @@ export function NotificationItem({ notification, onClick }: NotificationItemProp
     <div
       onClick={onClick}
       className={cn(
-        "flex gap-3 p-4 hover:bg-accent/50 transition-colors cursor-pointer border-b last:border-b-0",
+        "hover:bg-accent/50 flex cursor-pointer gap-3 border-b p-4 transition-colors last:border-b-0",
         !notification.read && "bg-accent/20"
       )}
     >
       <div
         className={cn(
-          "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center",
+          "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full",
           iconColor
         )}
       >
-        <Icon className="w-5 h-5" />
+        <Icon className="h-5 w-5" />
       </div>
-      
-      <div className="flex-1 min-w-0">
+
+      <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className={cn(
-            "text-sm font-medium",
-            !notification.read && "font-semibold"
-          )}>
+          <p
+            className={cn(
+              "text-sm font-medium",
+              !notification.read && "font-semibold"
+            )}
+          >
             {notification.title}
           </p>
           {!notification.read && (
-            <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1" />
+            <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" />
           )}
         </div>
-        
-        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+
+        <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
           {notification.message}
         </p>
-        
-        <p className="text-xs text-muted-foreground mt-2">
-          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+
+        <p className="text-muted-foreground mt-2 text-xs">
+          {formatDistanceToNow(new Date(notification.created_at), {
+            addSuffix: true,
+          })}
         </p>
       </div>
     </div>
   );
 }
-

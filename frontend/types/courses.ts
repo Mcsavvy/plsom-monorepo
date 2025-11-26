@@ -26,14 +26,16 @@ export const paginatedCoursesResponseSchema = z.object({
 });
 
 // Next class details schema (for when next_class_in_my_cohorts has data)
-export const nextClassSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  description: z.string().optional(),
-  scheduled_at: z.string(),
-  meeting_link: z.string().url().optional(),
-  course_name: z.string().optional(),
-}).nullable();
+export const nextClassSchema = z
+  .object({
+    id: z.number(),
+    title: z.string(),
+    description: z.string().optional(),
+    scheduled_at: z.string(),
+    meeting_link: z.string().url().optional(),
+    course_name: z.string().optional(),
+  })
+  .nullable();
 
 // Enhanced course schema with parsed next class
 export const enhancedCourseSchema = courseSchema.extend({
@@ -47,7 +49,9 @@ export const myCoursesResponseSchema = z.object({
 
 export type Course = z.infer<typeof courseSchema>;
 export type CoursesList = z.infer<typeof coursesListSchema>;
-export type PaginatedCoursesResponse = z.infer<typeof paginatedCoursesResponseSchema>;
+export type PaginatedCoursesResponse = z.infer<
+  typeof paginatedCoursesResponseSchema
+>;
 export type NextClass = z.infer<typeof nextClassSchema>;
 export type EnhancedCourse = z.infer<typeof enhancedCourseSchema>;
 export type MyCoursesResponse = z.infer<typeof myCoursesResponseSchema>;
@@ -80,7 +84,7 @@ export function transformCourseToCardData(course: Course): CourseCardData {
     { bg: "bg-pink-100", text: "text-pink-800" },
     { bg: "bg-indigo-100", text: "text-indigo-800" },
   ];
-  
+
   const colorIndex = course.id % colors.length;
   const selectedColor = colors[colorIndex];
 

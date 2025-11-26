@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTests } from "@/hooks/tests";
-import { TestDetail, FrontendAnswer, questionTypeInfo, Submission } from "@/types/tests";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  TestDetail,
+  FrontendAnswer,
+  questionTypeInfo,
+  Submission,
+} from "@/types/tests";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,14 +20,13 @@ import {
   ChevronRight,
   Save,
   Send,
-  AlertCircle,  
+  AlertCircle,
   CheckCircle,
   Timer,
   Flag,
 } from "lucide-react";
 import { toastError, toastSuccess } from "@/lib/utils";
 import QuestionComponent from "@/components/tests/answers";
-
 
 export default function TakeTestPage() {
   const params = useParams();
@@ -41,9 +40,20 @@ export default function TakeTestPage() {
   const [answers, setAnswers] = useState<Record<string, FrontendAnswer>>({});
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [timeSpent, setTimeSpent] = useState<number>(0); // Track time spent in minutes
-  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(
+    new Set()
+  );
   const [saving, setSaving] = useState(false);
-  const { getTestDetailsForUI, createSubmission, getSubmissionDetail, loadSubmissionAnswers, saveAnswers, uploadFile, deleteDocument, submitTest } = useTests();
+  const {
+    getTestDetailsForUI,
+    createSubmission,
+    getSubmissionDetail,
+    loadSubmissionAnswers,
+    saveAnswers,
+    uploadFile,
+    deleteDocument,
+    submitTest,
+  } = useTests();
 
   useEffect(() => {
     const fetchTest = async () => {
@@ -72,16 +82,20 @@ export default function TakeTestPage() {
         // Load existing answers if submission has answers
         if (currentSubmission.status === "in_progress") {
           try {
-            const existingAnswers = await loadSubmissionAnswers(currentSubmission.id);
+            const existingAnswers = await loadSubmissionAnswers(
+              currentSubmission.id
+            );
             setAnswers(existingAnswers);
-            
+
             // Load flagged questions from submission detail
-            const submissionDetail = await getSubmissionDetail(currentSubmission.id);
+            const submissionDetail = await getSubmissionDetail(
+              currentSubmission.id
+            );
             const flaggedQuestionIds = submissionDetail.answers
               .filter(answer => answer.is_flagged)
               .map(answer => answer.question);
             setFlaggedQuestions(new Set(flaggedQuestionIds));
-            
+
             console.log("Loaded existing answers and flagged questions");
           } catch (answerError) {
             console.warn("Failed to load existing answers:", answerError);
@@ -94,8 +108,13 @@ export default function TakeTestPage() {
           // Calculate time remaining based on submission start time
           const startTime = new Date(currentSubmission.started_at);
           const now = new Date();
-          const elapsedMinutes = Math.floor((now.getTime() - startTime.getTime()) / (1000 * 60));
-          const remainingMinutes = Math.max(0, testData.time_limit_minutes - elapsedMinutes);
+          const elapsedMinutes = Math.floor(
+            (now.getTime() - startTime.getTime()) / (1000 * 60)
+          );
+          const remainingMinutes = Math.max(
+            0,
+            testData.time_limit_minutes - elapsedMinutes
+          );
           setTimeRemaining(remainingMinutes * 60); // Convert to seconds
           setTimeSpent(elapsedMinutes);
         } else {
@@ -103,7 +122,9 @@ export default function TakeTestPage() {
           // Still track time spent for analytics
           const startTime = new Date(currentSubmission.started_at);
           const now = new Date();
-          const elapsedMinutes = Math.floor((now.getTime() - startTime.getTime()) / (1000 * 60));
+          const elapsedMinutes = Math.floor(
+            (now.getTime() - startTime.getTime()) / (1000 * 60)
+          );
           setTimeSpent(elapsedMinutes);
         }
       } catch (err) {
@@ -120,7 +141,13 @@ export default function TakeTestPage() {
       setError("Invalid test ID");
       setLoading(false);
     }
-  }, [testId, getTestDetailsForUI, createSubmission, getSubmissionDetail, loadSubmissionAnswers]);
+  }, [
+    testId,
+    getTestDetailsForUI,
+    createSubmission,
+    getSubmissionDetail,
+    loadSubmissionAnswers,
+  ]);
 
   // Timer effect - only run if test has time limit
   useEffect(() => {
@@ -137,7 +164,7 @@ export default function TakeTestPage() {
       });
 
       // Update time spent every minute
-      setTimeSpent(prev => prev + (1 / 60)); // Add 1 second as fraction of minute
+      setTimeSpent(prev => prev + 1 / 60); // Add 1 second as fraction of minute
     }, 1000);
 
     return () => clearInterval(timer);
@@ -160,15 +187,15 @@ export default function TakeTestPage() {
     const secs = seconds % 60;
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleAnswerChange = (questionId: string, answer: FrontendAnswer) => {
     setAnswers(prev => ({
       ...prev,
-      [questionId]: answer
+      [questionId]: answer,
     }));
   };
 
@@ -176,7 +203,11 @@ export default function TakeTestPage() {
     if (!submission) throw new Error("No submission available");
 
     try {
-      const updatedSubmission = await uploadFile(submission.id, questionId, file);
+      const updatedSubmission = await uploadFile(
+        submission.id,
+        questionId,
+        file
+      );
       setSubmission(updatedSubmission);
       toastSuccess("File uploaded successfully");
     } catch (error) {
@@ -190,7 +221,7 @@ export default function TakeTestPage() {
     try {
       const updatedSubmission = await deleteDocument(submission.id, questionId);
       setSubmission(updatedSubmission);
-      
+
       // Also remove the file from local answers state
       setAnswers(prevAnswers => {
         const updatedAnswers = { ...prevAnswers };
@@ -203,7 +234,7 @@ export default function TakeTestPage() {
         }
         return updatedAnswers;
       });
-      
+
       toastSuccess("File deleted successfully");
     } catch (error) {
       toastError(error, "Failed to delete file");
@@ -285,18 +316,22 @@ export default function TakeTestPage() {
   const answeredQuestions = Object.keys(answers).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background border-b">
+      <div className="bg-background sticky top-0 z-10 border-b">
         <div className="container mx-auto p-4">
           {/* Mobile Layout */}
-          <div className="md:hidden space-y-3">
+          <div className="space-y-3 md:hidden">
             <div className="flex items-center justify-between">
-              <h1 className="font-semibold text-sm truncate flex-1 mr-2">{test.title}</h1>
+              <h1 className="mr-2 flex-1 truncate text-sm font-semibold">
+                {test.title}
+              </h1>
               {timeRemaining !== null && (
                 <div className="flex items-center gap-1">
                   <Timer className="h-3 w-3" />
-                  <span className={`font-mono text-xs ${timeRemaining < 300 ? 'text-red-600' : ''}`}>
+                  <span
+                    className={`font-mono text-xs ${timeRemaining < 300 ? "text-red-600" : ""}`}
+                  >
                     {formatTime(timeRemaining)}
                   </span>
                 </div>
@@ -307,14 +342,14 @@ export default function TakeTestPage() {
               <Badge variant="outline" className="text-xs">
                 Q {currentQuestionIndex + 1}/{test.questions.length}
               </Badge>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-muted-foreground text-xs">
                 {answeredQuestions}/{test.questions.length} answered
               </div>
             </div>
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden md:flex items-center justify-between">
+          <div className="hidden items-center justify-between md:flex">
             <div className="flex items-center gap-4">
               <h1 className="font-semibold">{test.title}</h1>
               <Badge variant="outline">
@@ -326,20 +361,22 @@ export default function TakeTestPage() {
               {timeRemaining !== null && (
                 <div className="flex items-center gap-2">
                   <Timer className="h-4 w-4" />
-                  <span className={`font-mono ${timeRemaining < 300 ? 'text-red-600' : ''}`}>
+                  <span
+                    className={`font-mono ${timeRemaining < 300 ? "text-red-600" : ""}`}
+                  >
                     {formatTime(timeRemaining)}
                   </span>
                 </div>
               )}
 
-              <div className="text-sm text-muted-foreground">
+              <div className="text-muted-foreground text-sm">
                 {answeredQuestions} / {test.questions.length} answered
               </div>
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="mt-3 w-full bg-muted rounded-full h-2">
+          <div className="bg-muted mt-3 h-2 w-full rounded-full">
             <div
               className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -348,30 +385,32 @@ export default function TakeTestPage() {
         </div>
       </div>
 
-      <div className="container mx-auto p-3 sm:p-4 max-w-4xl">
-        <div className="grid gap-4 md:gap-6 md:grid-cols-4">
+      <div className="container mx-auto max-w-4xl p-3 sm:p-4">
+        <div className="grid gap-4 md:grid-cols-4 md:gap-6">
           {/* Question Navigation Sidebar */}
-          <div className="md:col-span-1 order-2 md:order-1">
+          <div className="order-2 md:order-1 md:col-span-1">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">Questions</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-1 gap-2">
+                <div className="grid grid-cols-6 gap-2 sm:grid-cols-8 md:grid-cols-1">
                   {test.questions.map((q, index) => (
                     <Button
                       key={q.id}
-                      variant={index === currentQuestionIndex ? "default" : "outline"}
+                      variant={
+                        index === currentQuestionIndex ? "default" : "outline"
+                      }
                       size="sm"
-                      className={`relative h-8 w-8 md:h-9 md:w-full p-0 md:px-3 ${answers[q.id] ? 'ring-2 ring-green-200' : ''}`}
+                      className={`relative h-8 w-8 p-0 md:h-9 md:w-full md:px-3 ${answers[q.id] ? "ring-2 ring-green-200" : ""}`}
                       onClick={() => setCurrentQuestionIndex(index)}
                     >
                       <span className="text-xs md:text-sm">{index + 1}</span>
                       {flaggedQuestions.has(q.id) && (
-                        <Flag className="h-2 w-2 md:h-3 md:w-3 absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 text-red-500" />
+                        <Flag className="absolute -top-0.5 -right-0.5 h-2 w-2 text-red-500 md:-top-1 md:-right-1 md:h-3 md:w-3" />
                       )}
                       {answers[q.id] && (
-                        <CheckCircle className="h-2 w-2 md:h-3 md:w-3 absolute -bottom-0.5 -right-0.5 md:-bottom-1 md:-right-1 text-green-600" />
+                        <CheckCircle className="absolute -right-0.5 -bottom-0.5 h-2 w-2 text-green-600 md:-right-1 md:-bottom-1 md:h-3 md:w-3" />
                       )}
                     </Button>
                   ))}
@@ -381,36 +420,45 @@ export default function TakeTestPage() {
           </div>
 
           {/* Question Content */}
-          <div className="md:col-span-3 space-y-4 md:space-y-6 order-1 md:order-2">
+          <div className="order-1 space-y-4 md:order-2 md:col-span-3 md:space-y-6">
             <Card>
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-2 flex-1 min-w-0">
+                  <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline" className="text-xs">
                         {questionTypeInfo[currentQuestion.question_type].label}
                       </Badge>
                       {currentQuestion.is_required && (
-                        <Badge variant="outline" className="text-red-600 text-xs">
+                        <Badge
+                          variant="outline"
+                          className="text-xs text-red-600"
+                        >
                           Required
                         </Badge>
                       )}
                     </div>
-                    <CardTitle className="text-lg md:text-xl leading-tight">{currentQuestion.title}</CardTitle>
+                    <CardTitle className="text-lg leading-tight md:text-xl">
+                      {currentQuestion.title}
+                    </CardTitle>
                   </div>
 
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleFlagQuestion}
-                    className={`flex-shrink-0 h-8 w-8 p-0 ${flaggedQuestions.has(currentQuestion.id) ? 'bg-red-50' : ''}`}
+                    className={`h-8 w-8 flex-shrink-0 p-0 ${flaggedQuestions.has(currentQuestion.id) ? "bg-red-50" : ""}`}
                   >
-                    <Flag className={`h-3 w-3 md:h-4 md:w-4 ${flaggedQuestions.has(currentQuestion.id) ? 'text-red-500' : ''}`} />
+                    <Flag
+                      className={`h-3 w-3 md:h-4 md:w-4 ${flaggedQuestions.has(currentQuestion.id) ? "text-red-500" : ""}`}
+                    />
                   </Button>
                 </div>
 
                 {currentQuestion.description && (
-                  <p className="text-sm md:text-base text-muted-foreground mt-3">{currentQuestion.description}</p>
+                  <p className="text-muted-foreground mt-3 text-sm md:text-base">
+                    {currentQuestion.description}
+                  </p>
                 )}
               </CardHeader>
 
@@ -418,7 +466,9 @@ export default function TakeTestPage() {
                 <QuestionComponent
                   question={currentQuestion}
                   answer={currentAnswer}
-                  onAnswerChange={(answer) => handleAnswerChange(currentQuestion.id, answer)}
+                  onAnswerChange={answer =>
+                    handleAnswerChange(currentQuestion.id, answer)
+                  }
                   onFileUpload={handleFileUpload}
                   onFileDelete={handleFileDelete}
                 />
@@ -426,22 +476,26 @@ export default function TakeTestPage() {
             </Card>
 
             {/* Navigation */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 order-1 sm:order-2">
+            <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+              <div className="order-1 flex flex-col items-stretch gap-2 sm:order-2 sm:flex-row sm:items-center">
                 <Button
                   variant="outline"
                   onClick={handleSaveTest}
                   disabled={saving}
                   className="text-xs sm:text-sm"
                 >
-                  <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="">{saving ? "Saving..." : "Save Progress"}</span>
+                  <Save className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
+                  <span className="">
+                    {saving ? "Saving..." : "Save Progress"}
+                  </span>
                 </Button>
 
                 {currentQuestionIndex === test.questions.length - 1 && (
                   <Button onClick={handleSubmitTest} disabled={saving}>
-                    <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    <span className="">{saving ? "Submitting..." : "Submit Test"}</span>
+                    <Send className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
+                    <span className="">
+                      {saving ? "Submitting..." : "Submit Test"}
+                    </span>
                   </Button>
                 )}
               </div>
@@ -454,7 +508,12 @@ export default function TakeTestPage() {
                   <ChevronLeft className="h-4 w-4" />
                   <span className="">Prev</span>
                 </Button>
-                <Button onClick={handleNextQuestion} disabled={saving || currentQuestionIndex === test.questions.length - 1}>
+                <Button
+                  onClick={handleNextQuestion}
+                  disabled={
+                    saving || currentQuestionIndex === test.questions.length - 1
+                  }
+                >
                   <span className="">Next</span>
                   <ChevronRight className="h-4 w-4" />
                 </Button>

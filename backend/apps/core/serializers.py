@@ -77,9 +77,9 @@ class CreateAuditLogSerializer(serializers.ModelSerializer):
                 if object_id:
                     # Handle cases where object_id might contain non-numeric characters
                     # Extract only the numeric part for database storage
-                    if isinstance(object_id, str) and '/' in object_id:
+                    if isinstance(object_id, str) and "/" in object_id:
                         # Extract the numeric part before the first '/'
-                        numeric_part = object_id.split('/')[0]
+                        numeric_part = object_id.split("/")[0]
                         try:
                             validated_data["object_id"] = int(numeric_part)
                         except ValueError:

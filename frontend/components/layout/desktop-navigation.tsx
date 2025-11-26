@@ -1,6 +1,15 @@
 "use client";
 
-import { Home, BookOpen, Calendar, Settings, User, LogOut, FileText, Presentation } from "lucide-react";
+import {
+  Home,
+  BookOpen,
+  Calendar,
+  Settings,
+  User,
+  LogOut,
+  FileText,
+  Presentation,
+} from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -87,13 +96,13 @@ export function DesktopNavigation() {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* Main Navigation */}
       <SidebarGroup>
         <SidebarGroupLabel>Navigation</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {mainNavigationItems.map((item) => (
+            {mainNavigationItems.map(item => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
@@ -118,7 +127,7 @@ export function DesktopNavigation() {
         <SidebarGroupLabel>Account</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {accountItems.map((item) => (
+            {accountItems.map(item => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
@@ -142,15 +151,15 @@ export function DesktopNavigation() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start h-auto p-2 hover:bg-sidebar-accent"
+              className="hover:bg-sidebar-accent h-auto w-full justify-start p-2"
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex min-w-0 items-center gap-3">
                 <Avatar className="h-8 w-8 shrink-0">
                   {user?.profilePicture ? (
                     <img
                       src={user.profilePicture}
                       alt="Profile"
-                      className="h-full w-full object-cover rounded-full"
+                      className="h-full w-full rounded-full object-cover"
                     />
                   ) : (
                     <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
@@ -158,11 +167,11 @@ export function DesktopNavigation() {
                     </div>
                   )}
                 </Avatar>
-                <div className="flex flex-col items-start min-w-0 group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-medium truncate">
+                <div className="flex min-w-0 flex-col items-start group-data-[collapsible=icon]:hidden">
+                  <span className="truncate text-sm font-medium">
                     {user?.displayName || user?.firstName || "User"}
                   </span>
-                  <span className="text-xs text-muted-foreground truncate">
+                  <span className="text-muted-foreground truncate text-xs">
                     {user?.email || ""}
                   </span>
                 </div>
@@ -181,7 +190,7 @@ export function DesktopNavigation() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}
-              className="text-red-600 cursor-pointer focus:text-red-600"
+              className="cursor-pointer text-red-600 focus:text-red-600"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Logout

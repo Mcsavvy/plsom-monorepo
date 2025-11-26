@@ -6,10 +6,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { User, Phone, Loader2, Save, X } from "lucide-react";
 
-import { UserUpdateRequest, userUpdateSchema, StudentProfile } from "@/types/auth";
+import {
+  UserUpdateRequest,
+  userUpdateSchema,
+  StudentProfile,
+} from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { USER_TITLE_OPTIONS, UserTitle } from "@/lib/constants";
 
@@ -61,7 +71,7 @@ export function ProfileEditForm({
             onClick={onCancel}
             disabled={isLoading}
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="mr-2 h-4 w-4" />
             Cancel
           </Button>
         </CardTitle>
@@ -78,9 +88,12 @@ export function ProfileEditForm({
             </motion.div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="first_name" className="text-foreground text-sm font-medium">
+              <label
+                htmlFor="first_name"
+                className="text-foreground text-sm font-medium"
+              >
                 First Name
               </label>
               <div className="relative">
@@ -102,7 +115,10 @@ export function ProfileEditForm({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="last_name" className="text-foreground text-sm font-medium">
+              <label
+                htmlFor="last_name"
+                className="text-foreground text-sm font-medium"
+              >
                 Last Name
               </label>
               <div className="relative">
@@ -125,12 +141,15 @@ export function ProfileEditForm({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="title" className="text-foreground text-sm font-medium">
+            <label
+              htmlFor="title"
+              className="text-foreground text-sm font-medium"
+            >
               Title (Optional)
             </label>
             <Select
               value={form.watch("title") || ""}
-              onValueChange={(value) => {
+              onValueChange={value => {
                 if (value === "none") {
                   form.setValue("title", undefined);
                 } else {
@@ -144,14 +163,19 @@ export function ProfileEditForm({
               <SelectContent>
                 <SelectItem value="none">No title</SelectItem>
                 {USER_TITLE_OPTIONS.map(title => (
-                  <SelectItem key={title} value={title}>{title}</SelectItem>
+                  <SelectItem key={title} value={title}>
+                    {title}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="whatsapp_number" className="text-foreground text-sm font-medium">
+            <label
+              htmlFor="whatsapp_number"
+              className="text-foreground text-sm font-medium"
+            >
               WhatsApp Number (Optional)
             </label>
             <div className="relative">
