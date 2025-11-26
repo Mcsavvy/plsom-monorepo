@@ -197,6 +197,7 @@ def send_submission_returned_notification(submission_id):
 def schedule_deadline_reminder(test_id):
     """
     Schedule a deadline reminder to be sent the day of the test deadline.
+    Now uses in-app notifications instead of email.
     """
     try:
         test = Test.objects.get(id=test_id)
@@ -216,9 +217,9 @@ def schedule_deadline_reminder(test_id):
         # Only schedule if the reminder is in the future
         if reminder_datetime > timezone.now():
             schedule(
-                "apps.assessments.tasks.send_test_notification_email",
+                "apps.notifications.tasks.send_test_notification",
                 test_id,
-                "deadline_reminder",
+                "test_deadline_reminder",
                 schedule_type="O",  # One-time task
                 next_run=reminder_datetime,
                 task_name=f"deadline_reminder_test_{test_id}",

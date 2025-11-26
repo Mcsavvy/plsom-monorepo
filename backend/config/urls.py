@@ -20,6 +20,7 @@ urlpatterns = [
     path("api/", include("apps.classes.urls")),
     path("api/", include("apps.core.urls")),
     path("api/", include("apps.assessments.urls")),
+    path("api/", include("apps.notifications.urls")),
 ]
 
 if settings.DJANGO_ENV == "production":

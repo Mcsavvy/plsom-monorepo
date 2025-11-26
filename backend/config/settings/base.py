@@ -77,6 +77,7 @@ LOCAL_APPS = [
     "apps.cohorts",
     "apps.invitations",
     "apps.core",
+    "apps.notifications",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -240,6 +241,11 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@plsom.com")
+
+# Web Push Notifications (VAPID)
+VAPID_PRIVATE_KEY = config("VAPID_PRIVATE_KEY", default="")
+VAPID_PUBLIC_KEY = config("VAPID_PUBLIC_KEY", default="")
+VAPID_EMAIL = config("VAPID_EMAIL", default="noreply@plsom.com")
 
 # Zoom Integration
 ZOOM_API_KEY = config("ZOOM_API_KEY", default="")

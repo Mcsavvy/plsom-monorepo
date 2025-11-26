@@ -24,10 +24,11 @@ def handle_test_saved(sender, instance, created, **kwargs):
         if created:
             if instance.status == "published":
                 # New test created and immediately published
+                # Send in-app notification
                 async_task(
-                    "apps.assessments.tasks.send_test_notification_email",
+                    "apps.notifications.tasks.send_test_notification",
                     instance.id,
-                    "created",
+                    "test_created",
                 )
                 logger.info(
                     f"Scheduled 'created' notification for test {instance.id}"
@@ -49,10 +50,11 @@ def handle_test_saved(sender, instance, created, **kwargs):
                         and instance.status == "published"
                     ):
                         # Test was just published
+                        # Send in-app notification
                         async_task(
-                            "apps.assessments.tasks.send_test_notification_email",
+                            "apps.notifications.tasks.send_test_notification",
                             instance.id,
-                            "published",
+                            "test_published",
                         )
                         logger.info(
                             f"Scheduled 'published' notification for test {instance.id}"
@@ -79,10 +81,11 @@ def handle_test_saved(sender, instance, created, **kwargs):
                         hasattr(instance, "_questions_updated")
                         and instance._questions_updated
                     ):
+                        # Send in-app notification
                         async_task(
-                            "apps.assessments.tasks.send_test_notification_email",
+                            "apps.notifications.tasks.send_test_notification",
                             instance.id,
-                            "updated",
+                            "test_updated",
                         )
                         logger.info(
                             f"Scheduled 'updated' notification for test {instance.id}"
@@ -99,23 +102,46 @@ def handle_test_saved(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=Submission)
-def handle_submission_returned(sender, instance, created, **kwargs):
+def handle_submission_saved(sender, instance, created, **kwargs):
     """
-    Handle submission status changes.
-    Send notifications when submissions are returned due to breaking changes.
+    Handle submission creation and status changes.
+    Send notifications when submissions are created, graded, or returned.
     """
     try:
-        if not created and instance.status == "returned":
-            # Check if this was returned due to breaking changes
-            if (
-                instance.feedback
-                and "Test has been updated with new questions"
-                in instance.feedback
-            ):
-                # Send notification to student about returned submission
+        # New submission created
+        if created:
+            # Send notification to admins/lecturers
+            async_task(
+                "apps.notifications.tasks.send_submission_notification",
+                instance.id,
+                "submission_created",
+            )
+            logger.info(
+                f"Scheduled 'submission_created' notification for submission {instance.id}"
+            )
+        else:
+            # Check for status changes
+            if instance.status == "graded":
+                # Send notification to admins/lecturers
                 async_task(
-                    "apps.assessments.tasks.send_submission_returned_notification",
+                    "apps.notifications.tasks.send_submission_notification",
                     instance.id,
+                    "submission_graded",
+                )
+                logger.info(
+                    f"Scheduled 'submission_graded' notification for submission {instance.id}"
+                )
+            elif instance.status == "returned":
+                # Send in-app notification to student about returned submission
+                async_task(
+                    "apps.notifications.tasks.send_submission_returned_notification_to_student",
+                    instance.id,
+                )
+                # Send notification to admins/lecturers
+                async_task(
+                    "apps.notifications.tasks.send_submission_notification",
+                    instance.id,
+                    "submission_returned",
                 )
                 logger.info(
                     f"Scheduled 'returned' notification for submission {instance.id}"
@@ -133,11 +159,11 @@ def handle_test_deleted(sender, instance, **kwargs):
     """
     try:
         if instance.status == "published":
-            # Send deletion notification
+            # Send in-app notification
             async_task(
-                "apps.assessments.tasks.send_test_notification_email",
+                "apps.notifications.tasks.send_test_notification",
                 instance.id,
-                "deleted",
+                "test_deleted",
             )
             logger.info(
                 f"Scheduled 'deleted' notification for test {instance.id}"
@@ -157,9 +183,9 @@ def trigger_test_published_notification(test_id):
     Used when a test is published via the publish action.
     """
     async_task(
-        "apps.assessments.tasks.send_test_notification_email",
+        "apps.notifications.tasks.send_test_notification",
         test_id,
-        "published",
+        "test_published",
     )
 
     # Schedule deadline reminder
@@ -177,9 +203,9 @@ def trigger_test_updated_notification(test_id):
     Used when a test's questions are updated.
     """
     async_task(
-        "apps.assessments.tasks.send_test_notification_email",
+        "apps.notifications.tasks.send_test_notification",
         test_id,
-        "updated",
+        "test_updated",
     )
 
 
@@ -189,6 +215,6 @@ def trigger_submission_returned_notification(submission_id):
     Used when a submission is returned due to breaking changes.
     """
     async_task(
-        "apps.assessments.tasks.send_submission_returned_notification",
+        "apps.notifications.tasks.send_submission_returned_notification_to_student",
         submission_id,
     )
