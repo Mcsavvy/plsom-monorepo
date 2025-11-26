@@ -45,7 +45,7 @@ export function DesktopLayout({
           <SidebarHeader>
             <div className="flex items-center gap-2 px-2 py-1">
               <SidebarTrigger />
-              <div className="font-semibold text-sidebar-foreground">PLSOM LMS</div>
+              <div className="font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">PLSOM LMS</div>
             </div>
           </SidebarHeader>
           <SidebarContent>

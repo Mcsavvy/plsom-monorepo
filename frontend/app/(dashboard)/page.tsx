@@ -30,9 +30,9 @@ import {
   GraduationCap,
   Award,
   ChevronRight,
-  Bell,
 } from "lucide-react";
 import { toastError } from "@/lib/utils";
+import { NotificationBell } from "@/components/notifications";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -57,9 +57,18 @@ export default function HomePage() {
         setError(null);
         
         const [coursesData, classesData, testsData] = await Promise.all([
-          getMyCoursesForUI(),
-          getMyClassesForUI(),
-          getMyTestsForUI(),
+          getMyCoursesForUI().catch(err => {
+            console.error("Error fetching courses:", err);
+            return [];
+          }),
+          getMyClassesForUI().catch(err => {
+            console.error("Error fetching classes:", err);
+            return [];
+          }),
+          getMyTestsForUI().catch(err => {
+            console.error("Error fetching tests:", err);
+            return [];
+          }),
         ]);
         
         setCourses(coursesData);
@@ -152,12 +161,7 @@ export default function HomePage() {
           </div>
           <div className="flex items-center space-x-2">      
             {/* Notification Bell */}
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="h-5 w-5" />
-              {urgentTests.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-              )}
-            </Button>
+            <NotificationBell />
           </div>
         </div>
 

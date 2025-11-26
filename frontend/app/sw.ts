@@ -171,28 +171,53 @@ async function removePendingSubmission(id: string) {
   console.log("Removing pending submission:", id);
 }
 
-// Handle push notifications (if needed in the future)
+// Handle push notifications
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
-  const data = event.data.json();
-  const { title, body, icon, badge, tag, url } = data;
+  const payload = event.data.json();
+  const { title, body, icon, badge, data } = payload;
+
+  // Determine URL based on notification type
+  let url = "/";
+  if (data) {
+    switch (data.type) {
+      case "class_starting":
+        url = data.class_id ? `/classes/${data.class_id}` : "/classes";
+        break;
+      case "test_created":
+      case "test_published":
+      case "test_updated":
+        url = data.test_id ? `/tests/${data.test_id}` : "/tests";
+        break;
+      case "submission_created":
+      case "submission_graded":
+      case "submission_returned":
+        if (data.test_id && data.submission_id) {
+          url = `/tests/${data.test_id}/submissions/${data.submission_id}`;
+        } else if (data.test_id) {
+          url = `/tests/${data.test_id}`;
+        }
+        break;
+    }
+  }
 
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: icon || "/icon-192x192.png",
-      badge: badge || "/icon-192x192.png",
-      tag,
-      data: { url },
+      icon: icon || "/icons/icon-192x192.png",
+      badge: badge || "/icons/badge-72x72.png",
+      tag: data?.notification_id?.toString() || "notification",
+      data: { url, ...data },
+      requireInteraction: data?.type === "class_starting", // Keep class notifications visible until interacted with
       actions: [
         {
           action: "open",
-          title: "Open",
+          title: "View",
         },
         {
           action: "close",
-          title: "Close",
+          title: "Dismiss",
         },
       ],
     } as NotificationOptions)
@@ -203,14 +228,23 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
+  if (event.action === "close") {
+    return; // Just close the notification
+  }
+
   if (event.action === "open" || event.action === "") {
     const url = event.notification.data?.url || "/";
     event.waitUntil(
-      self.clients.matchAll({ type: "window" }).then((clients) => {
-        // Check if there is already a window/tab open with the target URL
+      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+        // Check if there is already a window/tab open
         for (const client of clients) {
-          if (client.url === url && "focus" in client) {
-            return client.focus();
+          // If found, focus it and navigate to the URL
+          if ("focus" in client) {
+            client.focus();
+            if ("navigate" in client) {
+              client.navigate(url);
+            }
+            return;
           }
         }
         // If no window/tab is already open, open a new one
