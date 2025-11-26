@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { PWAInstallButton, NetworkStatus } from "@/components/pwa";
 import { PageTransition } from "@/components/ui/page-transition";
 import { FeedbackButton } from "@/components/ui/feedback-button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   Sidebar,
   SidebarContent,
@@ -43,10 +44,15 @@ export function DesktopLayout({
       <div className="flex min-h-screen w-full">
         <Sidebar collapsible="icon">
           <SidebarHeader>
-            <div className="flex items-center gap-2 px-2 py-1">
-              <SidebarTrigger />
-              <div className="text-sidebar-foreground font-semibold group-data-[collapsible=icon]:hidden">
-                PLSOM LMS
+            <div className="flex items-center justify-between gap-2 px-2 py-1">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <div className="text-sidebar-foreground font-semibold group-data-[collapsible=icon]:hidden">
+                  PLSOM LMS
+                </div>
+              </div>
+              <div className="group-data-[collapsible=icon]:hidden">
+                <ThemeToggle />
               </div>
             </div>
           </SidebarHeader>

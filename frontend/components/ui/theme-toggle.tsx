@@ -24,7 +24,7 @@ export function ThemeToggle() {
   ];
 
   return (
-    <div className="bg-muted flex items-center space-x-1 rounded-lg p-1">
+    <div className="bg-muted flex items-center space-x-1 rounded-lg">
       {themes.map(({ name, icon: Icon, label }) => (
         <motion.button
           key={name}

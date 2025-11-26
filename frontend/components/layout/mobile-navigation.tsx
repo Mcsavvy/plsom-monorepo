@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
   BookOpen,
@@ -11,6 +12,7 @@ import {
   ArrowLeft,
   FileText,
   Presentation,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +26,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/auth";
 import { PLSOMBranding } from "../ui/plsom-branding";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface NavigationItem {
   href: string;
@@ -142,29 +145,73 @@ const headerMap: HeaderMapEntry[] = [
 
 // Default header component
 function DefaultHeader({ user, handleLogout }: DefaultHeaderProps) {
+  const [controlsExpanded, setControlsExpanded] = useState(false);
+
   return (
     <div className="flex h-14 items-center justify-between px-4">
       <div className="flex items-center space-x-2">
         <PLSOMBranding size="sm" showName={false} />
       </div>
       <div className="flex items-center space-x-2">
-        <NetworkStatus variant="minimal" showOnlineStatus />
         <Popover>
           <PopoverTrigger asChild>
-            <button className="focus:outline-none">
-              <Avatar className="h-8 w-8">
-                {user?.profilePicture ? (
-                  <img
-                    src={user.profilePicture}
-                    alt="Profile"
-                    className="object-fit h-full w-full"
-                  />
-                ) : (
-                  <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
-                    {user?.initials}
-                  </div>
-                )}
-              </Avatar>
+            <button className="bg-muted/60 text-xs flex items-center gap-2 rounded-full shadow-sm focus:outline-none">
+              <motion.div
+                layout
+                className="flex items-center gap-1"
+                transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              >
+                <motion.button
+                  type="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    setControlsExpanded(prev => !prev);
+                  }}
+                  className="flex items-center py-1 pl-2"
+                  layout
+                >
+                  <AnimatePresence initial={false} mode="wait">
+                    {controlsExpanded ? (
+                      <motion.div
+                        key="expanded"
+                        className="flex items-center gap-1"
+                        initial={{ opacity: 0, x: 8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -8 }}
+                        transition={{ duration: 0.18 }}
+                      >
+                        <ThemeToggle />
+                        <NetworkStatus variant="minimal" showOnlineStatus />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="collapsed"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.18 }}
+                        className="p-px"
+                      >
+                        <SlidersHorizontal className="size-5 text-muted-foreground" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+                <span className="h-6 w-px bg-border" />
+                <Avatar className="h-8 w-8">
+                  {user?.profilePicture ? (
+                    <img
+                      src={user.profilePicture}
+                      alt="Profile"
+                      className="object-fit h-full w-full"
+                    />
+                  ) : (
+                    <div className="bg-primary text-primary-foreground flex h-full w-full items-center justify-center text-xs font-semibold">
+                      {user?.initials}
+                    </div>
+                  )}
+                </Avatar>
+              </motion.div>
             </button>
           </PopoverTrigger>
           <PopoverContent className="z-50 w-80" align="end">

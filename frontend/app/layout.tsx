@@ -117,12 +117,7 @@ export default function RootLayout({
         <link rel="apple-touch-startup-image" href="/splash-ios-default.png" />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange={false}
-        >
+        <ThemeProvider defaultTheme="system" enableSystem>
           <SessionProvider>
             <ServiceWorkerRegister />
             <GlobalTransitions>{children}</GlobalTransitions>
