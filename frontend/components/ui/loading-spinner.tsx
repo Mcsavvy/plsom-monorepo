@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export function LoadingSpinner() {
   return (
-    <div className="from-plsom-primary-100 via-plsom-primary-200 to-plsom-accent-100 flex min-h-screen items-center justify-center bg-gradient-to-br">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-primary/20 to-accent/40">
       <motion.div
         className="flex flex-col items-center space-y-6"
         initial={{ opacity: 0, scale: 0.8 }}
@@ -14,8 +14,8 @@ export function LoadingSpinner() {
       >
         {/* Logo with themed ring */}
         <div className="relative h-20 w-20">
-          <div className="absolute inset-0 rounded-full bg-plsom-primary-200/30 backdrop-blur-sm" />
-          <div className="absolute inset-2 flex items-center justify-center rounded-full bg-plsom-primary-300/40 backdrop-blur-sm">
+          <div className="absolute inset-0 rounded-full bg-primary/20 backdrop-blur-sm" />
+          <div className="absolute inset-2 flex items-center justify-center rounded-full bg-primary/40 backdrop-blur-sm">
             <Image
               src="/logo.png"
               alt="PLSOM Logo"
@@ -27,7 +27,7 @@ export function LoadingSpinner() {
 
           {/* Spinning ring */}
           <motion.div
-            className="absolute inset-0 rounded-full border-4 border-plsom-primary-300/60 border-t-plsom-primary-600"
+            className="absolute inset-0 rounded-full border-4 border-primary/40 border-t-primary"
             animate={{ rotate: 360 }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
           />
