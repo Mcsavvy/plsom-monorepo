@@ -12,20 +12,10 @@ export function LoadingSpinner() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}
       >
-        {/* Animated logo */}
-        <motion.div
-          className="relative h-20 w-20"
-          animate={{
-            rotate: [0, 360],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-          }}
-        >
-          <div className="absolute inset-0 rounded-full bg-white/20 backdrop-blur-sm" />
-          <div className="absolute inset-2 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-sm">
+        {/* Logo with themed ring */}
+        <div className="relative h-20 w-20">
+          <div className="absolute inset-0 rounded-full bg-plsom-primary-200/30 backdrop-blur-sm" />
+          <div className="absolute inset-2 flex items-center justify-center rounded-full bg-plsom-primary-300/40 backdrop-blur-sm">
             <Image
               src="/logo.png"
               alt="PLSOM Logo"
@@ -37,14 +27,14 @@ export function LoadingSpinner() {
 
           {/* Spinning ring */}
           <motion.div
-            className="absolute inset-0 rounded-full border-4 border-white/30 border-t-white"
+            className="absolute inset-0 rounded-full border-4 border-plsom-primary-300/60 border-t-plsom-primary-600"
             animate={{ rotate: 360 }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
           />
-        </motion.div>
+        </div>
 
         <motion.p
-          className="font-heading text-center text-lg text-white"
+          className="font-heading text-center text-lg text-foreground"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -57,7 +47,7 @@ export function LoadingSpinner() {
           {[0, 1, 2].map(i => (
             <motion.div
               key={i}
-              className="h-2 w-2 rounded-full bg-white"
+              className="h-2 w-2 rounded-full bg-foreground"
               animate={{
                 scale: [1, 1.5, 1],
                 opacity: [0.5, 1, 0.5],
