@@ -20,6 +20,11 @@ def handle_test_saved(sender, instance, created, **kwargs):
     Send notifications for published tests.
     """
     try:
+        # Skip notifications for internal saves where signals are explicitly
+        # suppressed (e.g., when recalculating total_points).
+        if getattr(instance, "_suppress_notification_signals", False):
+            return
+
         # For new tests
         if created:
             if instance.status == "published":

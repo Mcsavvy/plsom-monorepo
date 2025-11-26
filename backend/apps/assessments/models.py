@@ -120,7 +120,22 @@ class Test(models.Model):
             question.max_points or 0 for question in self.questions.all()
         )
         self.total_points = total
-        self.save(update_fields=["total_points"])
+        # Suppress notification signals for this internal save to avoid
+        # duplicate "test_updated" notifications when a test is updated.
+        suppress_flag = getattr(
+            self, "_suppress_notification_signals", False
+        )
+        self._suppress_notification_signals = True
+        try:
+            self.save(update_fields=["total_points"])
+        finally:
+            # Restore previous value to avoid side effects on subsequent saves
+            if suppress_flag:
+                self._suppress_notification_signals = suppress_flag
+            else:
+                # Remove the attribute if it didn't exist before
+                if hasattr(self, "_suppress_notification_signals"):
+                    delattr(self, "_suppress_notification_signals")
         return total
 
     def has_graded_submissions(self):
