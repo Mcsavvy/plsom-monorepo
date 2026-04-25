@@ -17,7 +17,11 @@ import {
 import { useRouter } from "next/navigation";
 
 import { useOnboarding } from "@/hooks/onboarding";
-import { OnboardingRequest, onboardingRequestSchema } from "@/types/auth";
+import {
+  InvitationVerifyResponse,
+  OnboardingRequest,
+  onboardingRequestSchema,
+} from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,17 +43,13 @@ import { USER_TITLE_OPTIONS } from "@/lib/constants";
 
 interface OnboardingFormProps {
   token: string;
-  invitationData?: {
-    email: string;
-    role: string;
-    cohort_name: string;
-  };
+  invitationData?: InvitationVerifyResponse;
   onSuccess?: () => void;
 }
 
 export function OnboardingForm({
   token,
-  invitationData,
+  invitationData: initialInvitationData,
   onSuccess,
 }: OnboardingFormProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -60,6 +60,8 @@ export function OnboardingForm({
   const [verificationError, setVerificationError] = useState<string | null>(
     null
   );
+  const [invitationData, setInvitationData] =
+    useState<InvitationVerifyResponse | null>(initialInvitationData ?? null);
 
   const { verifyInvitation, completeOnboarding } = useOnboarding();
   const router = useRouter();
@@ -82,16 +84,16 @@ export function OnboardingForm({
     if (!invitationData && token) {
       verifyToken();
     }
-  }, [token, invitationData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const verifyToken = async () => {
     setIsVerifying(true);
     setVerificationError(null);
 
     try {
-      await verifyInvitation({ token });
-      // If verification succeeds, we'll get the data from the parent component
-      // or we can redirect to show the form
+      const data = await verifyInvitation({ token });
+      setInvitationData(data);
     } catch (err: any) {
       setVerificationError(
         err?.message ||
