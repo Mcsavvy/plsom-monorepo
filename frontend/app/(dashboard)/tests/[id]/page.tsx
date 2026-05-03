@@ -178,7 +178,11 @@ export default function TestDetailPage() {
   }
 
   const getActionButton = () => {
-    if (!isAvailable && status !== "graded") {
+    // Always let students with an active submission continue/submit/resubmit,
+    // even after the test window closes — backend enforces started_at < available_until.
+    const hasActiveSubmission =
+      status === "in_progress" || status === "returned" || status === "graded";
+    if (!isAvailable && !hasActiveSubmission) {
       return (
         <Button variant="outline" disabled className="flex-1">
           <XCircle className="mr-2 h-4 w-4" />
