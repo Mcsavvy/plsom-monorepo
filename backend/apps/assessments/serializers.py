@@ -21,6 +21,9 @@ class QuestionOptionSerializer(serializers.ModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     """Serializer for test questions with nested options."""
 
+    # Explicitly declare id as optional/writable so clients can pass existing
+    # question IDs through updates (editable=False would strip it otherwise)
+    id = serializers.UUIDField(required=False)
     options = QuestionOptionSerializer(many=True, required=False)
 
     class Meta:
@@ -44,7 +47,6 @@ class QuestionSerializer(serializers.ModelSerializer):
             "options",
         ]
         extra_kwargs = {
-            "id": {"required": False},
             "order": {
                 "read_only": True
             },  # Order will be determined by position in array
@@ -340,11 +342,12 @@ class TestSerializer(serializers.ModelSerializer):
         - Option changes for questions with answers
         """
         existing_questions = {str(q.id): q for q in test.questions.all()}
+        # Convert all incoming IDs to strings for consistent comparison
         incoming_question_ids = {
-            q.get("id") for q in questions_data if q.get("id")
+            str(q.get("id")) for q in questions_data if q.get("id") is not None
         }
 
-        # Check for deleted questions
+        # Check for deleted questions (existing IDs not in incoming set)
         deleted_questions = (
             set(existing_questions.keys()) - incoming_question_ids
         )
@@ -362,8 +365,9 @@ class TestSerializer(serializers.ModelSerializer):
         # Check for question type changes or option changes
         for question_data in questions_data:
             question_id = question_data.get("id")
-            if question_id and question_id in existing_questions:
-                existing_question = existing_questions[question_id]
+            question_id_str = str(question_id) if question_id is not None else None
+            if question_id_str and question_id_str in existing_questions:
+                existing_question = existing_questions[question_id_str]
 
                 # Check for question type change
                 if (
@@ -384,16 +388,24 @@ class TestSerializer(serializers.ModelSerializer):
                     incoming_required is True
                     and existing_question.is_required is False
                 ):
-                    # Only breaking if at least one submission lacks an answer for this question
-                    has_unanswered = Answer.objects.filter(
-                        question=existing_question
-                    ).filter(
-                        models.Q(text_answer="") | models.Q(text_answer__isnull=True)
-                    ).filter(
-                        boolean_answer__isnull=True,
-                        date_answer__isnull=True,
-                        file_answer__isnull=True,
-                    ).filter(selected_options__isnull=True).exists()
+                    # Breaking if any active submission has no answer OR an empty answer for this question
+                    active_submission_ids = set(
+                        Submission.objects.filter(
+                            test=test, status__in=["submitted", "graded"]
+                        ).values_list("id", flat=True)
+                    )
+                    answered_submission_ids = set(
+                        Answer.objects.filter(
+                            question=existing_question,
+                            submission_id__in=active_submission_ids,
+                        ).exclude(
+                            models.Q(text_answer="")
+                            & models.Q(boolean_answer__isnull=True)
+                            & models.Q(date_answer__isnull=True)
+                            & models.Q(file_answer__isnull=True)
+                        ).values_list("submission_id", flat=True)
+                    )
+                    has_unanswered = bool(active_submission_ids - answered_submission_ids)
                     if has_unanswered:
                         return True
 
@@ -484,10 +496,14 @@ class TestSerializer(serializers.ModelSerializer):
         option_mapping = {}
 
         # Get the highest existing order value to avoid conflicts
-        max_existing_order = (
-            test.questions.aggregate(max_order=models.Max("order"))["max_order"]
-            or -1
-        )
+        # Get the highest existing order value to avoid conflicts
+        # Use explicit None check (not `or -1`) because order=0 is a valid max
+        _max_order_result = test.questions.aggregate(max_order=models.Max("order"))["max_order"]
+        max_existing_order = _max_order_result if _max_order_result is not None else -1
+
+        # Collect IDs of ALL existing questions to delete them after creating new ones
+        all_old_question_ids = list(test.questions.values_list("id", flat=True))
+        new_question_ids = []
 
         # Step 1: Create new questions and options
         for order, question_data in enumerate(questions_data):
@@ -501,6 +517,7 @@ class TestSerializer(serializers.ModelSerializer):
             new_question = Question.objects.create(
                 test=test, order=new_order, **question_data
             )
+            new_question_ids.append(new_question.id)
 
             # Store mapping if this was an existing question
             if old_question_id:
@@ -518,8 +535,8 @@ class TestSerializer(serializers.ModelSerializer):
             test, question_mapping, option_mapping
         )
 
-        # Step 3: Clean up old questions and options (after references are updated)
-        self._cleanup_old_instances(test, question_mapping.keys())
+        # Step 3: Clean up ALL old questions (not just mapped ones)
+        self._cleanup_old_instances(test, all_old_question_ids)
 
         # Step 4: Reorder questions to be sequential starting from 0
         self._reorder_questions_sequentially(test)
