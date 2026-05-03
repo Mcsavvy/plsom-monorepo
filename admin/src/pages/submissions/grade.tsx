@@ -42,6 +42,8 @@ export const SubmissionGrade: React.FC = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  // B.2.2 — Store submission updatedAt for optimistic concurrency
+  const [submissionUpdatedAt, setSubmissionUpdatedAt] = useState<string | undefined>(undefined);
   const [gradingData, setGradingData] = useState<{
     answers: Record<
       string,
@@ -88,6 +90,11 @@ export const SubmissionGrade: React.FC = () => {
         generalFeedback: submission.feedback || '',
         returnForRevision: false,
       });
+
+      // B.2.2 — Capture updatedAt when submission loads
+      if ((submission as unknown as { updatedAt?: string }).updatedAt) {
+        setSubmissionUpdatedAt((submission as unknown as { updatedAt: string }).updatedAt);
+      }
     }
   }, [submission]);
 
@@ -136,14 +143,20 @@ export const SubmissionGrade: React.FC = () => {
         })
       );
 
+      // B.2.2 — Include client_updated_at for optimistic concurrency
+      const gradePayload: Record<string, unknown> = {
+        answers,
+        feedback: gradingData.generalFeedback,
+        return: gradingData.returnForRevision,
+      };
+      if (submissionUpdatedAt) {
+        gradePayload.client_updated_at = submissionUpdatedAt;
+      }
+
       await gradeSubmission({
         url: `/submissions/${id}/grade/`,
         method: 'post',
-        values: {
-          answers,
-          feedback: gradingData.generalFeedback,
-          return: gradingData.returnForRevision,
-        },
+        values: gradePayload,
       });
 
       toast({
@@ -152,7 +165,18 @@ export const SubmissionGrade: React.FC = () => {
       });
 
       goBack();
-    } catch (error) {
+    } catch (error: unknown) {
+      // B.2.2 — Handle 409 conflict
+      const axiosErr = error as { response?: { status?: number } };
+      if (axiosErr?.response?.status === 409) {
+        toast({
+          title: 'Grading conflict',
+          description: 'Submission was updated by another grader — please refresh.',
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
       toast({
         title: 'Error grading submission',
         description: 'There was an error while grading the submission.',
