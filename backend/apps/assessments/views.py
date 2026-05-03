@@ -126,6 +126,13 @@ class TestViewSet(viewsets.ModelViewSet):
         """Handle complex test updates with question management."""
         serializer.save()
 
+    def get_serializer(self, *args, **kwargs):
+        """Inject 'force' flag from request data into serializer context."""
+        kwargs["context"] = self.get_serializer_context()
+        if self.request and self.request.method in ("PUT", "PATCH"):
+            kwargs["context"]["force"] = self.request.data.get("force", False)
+        return super().get_serializer(*args, **kwargs)
+
     @extend_schema(
         description="Duplicate an existing test with all its questions and options",
         summary="Duplicate test",
@@ -539,10 +546,10 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         if not test.is_available:
             raise ValidationError("This test is not currently available")
 
-        # Check if user has remaining attempts
+        # Check if user has remaining attempts (returned submissions don't count)
         existing_attempts = Submission.objects.filter(
             test=test, student=self.request.user
-        ).count()
+        ).exclude(status="returned").count()
 
         if existing_attempts >= test.max_attempts:
             raise ValidationError("Maximum attempts exceeded for this test")
@@ -553,6 +560,37 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             ip_address=self.request.META.get("REMOTE_ADDR"),
             user_agent=self.request.META.get("HTTP_USER_AGENT", ""),
         )
+
+    @extend_schema(
+        description="Reopen a returned submission for revision",
+        summary="Resubmit (reopen) a returned submission",
+        responses={200: SubmissionSerializer},
+    )
+    @action(detail=True, methods=["post"])
+    def resubmit(self, request, pk=None):
+        """Reopen a returned submission for revision."""
+        submission = self.get_object()
+
+        if request.user.role == "student" and submission.student != request.user:
+            return Response(
+                {"error": "You can only resubmit your own tests"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not submission.is_resubmittable:
+            return Response(
+                {"error": "Only returned submissions can be reopened"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        submission.status = "in_progress"
+        submission.submitted_at = None
+        # Leave graded_by, graded_at, feedback, per-answer points_earned/feedback intact
+        # (student sees grader's notes while revising)
+        submission.save()
+
+        serializer = self.get_serializer(submission)
+        return Response(serializer.data)
 
     @extend_schema(
         description="Submit a test for grading",
@@ -578,6 +616,80 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                 {"error": "Only in-progress submissions can be submitted"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # Hard block: no answers at all
+        has_any_answer = submission.answers.filter(
+            models.Q(text_answer__gt="")
+            | models.Q(boolean_answer__isnull=False)
+            | models.Q(file_answer__isnull=False)
+            | models.Q(selected_options__isnull=False)
+        ).distinct().exists()
+
+        required_count = submission.test.questions.filter(is_required=True).count()
+        if not has_any_answer and required_count > 0:
+            return Response(
+                {"error": "Cannot submit: no questions have been answered."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Soft validation: collect per-answer warnings
+        confirm = request.data.get("confirm", False)
+        validation_warnings = {}
+        for answer in submission.answers.select_related("question").all():
+            errors = answer.get_validation_errors()
+            if errors:
+                validation_warnings[str(answer.question.id)] = {
+                    "question_title": answer.question.title,
+                    "errors": errors,
+                }
+        # Also check required questions with no Answer row at all
+        answered_question_ids = set(
+            submission.answers.values_list("question_id", flat=True)
+        )
+        for question in submission.test.questions.filter(is_required=True):
+            if question.id not in answered_question_ids:
+                validation_warnings[str(question.id)] = {
+                    "question_title": question.title,
+                    "errors": [f"Question '{question.title}' is required"],
+                }
+
+        if validation_warnings and not confirm:
+            return Response(
+                {
+                    "error": "Submission has validation issues.",
+                    "validation_warnings": validation_warnings,
+                    "confirm_required": True,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Enforce time-window: student must have started before the deadline
+        test = submission.test
+        if test.available_until and submission.started_at > test.available_until:
+            return Response(
+                {"error": "This test was no longer available when you started."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # If reopened from 'returned', archive previous grading before re-submitting
+        if submission.graded_at is not None:
+            history_entry = {
+                "grader_id": submission.graded_by_id,
+                "grader_name": (
+                    submission.graded_by.get_full_name()
+                    if submission.graded_by else "Unknown"
+                ),
+                "graded_at": submission.graded_at.isoformat(),
+                "score": float(submission.score or 0) if submission.score is not None else None,
+                "feedback": submission.feedback,
+            }
+            submission.grading_history = (submission.grading_history or []) + [history_entry]
+            # Clear grading fields
+            submission.graded_by = None
+            submission.graded_at = None
+            submission.feedback = ""
+            # Clear per-answer grading
+            submission.answers.update(points_earned=None, feedback="")
 
         submission.status = "submitted"
         submission.submitted_at = timezone.now()
@@ -690,11 +802,10 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                     submission=submission, question=question
                 )
 
-                # Clear all answer fields first
+                # Clear non-file answer fields (file_answer is managed by upload/delete endpoints)
                 answer.text_answer = ""
                 answer.boolean_answer = None
                 answer.date_answer = None
-                answer.file_answer = None
 
                 # Update based on question type
                 qtype = question.question_type
