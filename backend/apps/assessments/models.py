@@ -338,6 +338,13 @@ class Submission(models.Model):
         blank=True, help_text="General feedback from grader"
     )
 
+    # Re-grading audit trail
+    grading_history = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of previous grading events: [{grader_id, grader_name, graded_at, score, feedback, per_answer}]"
+    )
+
     # Metadata
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
@@ -393,13 +400,18 @@ class Submission(models.Model):
     @property
     def score(self):
         """Calculate total score from all graded answers"""
-        if self.status not in ["graded", "returned"]:
+        if self.status not in ["graded"]:
             return None
         total_score = sum(
             answer.points_earned or 0
             for answer in self.answers.filter(points_earned__isnull=False)
         )
         return total_score
+
+    @property
+    def is_resubmittable(self):
+        """Check if this submission can be reopened for revision."""
+        return self.status == "returned"
 
     @property
     def max_score(self):
@@ -513,8 +525,14 @@ class Answer(models.Model):
         Validate answer meets all constraints for submission.
         Raises ValidationError if validation fails.
         """
+        # Required check must come BEFORE the early-return for empty answers
+        if self.question.is_required and not self.has_answer:
+            raise ValidationError(
+                f"Question '{self.question.title}' is required"
+            )
+
         if not self.has_answer:
-            return  # Empty answers are valid
+            return  # Non-required, empty — valid
 
         question_type = self.question.question_type
 
@@ -556,9 +574,7 @@ class Answer(models.Model):
                         f"Essay answer must be no more than {self.question.max_word_count} words (current: {word_count})"
                     )
 
-        # Validate required questions have answers
-        if self.question.is_required and not self.has_answer:
-            raise ValidationError("This question is required")
+
 
     def get_validation_errors(self):
         """
