@@ -287,34 +287,48 @@ class TestSerializer(serializers.ModelSerializer):
     ):
         """
         Handle question updates with breaking change detection.
-        Returns (breaking_changes_detected, graded_submissions_returned_count)
+        Returns (breaking_changes_detected, active_submissions_returned_count)
         """
+        from rest_framework.exceptions import ValidationError as DRFValidationError
+
         breaking_changes = False
-        graded_submissions_returned = 0
+        active_submissions_returned = 0
 
-        # Check if test has any graded submissions
-        graded_submissions = test.submissions.filter(status="graded")
-        has_graded_submissions = graded_submissions.exists()
+        # Check if test has any submitted or graded submissions
+        active_submissions = test.submissions.filter(
+            status__in=["submitted", "graded"]
+        )
+        has_active_submissions = active_submissions.exists()
 
-        if has_graded_submissions:
+        if has_active_submissions:
             # Detect breaking changes
             breaking_changes = self._detect_breaking_changes(
                 test, questions_data
             )
 
             if breaking_changes:
-                # Return graded submissions and create new question instances
-                graded_submissions_returned = self._handle_breaking_changes(
-                    test, questions_data, graded_submissions
+                # Check if force flag is set in context
+                force = self.context.get("force", False)
+                if not force:
+                    impacted = active_submissions.count()
+                    raise DRFValidationError({
+                        "breaking_change": True,
+                        "message": "This edit contains breaking changes.",
+                        "impacted_submissions": impacted,
+                        "detail": "Pass force=true to confirm and apply the changes.",
+                    })
+                # force=True: return active submissions and update questions
+                active_submissions_returned = self._handle_breaking_changes(
+                    test, questions_data, active_submissions
                 )
             else:
                 # No breaking changes, use safe update
                 self._safe_update_questions(test, questions_data)
         else:
-            # No graded submissions, safe to use simple update
-            self._update_questions_simple(test, questions_data)
+            # No active submissions, safe to update
+            self._safe_update_questions(test, questions_data)
 
-        return breaking_changes, graded_submissions_returned
+        return breaking_changes, active_submissions_returned
 
     def _detect_breaking_changes(self, test, questions_data):
         """
@@ -337,10 +351,13 @@ class TestSerializer(serializers.ModelSerializer):
         if deleted_questions:
             return True
 
-        # Check for new questions
-        new_questions = len(questions_data) - len(incoming_question_ids)
-        if new_questions > 0:
-            return True
+        # Check for new questions (any incoming ID not in existing, or no ID at all)
+        for q in questions_data:
+            qid = q.get("id")
+            if qid and str(qid) not in existing_questions:
+                return True  # New question with client-generated UUID
+            if not qid:
+                return True  # New question with no ID
 
         # Check for question type changes or option changes
         for question_data in questions_data:
@@ -354,6 +371,31 @@ class TestSerializer(serializers.ModelSerializer):
                     != existing_question.question_type
                 ):
                     return True
+
+                # Check max_points change (with epsilon for float no-ops)
+                incoming_max_points = question_data.get("max_points")
+                if incoming_max_points is not None:
+                    if abs(float(incoming_max_points) - float(existing_question.max_points)) > 0.001:
+                        return True
+
+                # Check is_required change false→true
+                incoming_required = question_data.get("is_required")
+                if (
+                    incoming_required is True
+                    and existing_question.is_required is False
+                ):
+                    # Only breaking if at least one submission lacks an answer for this question
+                    has_unanswered = Answer.objects.filter(
+                        question=existing_question
+                    ).filter(
+                        models.Q(text_answer="") | models.Q(text_answer__isnull=True)
+                    ).filter(
+                        boolean_answer__isnull=True,
+                        date_answer__isnull=True,
+                        file_answer__isnull=True,
+                    ).filter(selected_options__isnull=True).exists()
+                    if has_unanswered:
+                        return True
 
                 # Check for option changes in questions with answers
                 if existing_question.answers.exists():
@@ -391,18 +433,18 @@ class TestSerializer(serializers.ModelSerializer):
         return False
 
     def _handle_breaking_changes(
-        self, test, questions_data, graded_submissions
+        self, test, questions_data, active_submissions
     ):
         """
         Handle breaking changes by:
-        1. Returning graded submissions
+        1. Returning active (submitted + graded) submissions
         2. Creating new question instances
         3. Updating references
         """
         with transaction.atomic():
-            # Step 1: Return graded submissions
-            graded_submissions_returned = self._return_graded_submissions(
-                graded_submissions
+            # Step 1: Return active submissions
+            returned_count = self._return_active_submissions(
+                active_submissions
             )
 
             # Step 2: Create new question instances and update references
@@ -410,17 +452,25 @@ class TestSerializer(serializers.ModelSerializer):
                 test, questions_data
             )
 
-            return graded_submissions_returned
+            return returned_count
 
-    def _return_graded_submissions(self, graded_submissions):
-        """Return graded submissions to 'returned' status."""
+    def _return_active_submissions(self, active_submissions):
+        """Return submitted and graded submissions to 'returned' status."""
+        from apps.assessments.tasks import send_submission_returned_notification
         count = 0
-        for submission in graded_submissions:
+        for submission in active_submissions:
             submission.status = "returned"
-            submission.graded_by = None
-            submission.graded_at = None
-            submission.feedback = "Test has been updated with new questions. Please review and resubmit."
+            note = "Test has been updated. Please review and resubmit."
+            if submission.feedback:
+                submission.feedback = f"{submission.feedback}\n\n[System] {note}"
+            else:
+                submission.feedback = f"[System] {note}"
+            # Preserve graded_by, graded_at — do NOT clear them
             submission.save()
+            try:
+                send_submission_returned_notification(submission.id)
+            except Exception:
+                pass
             count += 1
         return count
 
@@ -531,9 +581,9 @@ class TestSerializer(serializers.ModelSerializer):
 
     def _safe_update_questions(self, test, questions_data):
         """Safely update questions, protecting existing answers from being deleted."""
-        # Check if test has any submissions with answers
+        # Check if test has any submissions (any non-archived status)
         has_submissions = test.submissions.filter(
-            answers__isnull=False
+            status__in=["in_progress", "submitted", "graded", "returned"]
         ).exists()
 
         if has_submissions:
@@ -767,6 +817,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     answers = AnswerSerializer(many=True, read_only=True)
     is_submitted = serializers.BooleanField(read_only=True)
+    is_resubmittable = serializers.BooleanField(read_only=True)
     completion_percentage = serializers.FloatField(read_only=True)
     student_name = serializers.CharField(
         source="student.get_full_name", read_only=True
@@ -798,10 +849,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "graded_by",
             "graded_at",
             "feedback",
+            "grading_history",
             "created_at",
             "updated_at",
             "answers",
             "is_submitted",
+            "is_resubmittable",
             "completion_percentage",
             "student_name",
             "student_email",
@@ -832,6 +885,7 @@ class StudentTestSerializer(serializers.ModelSerializer):
     my_submission_status = serializers.SerializerMethodField()
     attempts_remaining = serializers.SerializerMethodField()
     can_attempt = serializers.SerializerMethodField()
+    can_resubmit = serializers.SerializerMethodField()
 
     class Meta:
         model = Test
@@ -856,6 +910,7 @@ class StudentTestSerializer(serializers.ModelSerializer):
             "my_submission_status",
             "attempts_remaining",
             "can_attempt",
+            "can_resubmit",
             "created_at",
             "updated_at",
         ]
@@ -912,7 +967,9 @@ class StudentTestSerializer(serializers.ModelSerializer):
         if not request or not hasattr(request, "user"):
             return obj.max_attempts
 
-        attempts_used = obj.submissions.filter(student=request.user).count()
+        attempts_used = obj.submissions.filter(
+            student=request.user
+        ).exclude(status="returned").count()
         return max(0, obj.max_attempts - attempts_used)
 
     @extend_schema_field(serializers.BooleanField)
@@ -927,7 +984,9 @@ class StudentTestSerializer(serializers.ModelSerializer):
             return False
 
         # Check attempts remaining
-        attempts_used = obj.submissions.filter(student=request.user).count()
+        attempts_used = obj.submissions.filter(
+            student=request.user
+        ).exclude(status="returned").count()
         if attempts_used >= obj.max_attempts:
             return False
 
@@ -937,6 +996,17 @@ class StudentTestSerializer(serializers.ModelSerializer):
         ).exists()
 
         return not in_progress
+
+    @extend_schema_field(serializers.BooleanField)
+    def get_can_resubmit(self, obj):
+        """Check if the student has a returned submission they can reopen."""
+        request = self.context.get("request")
+        if not request or not hasattr(request, "user"):
+            return False
+        latest = obj.submissions.filter(
+            student=request.user
+        ).order_by("-created_at").first()
+        return latest is not None and latest.status == "returned"
 
 
 class StudentTestDetailSerializer(StudentTestSerializer):
