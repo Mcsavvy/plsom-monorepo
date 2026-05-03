@@ -255,6 +255,14 @@ export const submitValidationErrorSchema = z.object({
   confirm_required: z.boolean(),
 });
 
+// B.13.2 — 409 conflict response schema
+export const conflictResponseSchema = z.object({
+  error: z.string(),
+  conflict: z.literal(true),
+  current_submission: submissionDetailSchema,
+});
+export type ConflictResponse = z.infer<typeof conflictResponseSchema>;
+
 // Type exports
 export type BackendAnswerDetail = z.infer<typeof backendAnswerDetailSchema>;
 export type GradingHistoryEntry = z.infer<typeof gradingHistoryEntrySchema>;

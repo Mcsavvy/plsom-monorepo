@@ -20,6 +20,8 @@ import {
   FrontendAnswer,
   ValidationWarning,
   submitValidationErrorSchema,
+  conflictResponseSchema,
+  ConflictResponse,
 } from "@/types/tests";
 import { toastError, toastSuccess } from "@/lib/utils";
 
@@ -92,22 +94,37 @@ async function _createSubmission(
 
 /**
  * Save answers to a submission (upsert answers)
+ * B.13.1 — accepts optional updatedAt for optimistic concurrency.
+ * Returns { submission, conflict } where conflict is set on 409.
  */
 async function _saveAnswers(
   client: ReturnType<typeof useClient>,
   submissionId: number,
-  answers: BackendAnswer[]
-): Promise<Submission> {
+  answers: BackendAnswer[],
+  updatedAt?: string
+): Promise<{ submission: Submission; conflict?: ConflictResponse }> {
   try {
+    const payload: Record<string, unknown> = { answers };
+    if (updatedAt) {
+      payload.client_updated_at = updatedAt;
+    }
     const response = await client.post<Submission>(
       `/submissions/${submissionId}/answers/`,
-      { answers }
+      payload
     );
     if (response.status === 200) {
-      return response.data;
+      return { submission: response.data };
     }
     throw new Error("Failed to save answers.");
-  } catch (error) {
+  } catch (error: unknown) {
+    // B.1.2 — Detect 409 conflict and return structured conflict data
+    const axiosErr = error as { response?: { status?: number; data?: unknown } };
+    if (axiosErr?.response?.status === 409) {
+      const parsed = conflictResponseSchema.safeParse(axiosErr.response.data);
+      if (parsed.success) {
+        return { submission: parsed.data.current_submission as unknown as Submission, conflict: parsed.data };
+      }
+    }
     toastError(error, "Failed to save answers.");
     throw error;
   }
@@ -453,14 +470,17 @@ export function useTests() {
 
   /**
    * Save answers to a submission (auto-save functionality)
+   * B.13.1 — accepts optional updatedAt for optimistic concurrency.
+   * Returns { submission, conflict } — caller handles 409 merge.
    */
   const saveAnswers = useCallback(
     async (
       submissionId: number,
-      answers: Record<string, FrontendAnswer>
-    ): Promise<Submission> => {
+      answers: Record<string, FrontendAnswer>,
+      updatedAt?: string
+    ): Promise<{ submission: Submission; conflict?: ConflictResponse }> => {
       const backendAnswers = transformAnswersToBackend(answers);
-      return await _saveAnswers(client, submissionId, backendAnswers);
+      return await _saveAnswers(client, submissionId, backendAnswers, updatedAt);
     },
     [client]
   );
@@ -512,6 +532,13 @@ export function useTests() {
     [client]
   );
 
+  // Export ConflictResponse type helper for callers
+  const isConflictResponse = (
+    result: { submission: Submission; conflict?: ConflictResponse }
+  ): result is { submission: Submission; conflict: ConflictResponse } => {
+    return result.conflict !== undefined;
+  };
+
   /**
    * Resubmit a returned submission — creates a new in_progress attempt.
    * Returns the new Submission object.
@@ -536,5 +563,6 @@ export function useTests() {
     deleteDocument,
     submitTest,
     resubmitTest,
+    isConflictResponse,
   };
 }
