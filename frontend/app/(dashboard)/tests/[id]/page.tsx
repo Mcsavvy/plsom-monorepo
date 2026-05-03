@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTests } from "@/hooks/tests";
 import {
@@ -40,8 +40,10 @@ import {
   Compass,
   List,
   ToggleLeft,
+  RotateCcw,
+  MessageSquare,
 } from "lucide-react";
-import { toastError } from "@/lib/utils";
+import { toastError, toastSuccess } from "@/lib/utils";
 
 // Icon mapping for question types
 const questionTypeIcons: Record<
@@ -69,7 +71,8 @@ export default function TestDetailPage() {
   const [test, setTest] = useState<TestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { getTestDetailsForUI } = useTests();
+  const [resubmitting, setResubmitting] = useState(false);
+  const { getTestDetailsForUI, resubmitTest } = useTests();
 
   useEffect(() => {
     const fetchTest = async () => {
@@ -101,6 +104,23 @@ export default function TestDetailPage() {
   const handleContinueTest = () => {
     router.push(`/tests/${testId}/take`);
   };
+
+  const handleResubmit = useCallback(async () => {
+    if (!test?.my_submission) return;
+    try {
+      setResubmitting(true);
+      await resubmitTest(test.my_submission.id);
+      toastSuccess("New attempt started. You can now retake the test.");
+      // Refresh test data so my_submission reflects the new in_progress attempt
+      const refreshed = await getTestDetailsForUI(testId);
+      setTest(refreshed);
+      router.push(`/tests/${testId}/take`);
+    } catch (err) {
+      toastError(err, "Failed to start resubmission");
+    } finally {
+      setResubmitting(false);
+    }
+  }, [test, resubmitTest, getTestDetailsForUI, testId, router]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -224,19 +244,30 @@ export default function TestDetailPage() {
         );
       case "returned":
         return (
-          <div className="flex flex-1 gap-2">
-            <Button variant="outline" disabled className="flex-1">
-              <AlertCircle className="mr-2 h-4 w-4" />
-              Test Returned
-            </Button>
+          <div className="flex flex-1 flex-wrap gap-2">
             {test.my_submission && (
               <Button
-                variant="default"
+                variant="outline"
                 onClick={() =>
                   router.push(`/submissions/${test.my_submission!.id}`)
                 }
               >
                 View Returned Submission
+              </Button>
+            )}
+            {test.can_resubmit ? (
+              <Button
+                onClick={handleResubmit}
+                disabled={resubmitting}
+                className="flex-1"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                {resubmitting ? "Starting..." : "Resubmit Test"}
+              </Button>
+            ) : (
+              <Button variant="outline" disabled className="flex-1">
+                <AlertCircle className="mr-2 h-4 w-4" />
+                No Resubmissions Left
               </Button>
             )}
           </div>
@@ -418,7 +449,8 @@ export default function TestDetailPage() {
                   </div>
                 )}
                 {test.my_submission.score !== null &&
-                  test.my_submission.max_score !== null && (
+                  test.my_submission.max_score !== null &&
+                  test.my_submission.status !== "returned" && (
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Score:</span>
                       <span className="font-medium text-green-600">
@@ -436,7 +468,25 @@ export default function TestDetailPage() {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : null}
+
+            {/* Returned reason banner */}
+            {test.my_submission?.status === "returned" && (
+              <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50 p-3">
+                <div className="mb-1 flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-orange-600" />
+                  <span className="text-sm font-medium text-orange-800">
+                    Returned for revision
+                  </span>
+                </div>
+                <p className="text-sm text-orange-700">
+                  Your grader has returned this submission for revision. Review
+                  the feedback in your submission and resubmit when ready.
+                </p>
+              </div>
+            )}
+
+            {!test.my_submission && (
               <div className="py-4 text-center">
                 <Clock className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
                 <p className="text-muted-foreground">No submission yet</p>

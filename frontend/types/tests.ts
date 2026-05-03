@@ -29,6 +29,18 @@ export const backendAnswerDetailSchema = z.object({
   question_options: z.array(questionOptionSchema).optional(),
 });
 
+// Grading history entry schema (one past grading round)
+export const gradingHistoryEntrySchema = z.object({
+  graded_by: z.number().nullable(),
+  graded_by_name: z.string().nullable(),
+  graded_at: z.string().nullable(),
+  score: z.number().nullable(),
+  max_score: z.number().nullable(),
+  feedback: z.string(),
+  returned_at: z.string().nullable(),
+  returned_reason: z.string(),
+});
+
 // Test submission schemas
 export const submissionSchema = z.object({
   id: z.number(),
@@ -41,6 +53,8 @@ export const submissionSchema = z.object({
   max_score: z.number().nullable(),
   completion_percentage: z.number(),
   time_spent_minutes: z.number().min(0).nullable(),
+  is_resubmittable: z.boolean().optional(),
+  can_resubmit: z.boolean().optional(),
 });
 
 // Detailed submission schema (with answers)
@@ -68,6 +82,10 @@ export const submissionDetailSchema = z.object({
   student_name: z.string(),
   test_title: z.string(),
   graded_by_name: z.string().nullable().optional(),
+  is_resubmittable: z.boolean().optional(),
+  can_resubmit: z.boolean().optional(),
+  grading_history: z.array(gradingHistoryEntrySchema).optional(),
+  returned_reason: z.string().optional(),
 });
 
 // Question types enum
@@ -127,6 +145,7 @@ export const testDetailSchema = z.object({
   my_submission_status: z.string().nullable(),
   attempts_remaining: z.number(),
   can_attempt: z.boolean(),
+  can_resubmit: z.boolean().optional(),
   created_at: z.string(),
   updated_at: z.string(),
   questions: z.array(testQuestionSchema),
@@ -214,8 +233,25 @@ export const submitAnswersSchema = z.object({
   answers: z.array(backendAnswerSchema),
 });
 
+// Validation warning from the submit endpoint (soft-validation)
+export const validationWarningSchema = z.object({
+  question_id: z.string().uuid(),
+  question_title: z.string(),
+  message: z.string(),
+});
+
+// Submit response when there are validation warnings (confirm=false)
+export const submitValidationErrorSchema = z.object({
+  detail: z.string(),
+  validation_warnings: z.array(validationWarningSchema),
+  confirm_url: z.string().optional(),
+});
+
 // Type exports
 export type BackendAnswerDetail = z.infer<typeof backendAnswerDetailSchema>;
+export type GradingHistoryEntry = z.infer<typeof gradingHistoryEntrySchema>;
+export type ValidationWarning = z.infer<typeof validationWarningSchema>;
+export type SubmitValidationError = z.infer<typeof submitValidationErrorSchema>;
 export type Submission = z.infer<typeof submissionSchema>;
 export type SubmissionDetail = z.infer<typeof submissionDetailSchema>;
 export type QuestionOption = z.infer<typeof questionOptionSchema>;

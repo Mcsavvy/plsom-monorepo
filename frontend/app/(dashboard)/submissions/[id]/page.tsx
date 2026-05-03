@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTests } from "@/hooks/tests";
-import { SubmissionDetail, questionTypeInfo } from "@/types/tests";
+import {
+  SubmissionDetail,
+  questionTypeInfo,
+  GradingHistoryEntry,
+} from "@/types/tests";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +28,8 @@ import {
   AlertCircle,
   Download,
   ExternalLink,
+  History,
+  MessageSquare,
 } from "lucide-react";
 import { toastError } from "@/lib/utils";
 
@@ -198,20 +204,44 @@ export default function SubmissionDetailPage() {
             </div>
           </div>
 
-          {submission.score !== null && submission.max_score !== null && (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 flex-shrink-0 text-green-600" />
-                  <span className="font-medium text-green-800">Score</span>
+          {/* Score — hidden when returned (score is provisional and may change) */}
+          {submission.score !== null &&
+            submission.max_score !== null &&
+            submission.status !== "returned" && (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 flex-shrink-0 text-green-600" />
+                    <span className="font-medium text-green-800">Score</span>
+                  </div>
+                  <div className="text-xl font-bold text-green-600 md:text-2xl">
+                    {submission.score} / {submission.max_score}
+                  </div>
                 </div>
-                <div className="text-xl font-bold text-green-600 md:text-2xl">
-                  {submission.score} / {submission.max_score}
-                </div>
+                {submission.graded_by_name && (
+                  <p className="mt-2 text-sm text-green-700">
+                    Graded by {submission.graded_by_name}
+                  </p>
+                )}
               </div>
-              {submission.graded_by_name && (
-                <p className="mt-2 text-sm text-green-700">
-                  Graded by {submission.graded_by_name}
+            )}
+
+          {/* Returned banner */}
+          {submission.status === "returned" && (
+            <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 text-orange-600" />
+                <span className="font-medium text-orange-800">
+                  Returned for Revision
+                </span>
+              </div>
+              <p className="text-sm text-orange-700">
+                Your grader has returned this submission. Please review the
+                feedback below and resubmit from the test page when ready.
+              </p>
+              {submission.returned_reason && (
+                <p className="mt-2 text-sm font-medium text-orange-800">
+                  Reason: {submission.returned_reason}
                 </p>
               )}
             </div>
@@ -265,6 +295,65 @@ export default function SubmissionDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Grading History */}
+      {submission.grading_history && submission.grading_history.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3 md:pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+              <History className="h-5 w-5" />
+              Grading History ({submission.grading_history.length} round
+              {submission.grading_history.length !== 1 ? "s" : ""})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6">
+            <div className="space-y-3">
+              {(submission.grading_history as GradingHistoryEntry[]).map(
+                (entry, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-lg border bg-gray-50 p-4 text-sm"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-medium text-gray-700">
+                        Round {idx + 1}
+                      </span>
+                      {entry.graded_at && (
+                        <span className="text-muted-foreground text-xs">
+                          {formatDateTime(entry.graded_at)}
+                        </span>
+                      )}
+                    </div>
+                    {entry.score !== null && entry.max_score !== null && (
+                      <div className="mb-1 text-green-700 font-semibold">
+                        Score: {entry.score} / {entry.max_score}
+                      </div>
+                    )}
+                    {entry.graded_by_name && (
+                      <div className="text-muted-foreground mb-1">
+                        Graded by {entry.graded_by_name}
+                      </div>
+                    )}
+                    {entry.feedback && (
+                      <div className="mt-2 border-l-4 border-blue-300 pl-3 text-blue-800">
+                        {entry.feedback}
+                      </div>
+                    )}
+                    {entry.returned_at && (
+                      <div className="mt-2 text-orange-700 text-xs">
+                        Returned on {formatDateTime(entry.returned_at)}
+                        {entry.returned_reason
+                          ? `: ${entry.returned_reason}`
+                          : ""}
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* General Feedback */}
       {submission.feedback && (

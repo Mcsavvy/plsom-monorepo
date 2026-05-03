@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useTests } from "@/hooks/tests";
+import { useTests, isValidationWarningsError } from "@/hooks/tests";
 import {
   TestDetail,
   FrontendAnswer,
   questionTypeInfo,
   Submission,
+  ValidationWarning,
 } from "@/types/tests";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
   CheckCircle,
   Timer,
   Flag,
+  AlertTriangle,
 } from "lucide-react";
 import { toastError, toastSuccess } from "@/lib/utils";
 import QuestionComponent from "@/components/tests/answers";
@@ -39,11 +41,24 @@ export default function TakeTestPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, FrontendAnswer>>({});
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
-  const [timeSpent, setTimeSpent] = useState<number>(0); // Track time spent in minutes
+  const [timeSpent, setTimeSpent] = useState<number>(0);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(
     new Set()
   );
   const [saving, setSaving] = useState(false);
+
+  // Validation-warning modal state
+  const [validationWarnings, setValidationWarnings] = useState<
+    ValidationWarning[]
+  >([]);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+
+  // Refs to avoid stale closures in timer/interval callbacks
+  const submissionRef = useRef<Submission | null>(null);
+  const answersRef = useRef<Record<string, FrontendAnswer>>({});
+  submissionRef.current = submission;
+  answersRef.current = answers;
+
   const {
     getTestDetailsForUI,
     createSubmission,
@@ -63,10 +78,18 @@ export default function TakeTestPage() {
         const testData = await getTestDetailsForUI(testId);
         setTest(testData);
 
+        // If there is already a non-in_progress submission, redirect back
+        if (
+          testData.my_submission &&
+          testData.my_submission.status !== "in_progress"
+        ) {
+          router.replace(`/tests/${testId}`);
+          return;
+        }
+
         // Initialize or get existing submission
         let currentSubmission = testData.my_submission;
         if (!currentSubmission) {
-          // Create new submission if none exists
           try {
             currentSubmission = await createSubmission(testId);
             toastSuccess("Test started successfully");
@@ -79,7 +102,7 @@ export default function TakeTestPage() {
 
         setSubmission(currentSubmission);
 
-        // Load existing answers if submission has answers
+        // Load existing answers if submission is in progress
         if (currentSubmission.status === "in_progress") {
           try {
             const existingAnswers = await loadSubmissionAnswers(
@@ -87,7 +110,6 @@ export default function TakeTestPage() {
             );
             setAnswers(existingAnswers);
 
-            // Load flagged questions from submission detail
             const submissionDetail = await getSubmissionDetail(
               currentSubmission.id
             );
@@ -95,17 +117,13 @@ export default function TakeTestPage() {
               .filter(answer => answer.is_flagged)
               .map(answer => answer.question);
             setFlaggedQuestions(new Set(flaggedQuestionIds));
-
-            console.log("Loaded existing answers and flagged questions");
           } catch (answerError) {
             console.warn("Failed to load existing answers:", answerError);
-            // Continue without answers - user can still take the test
           }
         }
 
-        // Initialize time remaining if test has time limit
+        // Initialize time remaining
         if (testData.time_limit_minutes !== null) {
-          // Calculate time remaining based on submission start time
           const startTime = new Date(currentSubmission.started_at);
           const now = new Date();
           const elapsedMinutes = Math.floor(
@@ -115,11 +133,10 @@ export default function TakeTestPage() {
             0,
             testData.time_limit_minutes - elapsedMinutes
           );
-          setTimeRemaining(remainingMinutes * 60); // Convert to seconds
+          setTimeRemaining(remainingMinutes * 60);
           setTimeSpent(elapsedMinutes);
         } else {
-          setTimeRemaining(null); // No time limit
-          // Still track time spent for analytics
+          setTimeRemaining(null);
           const startTime = new Date(currentSubmission.started_at);
           const now = new Date();
           const elapsedMinutes = Math.floor(
@@ -147,38 +164,64 @@ export default function TakeTestPage() {
     createSubmission,
     getSubmissionDetail,
     loadSubmissionAnswers,
+    router,
   ]);
 
-  // Timer effect - only run if test has time limit
+  // Core submit logic — used both by button and timer
+  const doSubmit = useCallback(
+    async (confirm?: boolean) => {
+      const currentSubmission = submissionRef.current;
+      const currentAnswers = answersRef.current;
+      if (!currentSubmission) return;
+
+      setSaving(true);
+      try {
+        await submitTest(currentSubmission.id, currentAnswers, confirm);
+        router.push(`/tests/${testId}`);
+      } catch (err) {
+        if (isValidationWarningsError(err)) {
+          setValidationWarnings(err.warnings);
+          setShowWarningModal(true);
+          setSaving(false);
+          return;
+        }
+        toastError(err, "Failed to submit test");
+        setSaving(false);
+      }
+    },
+    [submitTest, router, testId]
+  );
+
+  // Timer effect — uses refs to avoid stale closure on handleSubmitTest
   useEffect(() => {
     if (timeRemaining === null || timeRemaining <= 0) return;
 
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev === null || prev <= 1) {
-          // Time's up - auto submit
-          handleSubmitTest();
+          // Time's up — force-submit bypassing soft-validation
+          doSubmit(true);
           return 0;
         }
         return prev - 1;
       });
 
-      // Update time spent every minute
-      setTimeSpent(prev => prev + 1 / 60); // Add 1 second as fraction of minute
+      setTimeSpent(prev => prev + 1 / 60);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeRemaining]);
+  }, [timeRemaining, doSubmit]);
 
-  // Auto-save effect - save answers every 30 seconds
+  // Auto-save effect
   useEffect(() => {
     if (!submission || Object.keys(answers).length === 0) return;
 
     const autoSaveTimer = setInterval(() => {
       handleSaveTest();
-    }, 30000); // Save every 30 seconds
+    }, 30000);
 
     return () => clearInterval(autoSaveTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answers, submission]);
 
   const formatTime = (seconds: number) => {
@@ -222,7 +265,6 @@ export default function TakeTestPage() {
       const updatedSubmission = await deleteDocument(submission.id, questionId);
       setSubmission(updatedSubmission);
 
-      // Also remove the file from local answers state
       setAnswers(prevAnswers => {
         const updatedAnswers = { ...prevAnswers };
         if (updatedAnswers[questionId]) {
@@ -281,18 +323,10 @@ export default function TakeTestPage() {
     }
   };
 
-  const handleSubmitTest = async () => {
-    if (!submission) return;
-
-    try {
-      setSaving(true);
-      await submitTest(submission.id, answers);
-      toastSuccess("Test submitted successfully");
-      router.push(`/tests/${testId}`);
-    } catch (error) {
-      toastError(error, "Failed to submit test");
-      setSaving(false);
-    }
+  const handleSubmitTest = () => doSubmit(false);
+  const handleConfirmSubmit = () => {
+    setShowWarningModal(false);
+    doSubmit(true);
   };
 
   if (loading) {
@@ -317,6 +351,53 @@ export default function TakeTestPage() {
 
   return (
     <div className="bg-background min-h-screen">
+      {/* Validation Warnings Modal */}
+      {showWarningModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-700">
+                <AlertTriangle className="h-5 w-5" />
+                Some questions are unanswered
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground text-sm">
+                The following required questions have not been answered. You can
+                still submit, but your score may be affected.
+              </p>
+              <ul className="space-y-2">
+                {validationWarnings.map(w => (
+                  <li
+                    key={w.question_id}
+                    className="flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-3 text-sm"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+                    <span className="text-amber-800">{w.question_title}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowWarningModal(false)}
+                  className="flex-1"
+                >
+                  Go back and answer
+                </Button>
+                <Button
+                  onClick={handleConfirmSubmit}
+                  disabled={saving}
+                  className="flex-1"
+                >
+                  {saving ? "Submitting..." : "Submit anyway"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-background sticky top-0 z-10 border-b">
         <div className="container mx-auto p-4">

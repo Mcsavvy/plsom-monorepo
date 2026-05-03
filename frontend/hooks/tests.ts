@@ -18,6 +18,8 @@ import {
   BackendAnswer,
   BackendAnswerDetail,
   FrontendAnswer,
+  ValidationWarning,
+  submitValidationErrorSchema,
 } from "@/types/tests";
 import { toastError, toastSuccess } from "@/lib/utils";
 
@@ -112,23 +114,67 @@ async function _saveAnswers(
 }
 
 /**
- * Submit a test (change status to submitted)
+ * Submit a test (change status to submitted).
+ * If the backend returns 400 with validation_warnings, throws a
+ * ValidationWarningsError so the caller can show a confirmation modal.
  */
 async function _submitTest(
   client: ReturnType<typeof useClient>,
-  submissionId: number
+  submissionId: number,
+  confirm?: boolean
 ): Promise<Submission> {
   try {
+    const params = confirm ? { confirm: "true" } : {};
     const response = await client.post<Submission>(
-      `/submissions/${submissionId}/submit/`
+      `/submissions/${submissionId}/submit/`,
+      params
     );
     if (response.status === 200) {
       toastSuccess("Test submitted successfully.");
       return response.data;
     }
     throw new Error("Failed to submit test.");
-  } catch (error) {
+  } catch (error: unknown) {
+    // Check if this is a soft-validation 400 with warnings
+    const axiosErr = error as {
+      response?: { status?: number; data?: unknown };
+    };
+    if (axiosErr?.response?.status === 400) {
+      const parsed = submitValidationErrorSchema.safeParse(
+        axiosErr.response.data
+      );
+      if (parsed.success && parsed.data.validation_warnings?.length) {
+        // Rethrow as a typed validation error — caller handles the modal
+        const validationError: ValidationWarningsError = {
+          type: "validation_warnings",
+          warnings: parsed.data.validation_warnings,
+        };
+        throw validationError;
+      }
+    }
     toastError(error, "Failed to submit test.");
+    throw error;
+  }
+}
+
+/**
+ * Resubmit a returned submission (creates a new in_progress attempt)
+ */
+async function _resubmitTest(
+  client: ReturnType<typeof useClient>,
+  submissionId: number
+): Promise<Submission> {
+  try {
+    const response = await client.post<Submission>(
+      `/submissions/${submissionId}/resubmit/`
+    );
+    if (response.status === 201) {
+      toastSuccess("Resubmission started.");
+      return response.data;
+    }
+    throw new Error("Failed to resubmit.");
+  } catch (error) {
+    toastError(error, "Failed to resubmit.");
     throw error;
   }
 }
@@ -301,6 +347,26 @@ function transformAnswersToBackend(
 }
 
 /**
+ * Typed error thrown by submitTest when the backend returns soft-validation
+ * warnings instead of a hard failure. The caller should show a modal and
+ * re-call submitTest with confirm=true to bypass.
+ */
+export interface ValidationWarningsError {
+  type: "validation_warnings";
+  warnings: ValidationWarning[];
+}
+
+export function isValidationWarningsError(
+  err: unknown
+): err is ValidationWarningsError {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as ValidationWarningsError).type === "validation_warnings"
+  );
+}
+
+/**
  * Hook for managing test-related operations
  */
 export function useTests() {
@@ -417,12 +483,15 @@ export function useTests() {
   );
 
   /**
-   * Submit a test for grading
+   * Submit a test for grading.
+   * Pass confirm=true to bypass soft-validation warnings.
+   * Throws ValidationWarningsError when warnings exist and confirm is false.
    */
   const submitTest = useCallback(
     async (
       submissionId: number,
-      answers: Record<string, FrontendAnswer>
+      answers: Record<string, FrontendAnswer>,
+      confirm?: boolean
     ): Promise<Submission> => {
       // First save the answers (excluding files which are handled separately)
       const backendAnswers = transformAnswersToBackend(answers);
@@ -430,8 +499,19 @@ export function useTests() {
         await _saveAnswers(client, submissionId, backendAnswers);
       }
 
-      // Then submit the test
-      return await _submitTest(client, submissionId);
+      // Then submit the test (may throw ValidationWarningsError)
+      return await _submitTest(client, submissionId, confirm);
+    },
+    [client]
+  );
+
+  /**
+   * Resubmit a returned submission — creates a new in_progress attempt.
+   * Returns the new Submission object.
+   */
+  const resubmitTest = useCallback(
+    async (submissionId: number): Promise<Submission> => {
+      return await _resubmitTest(client, submissionId);
     },
     [client]
   );
@@ -448,5 +528,6 @@ export function useTests() {
     uploadFile,
     deleteDocument,
     submitTest,
+    resubmitTest,
   };
 }
