@@ -133,6 +133,21 @@ class TestViewSet(viewsets.ModelViewSet):
             kwargs["context"]["force"] = self.request.data.get("force", False)
         return super().get_serializer(*args, **kwargs)
 
+    def destroy(self, request, *args, **kwargs):
+        """B.6.1 — Require confirm=true when test has existing submissions."""
+        test = self.get_object()
+        if test.submissions.exists():
+            confirm = request.data.get("confirm") or request.query_params.get("confirm")
+            if confirm != "true":
+                return Response(
+                    {
+                        "error": "This test has existing submissions. Pass confirm=true to delete.",
+                        "submission_count": test.submissions.count(),
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        return super().destroy(request, *args, **kwargs)
+
     @extend_schema(
         description="Duplicate an existing test with all its questions and options",
         summary="Duplicate test",

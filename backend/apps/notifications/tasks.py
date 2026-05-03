@@ -297,10 +297,19 @@ def send_test_notification(
 def send_submission_returned_notification_to_student(submission_id: int):
     """
     Send notification to student when their submission is returned.
+    B.7.2 — Throttle: skip if already sent within the last 60 seconds.
 
     Args:
         submission_id: ID of the submission that was returned
     """
+    # B.7.2 — Deduplicate within 60s window
+    from django.core.cache import cache
+    cache_key = f"submission_returned_notif_{submission_id}"
+    if cache.get(cache_key):
+        logger.info(f"Skipping duplicate submission_returned notification for submission {submission_id}")
+        return
+    cache.set(cache_key, True, timeout=60)
+
     try:
         submission = Submission.objects.select_related(
             "test", "test__course", "student"

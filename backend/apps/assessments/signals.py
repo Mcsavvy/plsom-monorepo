@@ -81,20 +81,33 @@ def handle_test_saved(sender, instance, created, **kwargs):
                             if instance.available_until:
                                 schedule_deadline_reminder(instance.id)
 
-                    # Send update notification for published tests
+                    # B.7.1 — Send update notification only for meaningful field changes
                     if (
                         hasattr(instance, "_questions_updated")
                         and instance._questions_updated
                     ):
-                        # Send in-app notification
-                        async_task(
-                            "apps.notifications.tasks.send_test_notification",
-                            instance.id,
-                            "test_updated",
-                        )
-                        logger.info(
-                            f"Scheduled 'updated' notification for test {instance.id}"
-                        )
+                        # Check if meaningful fields changed; skip if only internal fields
+                        meaningful_fields = {
+                            "title", "description", "instructions",
+                            "available_from", "available_until", "status"
+                        }
+                        changed_fields = set(kwargs.get("update_fields", []) or [])
+                        # When update_fields is None (full save), fire normally.
+                        # When update_fields is set, only fire if meaningful fields changed.
+                        if not changed_fields or (changed_fields & meaningful_fields):
+                            # Send in-app notification
+                            async_task(
+                                "apps.notifications.tasks.send_test_notification",
+                                instance.id,
+                                "test_updated",
+                            )
+                            logger.info(
+                                f"Scheduled 'updated' notification for test {instance.id}"
+                            )
+                        else:
+                            logger.info(
+                                f"Skipping 'updated' notification for test {instance.id} — no meaningful changes"
+                            )
 
             except Test.DoesNotExist:
                 # This shouldn't happen for updates, but handle gracefully
@@ -127,15 +140,21 @@ def handle_submission_saved(sender, instance, created, **kwargs):
         else:
             # Check for status changes
             if instance.status == "graded":
-                # Send notification to admins/lecturers
-                async_task(
-                    "apps.notifications.tasks.send_submission_notification",
-                    instance.id,
-                    "submission_graded",
-                )
-                logger.info(
-                    f"Scheduled 'submission_graded' notification for submission {instance.id}"
-                )
+                # B.7.3 — Only fire submission_graded on first grade; re-grades are silent
+                if instance.grading_history:
+                    # This is a re-grade; skip notification
+                    logger.info(
+                        f"Skipping 'submission_graded' notification for re-grade on submission {instance.id}"
+                    )
+                else:
+                    async_task(
+                        "apps.notifications.tasks.send_submission_notification",
+                        instance.id,
+                        "submission_graded",
+                    )
+                    logger.info(
+                        f"Scheduled 'submission_graded' notification for submission {instance.id}"
+                    )
             elif instance.status == "returned":
                 # Send in-app notification to student about returned submission
                 async_task(
@@ -201,7 +220,15 @@ def trigger_test_published_notification(test_id):
     """
     Manually trigger a test published notification.
     Used when a test is published via the publish action.
+    B.6.3 — Deduplicate: skip if already sent in the last 5 minutes.
     """
+    from django.core.cache import cache
+    cache_key = f"test_published_notif_{test_id}"
+    if cache.get(cache_key):
+        logger.info(f"Skipping duplicate test_published notification for test {test_id}")
+        return
+    cache.set(cache_key, True, timeout=300)
+
     async_task(
         "apps.notifications.tasks.send_test_notification",
         test_id,

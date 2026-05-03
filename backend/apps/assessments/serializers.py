@@ -261,6 +261,17 @@ class TestSerializer(serializers.ModelSerializer):
         validated_data.pop("available_from_timezone", None)
         validated_data.pop("available_until_timezone", None)
 
+        # B.6.2 — Block course/cohort changes when test has active (non-draft) submissions
+        if "course" in validated_data or "cohort" in validated_data:
+            has_active_submissions = instance.submissions.filter(
+                status__in=["submitted", "graded", "returned"]
+            ).exists()
+            if has_active_submissions and not self.context.get("force", False):
+                raise serializers.ValidationError(
+                    "Cannot change course or cohort: test has active submissions. "
+                    "Pass force=true to override."
+                )
+
         # Store previous state for notification logic
         instance._previous_status = instance.status
         instance._previous_deadline = instance.available_until
