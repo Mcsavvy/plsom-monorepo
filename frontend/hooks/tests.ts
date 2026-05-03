@@ -143,11 +143,18 @@ async function _submitTest(
       const parsed = submitValidationErrorSchema.safeParse(
         axiosErr.response.data
       );
-      if (parsed.success && parsed.data.validation_warnings?.length) {
-        // Rethrow as a typed validation error — caller handles the modal
+      if (parsed.success && parsed.data.confirm_required) {
+        // Normalise dict → array for the modal
+        const warnings = Object.entries(parsed.data.validation_warnings).map(
+          ([questionId, val]) => ({
+            question_id: questionId,
+            question_title: val.question_title,
+            errors: val.errors,
+          })
+        );
         const validationError: ValidationWarningsError = {
           type: "validation_warnings",
-          warnings: parsed.data.validation_warnings,
+          warnings,
         };
         throw validationError;
       }

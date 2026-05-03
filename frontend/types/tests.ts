@@ -235,17 +235,24 @@ export const submitAnswersSchema = z.object({
 });
 
 // Validation warning from the submit endpoint (soft-validation)
+// Backend sends: { question_id, question_title, errors[] } after normalisation
 export const validationWarningSchema = z.object({
-  question_id: z.string().uuid(),
+  question_id: z.string(),
   question_title: z.string(),
-  message: z.string(),
+  errors: z.array(z.string()),
 });
 
-// Submit response when there are validation warnings (confirm=false)
+// Raw backend shape: { error, validation_warnings: { [uuid]: { question_title, errors[] } }, confirm_required }
 export const submitValidationErrorSchema = z.object({
-  detail: z.string(),
-  validation_warnings: z.array(validationWarningSchema),
-  confirm_url: z.string().optional(),
+  error: z.string(),
+  validation_warnings: z.record(
+    z.string(),
+    z.object({
+      question_title: z.string(),
+      errors: z.array(z.string()),
+    })
+  ),
+  confirm_required: z.boolean(),
 });
 
 // Type exports

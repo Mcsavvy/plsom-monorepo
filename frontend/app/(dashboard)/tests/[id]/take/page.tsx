@@ -382,10 +382,19 @@ export default function TakeTestPage() {
                 {validationWarnings.map(w => (
                   <li
                     key={w.question_id}
-                    className="flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-3 text-sm"
+                    className="rounded border border-amber-200 bg-amber-50 p-3 text-sm"
                   >
-                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-                    <span className="text-amber-800">{w.question_title}</span>
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+                      <span className="font-medium text-amber-800">{w.question_title}</span>
+                    </div>
+                    {w.errors.length > 0 && (
+                      <ul className="mt-1 ml-6 list-disc space-y-0.5">
+                        {w.errors.map((e, i) => (
+                          <li key={i} className="text-amber-700">{e}</li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 ))}
               </ul>
