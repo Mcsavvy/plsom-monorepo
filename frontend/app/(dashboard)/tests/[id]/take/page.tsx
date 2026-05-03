@@ -30,7 +30,19 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
+  X,
 } from "lucide-react";
+
+/** B.9.1 — Format a Date as a relative "Saved N seconds/minutes ago" string */
+function formatRelativeTime(date: Date): string {
+  const diffMs = Date.now() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  if (diffSecs < 5) return "just now";
+  if (diffSecs < 60) return `${diffSecs}s ago`;
+  const diffMins = Math.floor(diffSecs / 60);
+  if (diffMins < 60) return `${diffMins}m ago`;
+  return `${Math.floor(diffMins / 60)}h ago`;
+}
 import { toastError, toastSuccess } from "@/lib/utils";
 import QuestionComponent from "@/components/tests/answers";
 
@@ -59,11 +71,26 @@ export default function TakeTestPage() {
   >([]);
   const [showWarningModal, setShowWarningModal] = useState(false);
 
+  // B.1.4 — Track which question IDs have unsaved local changes
+  const [dirtyQuestionIds, setDirtyQuestionIds] = useState<Set<string>>(new Set());
+
+  // B.9.1 — Last successful save timestamp
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [relativeTimeDisplay, setRelativeTimeDisplay] = useState<string>("");
+
+  // B.9.3 — Conflict banner state
+  const [conflictBanner, setConflictBanner] = useState<{
+    visible: boolean;
+    preservedCount: number;
+  }>({ visible: false, preservedCount: 0 });
+
   // Refs to avoid stale closures in timer/interval callbacks
   const submissionRef = useRef<Submission | null>(null);
   const answersRef = useRef<Record<string, FrontendAnswer>>({});
+  const dirtyIdsRef = useRef<Set<string>>(new Set());
   submissionRef.current = submission;
   answersRef.current = answers;
+  dirtyIdsRef.current = dirtyQuestionIds;
 
   const {
     getTestDetailsForUI,
@@ -74,6 +101,7 @@ export default function TakeTestPage() {
     uploadFile,
     deleteDocument,
     submitTest,
+    isConflictResponse,
   } = useTests();
 
   useEffect(() => {
@@ -231,6 +259,28 @@ export default function TakeTestPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answers, submission]);
 
+  // B.9.1 — Update relative time string every 10 seconds
+  useEffect(() => {
+    if (!lastSavedAt) return;
+    setRelativeTimeDisplay(formatRelativeTime(lastSavedAt));
+    const interval = setInterval(() => {
+      setRelativeTimeDisplay(formatRelativeTime(lastSavedAt));
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [lastSavedAt]);
+
+  // B.9.2 — Warn before leaving if unsaved answers exist
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (dirtyIdsRef.current.size > 0 && submissionRef.current?.status === "in_progress") {
+        e.preventDefault();
+        e.returnValue = ""; // Required for Chrome
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -247,6 +297,12 @@ export default function TakeTestPage() {
       ...prev,
       [questionId]: answer,
     }));
+    // B.1.4 — mark question as having unsaved local changes
+    setDirtyQuestionIds(prev => {
+      const next = new Set(prev);
+      next.add(questionId);
+      return next;
+    });
   };
 
   const handleFileUpload = async (questionId: string, file: File) => {
@@ -321,8 +377,52 @@ export default function TakeTestPage() {
 
     try {
       setSaving(true);
-      await saveAnswers(submission.id, answers);
-      toastSuccess("Test saved successfully");
+      // B.1.2 — pass submission.updated_at for optimistic concurrency
+      const updatedAt = (submission as unknown as { updated_at?: string }).updated_at;
+      const result = await saveAnswers(submission.id, answers, updatedAt);
+
+      if (isConflictResponse(result)) {
+        // B.1.3 — 409 conflict: merge server state with local dirty answers
+        const serverSubmission = result.conflict.current_submission;
+        const serverAnswerMap: Record<string, FrontendAnswer> = {};
+        // Build server answer map from backendAnswerDetails
+        if (serverSubmission.answers) {
+          (serverSubmission.answers as { question: string; text_answer?: string; boolean_answer?: boolean | null; selected_options?: string[]; file_answer?: string | null }[]).forEach(a => {
+            if (a.text_answer) {
+              serverAnswerMap[a.question] = { question_id: a.question, text_answer: a.text_answer };
+            } else if (a.boolean_answer !== null && a.boolean_answer !== undefined) {
+              serverAnswerMap[a.question] = { question_id: a.question, boolean_answer: a.boolean_answer };
+            } else if (a.selected_options && a.selected_options.length > 0) {
+              serverAnswerMap[a.question] = { question_id: a.question, selected_options: a.selected_options };
+            }
+          });
+        }
+        const currentDirty = dirtyIdsRef.current;
+        setAnswers(prev => {
+          const merged: Record<string, FrontendAnswer> = { ...serverAnswerMap };
+          // For questions the student has typed in since last save, keep local
+          currentDirty.forEach(qid => {
+            if (prev[qid]) {
+              merged[qid] = prev[qid];
+            }
+          });
+          return merged;
+        });
+        // Update submission to fresh server state
+        setSubmission(result.submission);
+        // Show conflict banner
+        setConflictBanner({ visible: true, preservedCount: currentDirty.size });
+        // Clear dirty after merge
+        setDirtyQuestionIds(new Set());
+      } else {
+        // Successful save
+        setSubmission(result.submission);
+        setLastSavedAt(new Date());
+        setRelativeTimeDisplay(formatRelativeTime(new Date()));
+        // B.1.4 — clear dirty set after successful save
+        setDirtyQuestionIds(new Set());
+        toastSuccess("Test saved successfully");
+      }
     } catch (error) {
       toastError(error, "Failed to save test");
     } finally {
@@ -416,6 +516,24 @@ export default function TakeTestPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* B.9.3 — Conflict banner: shown when a 409 merge occurred */}
+      {conflictBanner.visible && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-between">
+          <span className="text-sm text-amber-800">
+            Your submission was updated in another session. Your local changes to{" "}
+            <strong>{conflictBanner.preservedCount}</strong> question
+            {conflictBanner.preservedCount !== 1 ? "s were" : " was"} preserved.
+          </span>
+          <button
+            type="button"
+            className="ml-4 text-amber-600 hover:text-amber-800"
+            onClick={() => setConflictBanner(prev => ({ ...prev, visible: false }))}
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -626,17 +744,25 @@ export default function TakeTestPage() {
             {/* Navigation */}
             <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
               <div className="order-1 flex flex-col items-stretch gap-2 sm:order-2 sm:flex-row sm:items-center">
-                <Button
-                  variant="outline"
-                  onClick={handleSaveTest}
-                  disabled={saving}
-                  className="text-xs sm:text-sm"
-                >
-                  <Save className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
-                  <span className="">
-                    {saving ? "Saving..." : "Save Progress"}
-                  </span>
-                </Button>
+                <div className="flex flex-col items-stretch gap-1">
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveTest}
+                    disabled={saving}
+                    className="text-xs sm:text-sm"
+                  >
+                    <Save className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
+                    <span className="">
+                      {saving ? "Saving..." : "Save Progress"}
+                    </span>
+                  </Button>
+                  {/* B.9.1 — Save timestamp indicator */}
+                  {lastSavedAt && (
+                    <span className="text-muted-foreground text-xs text-center">
+                      Saved {relativeTimeDisplay}
+                    </span>
+                  )}
+                </div>
 
                 {currentQuestionIndex === test.questions.length - 1 && (
                   <Button onClick={handleSubmitTest} disabled={saving}>
