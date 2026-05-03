@@ -140,6 +140,10 @@ export const TestsEdit: React.FC = () => {
   const [pendingPayload, setPendingPayload] = useState<TestFormData | null>(
     null
   );
+  // B.11.1 — Cohort/course change warning
+  const [showCohortWarning, setShowCohortWarning] = useState(false);
+  const [cohortWarningAcknowledged, setCohortWarningAcknowledged] = useState(false);
+  const [pendingCohortPayload, setPendingCohortPayload] = useState<TestFormData | null>(null);
   const { list } = useNavigation();
   const { mutate: updateTest } = useUpdate();
 
@@ -306,12 +310,34 @@ export const TestsEdit: React.FC = () => {
     setIsSubmitting(true);
     setError(null);
     try {
-      doUpdate(buildPayload(data));
+      const payload = buildPayload(data);
+
+      // B.11.1 — Warn when course or cohort changed on a test with submissions
+      if (test && test.totalSubmissions > 0) {
+        const courseChanged = data.course !== test.course;
+        const cohortChanged = data.cohort !== test.cohort;
+        if ((courseChanged || cohortChanged) && !cohortWarningAcknowledged) {
+          setPendingCohortPayload(payload);
+          setShowCohortWarning(true);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      doUpdate(payload);
     } catch (err) {
       console.error('Submit error:', err);
       setError('An unexpected error occurred');
       setIsSubmitting(false);
     }
+  };
+
+  const handleCohortWarningConfirm = () => {
+    if (!pendingCohortPayload) return;
+    setCohortWarningAcknowledged(true);
+    setShowCohortWarning(false);
+    setIsSubmitting(true);
+    doUpdate(pendingCohortPayload);
   };
 
   const handleForceUpdate = () => {
@@ -465,6 +491,61 @@ export const TestsEdit: React.FC = () => {
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Saving...' : 'Yes, apply changes'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* B.11.1 — Cohort/course change warning dialog */}
+      <Dialog open={showCohortWarning} onOpenChange={setShowCohortWarning}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className='flex items-center gap-2 text-amber-700'>
+              <AlertTriangle className='h-5 w-5' />
+              Course / Cohort Change Warning
+            </DialogTitle>
+            <DialogDescription className='space-y-3 pt-2'>
+              <p>
+                Changing the <strong>course or cohort</strong> will make this
+                test invisible to students in the <em>original</em> cohort.
+                Their submissions will still exist but won't be accessible from
+                the student portal.
+              </p>
+              <p>
+                This test has <strong>{test.totalSubmissions} submission
+                {test.totalSubmissions !== 1 ? 's' : ''}</strong>. Are you sure
+                you want to proceed?
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className='py-2'>
+            <label className='flex items-start gap-2 cursor-pointer'>
+              <input
+                type='checkbox'
+                checked={cohortWarningAcknowledged}
+                onChange={e => setCohortWarningAcknowledged(e.target.checked)}
+                className='mt-0.5'
+              />
+              <span className='text-sm text-muted-foreground'>
+                I understand that existing students may lose access to this test
+                and their submissions will not be visible from the student
+                portal.
+              </span>
+            </label>
+          </div>
+          <DialogFooter className='gap-2'>
+            <button
+              className='rounded border px-4 py-2 text-sm'
+              onClick={() => { setShowCohortWarning(false); setCohortWarningAcknowledged(false); }}
+            >
+              Cancel
+            </button>
+            <button
+              className='rounded bg-amber-600 px-4 py-2 text-sm text-white hover:bg-amber-700 disabled:opacity-50'
+              onClick={handleCohortWarningConfirm}
+              disabled={!cohortWarningAcknowledged || isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Yes, change course/cohort'}
             </button>
           </DialogFooter>
         </DialogContent>
