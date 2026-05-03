@@ -66,7 +66,7 @@ function TestCard({
   };
 
   const getActionButton = () => {
-    if (!test.isAvailable && test.status !== "graded") {
+    if (!test.isAvailable && test.status !== "graded" && test.status !== "returned") {
       return (
         <Button variant="outline" disabled className="flex-1">
           <XCircle className="mr-2 h-4 w-4" />
@@ -258,7 +258,8 @@ function TestCard({
               </span>
             </div>
             {test.mySubmission.score !== null &&
-              test.mySubmission.max_score !== null && (
+              test.mySubmission.max_score !== null &&
+              test.mySubmission.status !== "returned" && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Score:</span>
                   <span className="font-medium">
