@@ -124,7 +124,7 @@ async function _submitTest(
   confirm?: boolean
 ): Promise<Submission> {
   try {
-    const params = confirm ? { confirm: "true" } : {};
+    const params = confirm ? { confirm: true } : {};
     const response = await client.post<Submission>(
       `/submissions/${submissionId}/submit/`,
       params
@@ -168,7 +168,7 @@ async function _resubmitTest(
     const response = await client.post<Submission>(
       `/submissions/${submissionId}/resubmit/`
     );
-    if (response.status === 201) {
+    if (response.status === 200) {
       toastSuccess("Resubmission started.");
       return response.data;
     }

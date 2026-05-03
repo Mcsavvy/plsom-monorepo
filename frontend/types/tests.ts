@@ -55,6 +55,7 @@ export const submissionSchema = z.object({
   time_spent_minutes: z.number().min(0).nullable(),
   is_resubmittable: z.boolean().optional(),
   can_resubmit: z.boolean().optional(),
+  feedback: z.string().optional(),
 });
 
 // Detailed submission schema (with answers)

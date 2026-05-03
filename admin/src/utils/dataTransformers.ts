@@ -596,6 +596,9 @@ export function transformTestDetail(
     questions: testResponse.questions.map(transformQuestion),
     totalQuestions: testResponse.total_questions,
     totalSubmissions: testResponse.total_submissions,
+    submittedCount: testResponse.submitted_count ?? 0,
+    gradedCount: testResponse.graded_count ?? 0,
+    inProgressCount: testResponse.in_progress_count ?? 0,
     isAvailable: testResponse.is_available,
     formattedTimeLimit: formatTimeLimit(testResponse.time_limit_minutes),
     formattedAvailability: formatAvailability(
@@ -603,6 +606,7 @@ export function transformTestDetail(
       testResponse.available_until
     ),
     hasSubmissions: testResponse.total_submissions > 0,
+    hasGradedSubmissions: (testResponse.graded_count ?? 0) > 0,
   };
 }
 

@@ -79,6 +79,9 @@ class TestSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, required=False)
     total_questions = serializers.IntegerField(read_only=True)
     total_submissions = serializers.IntegerField(read_only=True)
+    submitted_count = serializers.SerializerMethodField(read_only=True)
+    graded_count = serializers.SerializerMethodField(read_only=True)
+    in_progress_count = serializers.SerializerMethodField(read_only=True)
     is_available = serializers.BooleanField(read_only=True)
     course_name = serializers.CharField(source="course.name", read_only=True)
     cohort_name = serializers.CharField(source="cohort.name", read_only=True)
@@ -94,6 +97,15 @@ class TestSerializer(serializers.ModelSerializer):
     available_until_timezone = serializers.CharField(
         write_only=True, required=False, default="UTC"
     )
+
+    def get_submitted_count(self, obj):
+        return obj.submissions.filter(status="submitted").count()
+
+    def get_graded_count(self, obj):
+        return obj.submissions.filter(status="graded").count()
+
+    def get_in_progress_count(self, obj):
+        return obj.submissions.filter(status="in_progress").count()
 
     class Meta:
         model = Test
@@ -118,6 +130,9 @@ class TestSerializer(serializers.ModelSerializer):
             "questions",
             "total_questions",
             "total_submissions",
+            "submitted_count",
+            "graded_count",
+            "in_progress_count",
             "is_available",
             "course_name",
             "cohort_name",

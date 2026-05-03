@@ -8,6 +8,7 @@ import {
   FrontendAnswer,
   questionTypeInfo,
   Submission,
+  SubmissionDetail,
   ValidationWarning,
 } from "@/types/tests";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,9 @@ import {
   Timer,
   Flag,
   AlertTriangle,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { toastError, toastSuccess } from "@/lib/utils";
 import QuestionComponent from "@/components/tests/answers";
@@ -45,6 +49,8 @@ export default function TakeTestPage() {
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(
     new Set()
   );
+  const [submissionDetail, setSubmissionDetail] = useState<SubmissionDetail | null>(null);
+  const [feedbackExpanded, setFeedbackExpanded] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // Validation-warning modal state
@@ -110,10 +116,11 @@ export default function TakeTestPage() {
             );
             setAnswers(existingAnswers);
 
-            const submissionDetail = await getSubmissionDetail(
+            const detail = await getSubmissionDetail(
               currentSubmission.id
             );
-            const flaggedQuestionIds = submissionDetail.answers
+            setSubmissionDetail(detail);
+            const flaggedQuestionIds = detail.answers
               .filter(answer => answer.is_flagged)
               .map(answer => answer.question);
             setFlaggedQuestions(new Set(flaggedQuestionIds));
@@ -344,9 +351,14 @@ export default function TakeTestPage() {
     );
   }
 
-  const currentQuestion = test.questions[currentQuestionIndex];
-  const currentAnswer = answers[currentQuestion.id];
-  const progress = ((currentQuestionIndex + 1) / test.questions.length) * 100;
+  // A.9.2 — clamp index so we never go out of bounds if question count changes
+  const safeIndex = Math.min(currentQuestionIndex, test.questions.length - 1);
+  if (safeIndex !== currentQuestionIndex) {
+    setCurrentQuestionIndex(safeIndex);
+  }
+  const currentQuestion = test.questions[safeIndex];
+  const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
+  const progress = ((safeIndex + 1) / test.questions.length) * 100;
   const answeredQuestions = Object.keys(answers).length;
 
   return (
@@ -502,6 +514,52 @@ export default function TakeTestPage() {
 
           {/* Question Content */}
           <div className="order-1 space-y-4 md:order-2 md:col-span-3 md:space-y-6">
+            {/* A.9.3 — Previous Grader Feedback banner (shown when reopened from returned) */}
+            {submissionDetail?.grading_history && submissionDetail.grading_history.length > 0 && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left"
+                  onClick={() => setFeedbackExpanded(prev => !prev)}
+                >
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">
+                      Previous Grader Feedback
+                    </span>
+                  </div>
+                  {feedbackExpanded
+                    ? <ChevronUp className="h-4 w-4 text-blue-600" />
+                    : <ChevronDown className="h-4 w-4 text-blue-600" />
+                  }
+                </button>
+                {feedbackExpanded && (
+                  <div className="border-t border-blue-200 px-4 pb-4 pt-3 space-y-3">
+                    {/* General feedback from last grading round */}
+                    {submissionDetail.grading_history[submissionDetail.grading_history.length - 1]?.feedback && (
+                      <div>
+                        <p className="text-xs font-medium text-blue-700 mb-1">General feedback:</p>
+                        <p className="text-sm text-blue-800 whitespace-pre-wrap">
+                          {submissionDetail.grading_history[submissionDetail.grading_history.length - 1].feedback}
+                        </p>
+                      </div>
+                    )}
+                    {/* Per-answer feedback for current question */}
+                    {currentQuestion && (() => {
+                      const prevAnswer = submissionDetail.answers.find(
+                        a => a.question === currentQuestion.id
+                      );
+                      return prevAnswer?.feedback ? (
+                        <div>
+                          <p className="text-xs font-medium text-blue-700 mb-1">Feedback on this question:</p>
+                          <p className="text-sm text-blue-800 whitespace-pre-wrap">{prevAnswer.feedback}</p>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
             <Card>
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-2">

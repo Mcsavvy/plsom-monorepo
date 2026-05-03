@@ -481,8 +481,16 @@ export default function TestDetailPage() {
                 </div>
                 <p className="text-sm text-orange-700">
                   Your grader has returned this submission for revision. Review
-                  the feedback in your submission and resubmit when ready.
+                  the feedback below and resubmit when ready.
                 </p>
+                {test.my_submission.feedback && (
+                  <div className="mt-2 rounded border-l-4 border-orange-400 bg-white px-3 py-2">
+                    <p className="text-xs font-medium text-orange-700 mb-1">Grader feedback:</p>
+                    <p className="text-sm text-orange-800 whitespace-pre-wrap">
+                      {test.my_submission.feedback}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

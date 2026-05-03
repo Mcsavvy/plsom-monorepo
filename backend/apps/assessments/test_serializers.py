@@ -603,6 +603,29 @@ class BreakingChangeSerializerTestCase(APITestCase):
         sub.refresh_from_db()
         self.assertEqual(sub.status, "returned")
 
+    def test_notification_triggered_on_breaking_return(self):
+        """send_submission_returned_notification is called for each returned submission."""
+        sub1 = self._make_submitted_submission()
+        sub2 = Submission.objects.create(
+            test=self.test,
+            student=self.student,
+            status="graded",
+            attempt_number=2,
+            submitted_at=self.now,
+        )
+        with patch(
+            "apps.assessments.serializers.send_submission_returned_notification"
+        ) as mock_notify:
+            self._serialize_update(
+                [{"id": str(self.question.id), "question_type": "essay", "title": "Q1", "max_points": 10}],
+                force=True,
+            )
+        sub1.refresh_from_db()
+        sub2.refresh_from_db()
+        self.assertEqual(sub1.status, "returned")
+        self.assertEqual(sub2.status, "returned")
+        self.assertEqual(mock_notify.call_count, 2)
+
     def test_score_null_on_returned_serializer(self):
         """score property returns None for 'returned' status."""
         sub = Submission.objects.create(

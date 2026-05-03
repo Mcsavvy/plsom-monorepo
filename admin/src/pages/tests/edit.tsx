@@ -478,17 +478,35 @@ export const TestsEdit: React.FC = () => {
         <p className='text-muted-foreground'>Update {test.title}</p>
       </div>
 
-      {test.hasSubmissions && (
+      {test.hasGradedSubmissions ? (
+        <Alert variant='destructive'>
+          <AlertTriangle className='h-4 w-4' />
+          <AlertDescription>
+            <strong>Warning — graded submissions exist.</strong>{' '}
+            This test has{' '}
+            {test.gradedCount > 0 && <><strong>{test.gradedCount} graded</strong>{(test.submittedCount > 0 || test.inProgressCount > 0) ? ', ' : ''}</>}
+            {test.submittedCount > 0 && <><strong>{test.submittedCount} submitted</strong>{test.inProgressCount > 0 ? ', ' : ''}</>}
+            {test.inProgressCount > 0 && <><strong>{test.inProgressCount} in-progress</strong></>}
+            {' '}submission{test.totalSubmissions !== 1 ? 's' : ''}.
+            Structural changes will trigger a breaking-change review —
+            graded/submitted submissions will be returned to students and
+            grades will be cleared.
+          </AlertDescription>
+        </Alert>
+      ) : test.hasSubmissions ? (
         <Alert>
           <AlertTriangle className='h-4 w-4' />
           <AlertDescription>
-            <strong>Important:</strong> This test has existing submissions.
-            Structural changes to questions (adding/removing/reordering) will
-            trigger a breaking-change review — active submissions will be
-            returned to students for revision.
+            <strong>Note — active submissions exist.</strong>{' '}
+            This test has{' '}
+            {test.submittedCount > 0 && <><strong>{test.submittedCount} submitted</strong>{test.inProgressCount > 0 ? ', ' : ''}</>}
+            {test.inProgressCount > 0 && <><strong>{test.inProgressCount} in-progress</strong></>}
+            {' '}submission{test.totalSubmissions !== 1 ? 's' : ''}.
+            Structural changes to questions will trigger a breaking-change review —
+            active submissions will be returned to students for revision.
           </AlertDescription>
         </Alert>
-      )}
+      ) : null}
 
       <Form {...form}>
         <div className='space-y-6 relative h-full'>

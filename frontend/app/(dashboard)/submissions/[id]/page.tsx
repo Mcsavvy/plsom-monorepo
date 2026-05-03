@@ -237,13 +237,19 @@ export default function SubmissionDetailPage() {
               </div>
               <p className="text-sm text-orange-700">
                 Your grader has returned this submission. Please review the
-                feedback below and resubmit from the test page when ready.
+                feedback below and resubmit when ready.
               </p>
               {submission.returned_reason && (
                 <p className="mt-2 text-sm font-medium text-orange-800">
                   Reason: {submission.returned_reason}
                 </p>
               )}
+              <button
+                onClick={() => router.push(`/tests/${submission.test}`)}
+                className="mt-3 inline-flex items-center gap-1 rounded bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700"
+              >
+                Click here to resubmit
+              </button>
             </div>
           )}
         </CardContent>

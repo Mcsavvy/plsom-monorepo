@@ -79,6 +79,9 @@ export interface TestDetailResponse {
   questions: QuestionResponse[];
   total_questions: number;
   total_submissions: number;
+  submitted_count: number;
+  graded_count: number;
+  in_progress_count: number;
   is_available: boolean;
 }
 
@@ -164,10 +167,14 @@ export interface TestDetail {
   questions: Question[];
   totalQuestions: number;
   totalSubmissions: number;
+  submittedCount: number;
+  gradedCount: number;
+  inProgressCount: number;
   isAvailable: boolean;
   formattedTimeLimit: string;
   formattedAvailability: string;
   hasSubmissions: boolean;
+  hasGradedSubmissions: boolean;
 }
 
 export interface TestStatistics {

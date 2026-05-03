@@ -596,6 +596,18 @@ class ResubmissionFlowTestCase(APITestCase):
         # max_attempts=3, returned doesn't count → 3 remaining
         self.assertEqual(response.data["attempts_remaining"], 3)
 
+    def test_cannot_start_while_in_progress(self):
+        """400 if a student tries to create a new submission while one is in_progress."""
+        Submission.objects.create(
+            test=self.test,
+            student=self.student,
+            status="in_progress",
+            attempt_number=1,
+        )
+        self.client.force_authenticate(user=self.student)
+        response = self.client.post("/api/submissions/", {"test": self.test.id})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_empty_submission_rejected(self):
         """400 when no answers and required questions exist."""
         sub = Submission.objects.create(
