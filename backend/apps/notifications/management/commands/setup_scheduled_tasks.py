@@ -37,6 +37,30 @@ class Command(BaseCommand):
                 )
             )
 
+        # Auto-submit expired tests every 5 minutes
+        schedule, created = Schedule.objects.update_or_create(
+            name="auto_submit_expired_tests",
+            defaults={
+                "func": "apps.assessments.tasks.auto_submit_expired_tests",
+                "schedule_type": Schedule.MINUTES,
+                "minutes": 5,
+                "repeats": -1,  # Repeat indefinitely
+            },
+        )
+
+        if created:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Created scheduled task: auto_submit_expired_tests (every 5 minutes)"
+                )
+            )
+        else:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Updated scheduled task: auto_submit_expired_tests (every 5 minutes)"
+                )
+            )
+
         self.stdout.write(
             self.style.SUCCESS(
                 "Successfully set up scheduled notification tasks"

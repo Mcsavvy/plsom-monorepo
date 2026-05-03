@@ -446,6 +446,53 @@ def send_submission_notification(submission_id: int, notification_type: str):
         )
 
 
+def send_submission_auto_submitted_notification(submission_id: int):
+    """
+    Send notification to student when their submission was auto-submitted due to time limit expiry.
+
+    Args:
+        submission_id: ID of the auto-submitted submission
+    """
+    try:
+        submission = Submission.objects.select_related(
+            "test", "test__course", "student"
+        ).get(id=submission_id)
+
+        title = f"Test Auto-Submitted: {submission.test.title}"
+        message = (
+            f"Your test '{submission.test.title}' was automatically submitted "
+            f"because the time limit expired."
+        )
+
+        data = {
+            "submission_id": submission_id,
+            "test_id": submission.test.id,
+            "test_title": submission.test.title,
+            "course_name": submission.test.course.name,
+        }
+
+        # Create in-app notification for the student
+        create_notification(
+            user_id=submission.student.id,
+            notification_type="submission_auto_submitted",
+            title=title,
+            message=message,
+            data=data,
+            send_push=True,
+        )
+
+        logger.info(
+            f"Auto-submitted notification sent to student {submission.student.id} for submission {submission_id}"
+        )
+
+    except Submission.DoesNotExist:
+        logger.error(f"Submission {submission_id} not found for auto-submit notification")
+    except Exception as e:
+        logger.error(
+            f"Error sending auto-submit notification for submission {submission_id}: {str(e)}"
+        )
+
+
 def check_upcoming_classes():
     """
     Check for classes starting in the next 15-30 minutes and send notifications.

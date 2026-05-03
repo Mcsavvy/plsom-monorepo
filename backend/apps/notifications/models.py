@@ -19,6 +19,7 @@ class Notification(models.Model):
         ("submission_created", "Submission Created"),
         ("submission_graded", "Submission Graded"),
         ("submission_returned", "Submission Returned"),
+        ("submission_auto_submitted", "Submission Auto-Submitted"),
     ]
 
     user = models.ForeignKey(

@@ -192,6 +192,47 @@ def send_submission_returned_notification(submission_id):
         )
 
 
+def auto_submit_expired_tests():
+    """
+    Find all in-progress submissions whose time limit has expired and auto-submit them.
+    Should be run every 5 minutes via Django Q scheduled task.
+    """
+    now = timezone.now()
+
+    # Find submissions where: in_progress AND test has time_limit
+    expired_candidates = Submission.objects.filter(
+        status="in_progress",
+        test__time_limit_minutes__isnull=False,
+    ).select_related("test", "student")
+
+    auto_submitted_ids = []
+    for submission in expired_candidates:
+        limit_seconds = submission.test.time_limit_minutes * 60
+        elapsed = (now - submission.started_at).total_seconds()
+        if elapsed >= limit_seconds:
+            submission.status = "submitted"
+            submission.submitted_at = now
+            submission.time_spent_minutes = submission.test.time_limit_minutes  # capped
+            submission.save()
+            auto_submitted_ids.append(submission.id)
+            logger.info(
+                f"Auto-submitted submission {submission.id} for student {submission.student.id} "
+                f"(elapsed {elapsed:.0f}s >= limit {limit_seconds}s)"
+            )
+
+    # Send notifications for auto-submitted submissions
+    if auto_submitted_ids:
+        from apps.notifications.tasks import send_submission_auto_submitted_notification
+        for submission_id in auto_submitted_ids:
+            try:
+                send_submission_auto_submitted_notification(submission_id)
+            except Exception as e:
+                logger.error(f"Failed to send auto-submit notification for {submission_id}: {e}")
+
+    logger.info(f"Auto-submitted {len(auto_submitted_ids)} expired submissions")
+    return f"Auto-submitted {len(auto_submitted_ids)} expired submissions"
+
+
 def schedule_deadline_reminder(test_id):
     """
     Schedule a deadline reminder to be sent the day of the test deadline.
