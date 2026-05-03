@@ -233,7 +233,9 @@ class Question(models.Model):
 
     # Grading settings
     max_points = models.FloatField(
-        default=1.0, help_text="Maximum points possible for this question"
+        default=1.0,
+        validators=[MinValueValidator(0.01)],
+        help_text="Maximum points possible for this question"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -402,6 +404,9 @@ class Submission(models.Model):
         """Calculate total score from all graded answers"""
         if self.status not in ["graded"]:
             return None
+        # B.5.2 — Guard against zero total_points to avoid division issues upstream
+        if self.test.total_points == 0:
+            return 0.0
         total_score = sum(
             answer.points_earned or 0
             for answer in self.answers.filter(points_earned__isnull=False)

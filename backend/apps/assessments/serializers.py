@@ -857,6 +857,16 @@ class AnswerSerializer(serializers.ModelSerializer):
             return QuestionOptionSerializer(options, many=True).data
         return []
 
+    def to_representation(self, instance):
+        """B.5.3 — Clamp points_earned to max_points to prevent display issues."""
+        data = super().to_representation(instance)
+        if (
+            data.get("points_earned") is not None
+            and data.get("max_points") is not None
+        ):
+            data["points_earned"] = min(data["points_earned"], data["max_points"])
+        return data
+
 
 class SubmissionSerializer(serializers.ModelSerializer):
     """Serializer for submissions with detailed answer information."""

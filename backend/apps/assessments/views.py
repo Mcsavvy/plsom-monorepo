@@ -526,15 +526,23 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             # Students can only see their own submissions
             queryset = queryset.filter(student=self.request.user)
             return queryset
-        # staffs cannot see in-progress submissions
-        queryset = queryset.exclude(status="in_progress")
-        if self.request.user.role == "lecturer":
-            # Lecturers can see submissions for tests they created
-            # and tests created for their courses
+        # B.8.1 — admins can opt-in to see in-progress submissions
+        if self.request.user.role == "admin":
+            include_in_progress = self.request.query_params.get("include_in_progress")
+            if not include_in_progress:
+                queryset = queryset.exclude(status="in_progress")
+        elif self.request.user.role == "lecturer":
+            # Lecturers never see in-progress submissions
+            queryset = queryset.exclude(status="in_progress")
+            # B.4.1 — OR logic: lecturer sees submissions for tests they created
+            # OR for courses they are assigned to
             queryset = queryset.filter(
-                test__created_by=self.request.user,
-                test__course__lecturer=self.request.user,
+                models.Q(test__created_by=self.request.user)
+                | models.Q(test__course__lecturer=self.request.user)
             )
+        else:
+            # Other staff roles: exclude in-progress
+            queryset = queryset.exclude(status="in_progress")
 
         return queryset
 
