@@ -13,6 +13,7 @@ import {
   Calendar,
   Loader2,
   AlertTriangle,
+  ShieldAlert,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -126,6 +135,11 @@ export const TestsEdit: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('basic');
+  // Breaking-change confirmation modal
+  const [showBreakingModal, setShowBreakingModal] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState<TestFormData | null>(
+    null
+  );
   const { list } = useNavigation();
   const { mutate: updateTest } = useUpdate();
 
@@ -228,58 +242,83 @@ export const TestsEdit: React.FC = () => {
     }
   }, [test, form]);
 
+  const buildPayload = (data: FormData, force?: boolean): TestFormData => ({
+    ...data,
+    instructions: data.instructions || '',
+    available_from: data.available_from || undefined,
+    available_from_timezone: data.available_from_timezone,
+    available_until: data.available_until || undefined,
+    available_until_timezone: data.available_until_timezone,
+    questions: data.questions.map(q => ({
+      ...q,
+      description: q.description || '',
+      options:
+        q.options?.map(o => ({
+          ...o,
+          id: o.id || undefined,
+        })) || [],
+    })),
+    ...(force ? { force: true } : {}),
+  });
+
+  const doUpdate = (payload: TestFormData) => {
+    if (!id) return;
+    updateTest(
+      {
+        resource: 'tests',
+        id: parseInt(id),
+        values: payload,
+      },
+      {
+        onSuccess: () => {
+          list('tests');
+        },
+        onError: (err: unknown) => {
+          console.error('Update test error:', err);
+          const axiosErr = err as AxiosError<{
+            message?: string;
+            breaking_change?: boolean;
+          }>;
+          const responseData = axiosErr?.response?.data;
+          // Breaking-change response — show confirmation modal
+          if (
+            axiosErr?.response?.status === 400 &&
+            responseData?.breaking_change === true
+          ) {
+            setPendingPayload(payload);
+            setShowBreakingModal(true);
+            setIsSubmitting(false);
+            return;
+          }
+          setError(
+            responseData?.message ||
+              axiosErr?.message ||
+              'Failed to update test'
+          );
+          setIsSubmitting(false);
+        },
+      }
+    );
+  };
+
   const onSubmit = async (data: FormData) => {
     if (!id) return;
-
     setIsSubmitting(true);
     setError(null);
-
     try {
-      const payload: TestFormData = {
-        ...data,
-        instructions: data.instructions || '',
-        available_from: data.available_from || undefined,
-        available_from_timezone: data.available_from_timezone,
-        available_until: data.available_until || undefined,
-        available_until_timezone: data.available_until_timezone,
-        questions: data.questions.map(q => ({
-          ...q,
-          description: q.description || '',
-          options:
-            q.options?.map(o => ({
-              ...o,
-              id: o.id || undefined,
-            })) || [],
-        })),
-      };
-
-      updateTest(
-        {
-          resource: 'tests',
-          id: parseInt(id),
-          values: payload,
-        },
-        {
-          onSuccess: () => {
-            list('tests');
-          },
-          onError: (error: unknown) => {
-            console.error('Update test error:', error);
-            setError(
-              (error as AxiosError<{ message: string }>)?.response?.data
-                ?.message ||
-                (error as AxiosError<{ message: string }>)?.message ||
-                'Failed to update test'
-            );
-          },
-        }
-      );
+      doUpdate(buildPayload(data));
     } catch (err) {
       console.error('Submit error:', err);
       setError('An unexpected error occurred');
-    } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleForceUpdate = () => {
+    if (!pendingPayload) return;
+    setShowBreakingModal(false);
+    setIsSubmitting(true);
+    doUpdate({ ...pendingPayload, force: true } as TestFormData);
   };
 
   const addQuestion = () => {
@@ -380,6 +419,57 @@ export const TestsEdit: React.FC = () => {
 
   return (
     <div className='space-y-6'>
+      {/* Breaking-change confirmation dialog */}
+      <Dialog open={showBreakingModal} onOpenChange={setShowBreakingModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className='flex items-center gap-2 text-amber-700'>
+              <ShieldAlert className='h-5 w-5' />
+              Breaking Change Detected
+            </DialogTitle>
+            <DialogDescription className='space-y-3 pt-2'>
+              <p>
+                The changes you made will{' '}
+                <strong>affect existing student submissions</strong>. This
+                includes one or more of:
+              </p>
+              <ul className='list-disc pl-5 text-sm space-y-1'>
+                <li>Removing or replacing questions students already answered</li>
+                <li>
+                  Increasing max_points on a question (existing scores may
+                  change)
+                </li>
+                <li>
+                  Making an optional question required (submissions without an
+                  answer will be affected)
+                </li>
+              </ul>
+              <p className='font-medium text-amber-800'>
+                All in-progress and submitted/graded submissions will be
+                returned to students for revision before your changes take
+                effect.
+              </p>
+              <p>Do you want to proceed?</p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className='gap-2'>
+            <button
+              className='rounded border px-4 py-2 text-sm'
+              onClick={() => setShowBreakingModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className='rounded bg-amber-600 px-4 py-2 text-sm text-white hover:bg-amber-700 disabled:opacity-50'
+              onClick={handleForceUpdate}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Yes, apply changes'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div>
         <h1 className='text-3xl font-bold tracking-tight flex items-center gap-2'>
           {getResourceIcon('tests')}
@@ -393,8 +483,9 @@ export const TestsEdit: React.FC = () => {
           <AlertTriangle className='h-4 w-4' />
           <AlertDescription>
             <strong>Important:</strong> This test has existing submissions.
-            Changes to questions may affect previous answers. Use caution when
-            modifying question types or options.
+            Structural changes to questions (adding/removing/reordering) will
+            trigger a breaking-change review — active submissions will be
+            returned to students for revision.
           </AlertDescription>
         </Alert>
       )}

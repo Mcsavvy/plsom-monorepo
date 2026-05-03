@@ -255,10 +255,12 @@ export const SubmissionShow: React.FC = () => {
             <h1 className='text-2xl font-bold'>Submission Details</h1>
           </div>
         </div>
-        {['submitted', 'graded'].includes(submissionData.status) && (
+        {['submitted', 'graded', 'returned'].includes(submissionData.status) && (
           <Button onClick={() => edit('submissions', submissionData.id)}>
             <Edit className='h-4 w-4 mr-2' />
-            Grade Submission
+            {submissionData.status === 'returned'
+              ? 'Re-grade Submission'
+              : 'Grade Submission'}
           </Button>
         )}
       </div>

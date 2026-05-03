@@ -384,12 +384,16 @@ export const SubmissionsList: React.FC = () => {
                   <Eye className='mr-2 h-4 w-4' />
                   View Details
                 </DropdownMenuItem>
-                {['submitted', 'graded'].includes(submission.status) && (
+                {['submitted', 'graded', 'returned'].includes(
+                  submission.status
+                ) && (
                   <DropdownMenuItem
                     onClick={() => edit('submissions', submission.id)}
                   >
                     <Edit className='mr-2 h-4 w-4' />
-                    Grade Submission
+                    {submission.status === 'returned'
+                      ? 'Re-grade Submission'
+                      : 'Grade Submission'}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>

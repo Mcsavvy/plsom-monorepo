@@ -9,6 +9,9 @@ import {
   FileText,
   Flag,
   MessageSquare,
+  History,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useParams } from 'react-router';
 
@@ -29,7 +32,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getResourceIcon } from '@/utils/resourceUtils';
-import { Submission, SubmissionAnswer } from '@/types/submission';
+import { Submission, SubmissionAnswer, GradingHistoryEntry } from '@/types/submission';
 import { useToast } from '@/hooks/use-toast';
 import { transformSubmission } from '@/utils/dataTransformers';
 
@@ -38,6 +41,7 @@ export const SubmissionGrade: React.FC = () => {
   const goBack = useBack();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [gradingData, setGradingData] = useState<{
     answers: Record<
       string,
@@ -480,6 +484,73 @@ export const SubmissionGrade: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Grading History */}
+      {submissionData.gradingHistory && submissionData.gradingHistory.length > 0 && (
+        <Card>
+          <CardHeader
+            className='cursor-pointer select-none'
+            onClick={() => setShowHistory(h => !h)}
+          >
+            <CardTitle className='flex items-center justify-between'>
+              <span className='flex items-center gap-2'>
+                <History className='h-5 w-5' />
+                Grading History ({submissionData.gradingHistory.length} round
+                {submissionData.gradingHistory.length !== 1 ? 's' : ''})
+              </span>
+              {showHistory ? (
+                <ChevronUp className='h-4 w-4 text-gray-500' />
+              ) : (
+                <ChevronDown className='h-4 w-4 text-gray-500' />
+              )}
+            </CardTitle>
+          </CardHeader>
+          {showHistory && (
+            <CardContent className='space-y-3'>
+              {(submissionData.gradingHistory as GradingHistoryEntry[]).map(
+                (entry, idx) => (
+                  <div
+                    key={idx}
+                    className='rounded-lg border bg-gray-50 p-4 text-sm space-y-1'
+                  >
+                    <div className='flex items-center justify-between'>
+                      <span className='font-medium text-gray-700'>
+                        Round {idx + 1}
+                      </span>
+                      {entry.gradedAt && (
+                        <span className='text-xs text-gray-500'>
+                          {formatDateTime(entry.gradedAt)}
+                        </span>
+                      )}
+                    </div>
+                    {entry.score !== null && entry.maxScore !== null && (
+                      <div className='text-green-700 font-semibold'>
+                        Score: {entry.score} / {entry.maxScore}
+                      </div>
+                    )}
+                    {entry.gradedByName && (
+                      <div className='text-gray-500'>
+                        Graded by {entry.gradedByName}
+                      </div>
+                    )}
+                    {entry.feedback && (
+                      <div className='border-l-4 border-blue-300 pl-3 text-blue-800 mt-1'>
+                        {entry.feedback}
+                      </div>
+                    )}
+                    {entry.returnedAt && (
+                      <div className='text-orange-700 text-xs mt-1'>
+                        Returned on {formatDateTime(entry.returnedAt)}
+                        {entry.returnedReason ? `: ${entry.returnedReason}` : ''}
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
+            </CardContent>
+          )}
+        </Card>
+      )}
 
       {/* Individual Answers */}
       <div className='space-y-4'>

@@ -28,6 +28,8 @@ import {
   Submission,
   SubmissionListItem,
   SubmissionAnswer,
+  GradingHistoryEntry,
+  GradingHistoryEntryResponse,
 } from '@/types/submission';
 
 export function getInitials(name: string): string {
@@ -665,6 +667,21 @@ export function transformSubmissionAnswer(
   };
 }
 
+function transformGradingHistoryEntry(
+  entry: GradingHistoryEntryResponse
+): GradingHistoryEntry {
+  return {
+    gradedBy: entry.graded_by,
+    gradedByName: entry.graded_by_name,
+    gradedAt: entry.graded_at,
+    score: entry.score,
+    maxScore: entry.max_score,
+    feedback: entry.feedback,
+    returnedAt: entry.returned_at,
+    returnedReason: entry.returned_reason,
+  };
+}
+
 export function transformSubmission(
   submissionResponse: SubmissionListResponse
 ): Submission {
@@ -692,6 +709,11 @@ export function transformSubmission(
     testTitle: submissionResponse.test_title,
     testTotalPoints: submissionResponse.test_total_points,
     gradedByName: submissionResponse.graded_by_name,
+    isResubmittable: submissionResponse.is_resubmittable,
+    gradingHistory: submissionResponse.grading_history?.map(
+      transformGradingHistoryEntry
+    ),
+    returnedReason: submissionResponse.returned_reason,
   };
 }
 

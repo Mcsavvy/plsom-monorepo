@@ -1,3 +1,15 @@
+// Grading history entry from backend
+export interface GradingHistoryEntryResponse {
+  graded_by: number | null;
+  graded_by_name: string | null;
+  graded_at: string | null;
+  score: number | null;
+  max_score: number | null;
+  feedback: string;
+  returned_at: string | null;
+  returned_reason: string;
+}
+
 // Submission API Response Types
 export interface SubmissionListResponse {
   id: number;
@@ -23,6 +35,9 @@ export interface SubmissionListResponse {
   test_title: string;
   test_total_points: number;
   graded_by_name: string;
+  is_resubmittable?: boolean;
+  grading_history?: GradingHistoryEntryResponse[];
+  returned_reason?: string;
 }
 
 export interface QuestionOptionResponse {
@@ -62,6 +77,18 @@ export interface SubmissionGradeRequest {
   }[];
   feedback?: string;
   return?: boolean;
+}
+
+// Grading history entry (transformed)
+export interface GradingHistoryEntry {
+  gradedBy: number | null;
+  gradedByName: string | null;
+  gradedAt: string | null;
+  score: number | null;
+  maxScore: number | null;
+  feedback: string;
+  returnedAt: string | null;
+  returnedReason: string;
 }
 
 // Transformed Types for Frontend
@@ -117,6 +144,9 @@ export interface Submission {
   testTitle: string;
   testTotalPoints: number;
   gradedByName: string;
+  isResubmittable?: boolean;
+  gradingHistory?: GradingHistoryEntry[];
+  returnedReason?: string;
 }
 
 export interface SubmissionListItem {

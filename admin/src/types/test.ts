@@ -198,6 +198,8 @@ export interface TestFormData {
   available_until?: string;
   available_until_timezone?: string;
   questions: QuestionFormData[];
+  /** Pass true to force-apply breaking changes (returns existing submissions) */
+  force?: boolean;
 }
 
 export interface QuestionFormData {
