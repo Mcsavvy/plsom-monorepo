@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   useOne,
   useNavigation,
@@ -23,6 +23,7 @@ import {
   BarChart3,
   Calendar,
   Settings,
+  AlertTriangle,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { getResourceIcon } from '@/utils/resourceUtils';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   TestDetail,
   TestStatistics,
@@ -80,14 +91,33 @@ export const TestsShow: React.FC = () => {
   const test = testData;
   const statistics = statisticsData?.data;
 
+  // B.10.1 — Two-step deletion confirmation when test has submissions
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const deleteInputRef = useRef<HTMLInputElement>(null);
+
   const handleDelete = () => {
     if (!test) return;
+    if (test.totalSubmissions > 0) {
+      // Show double-confirm modal
+      setDeleteConfirmText('');
+      setShowDeleteModal(true);
+      return;
+    }
+    // No submissions — delete directly
+    _executeDelete();
+  };
 
+  const _executeDelete = (withConfirm = false) => {
+    if (!test) return;
     setIsDeleting(true);
+    // Build URL with ?confirm=true if needed
+    const deleteUrl = withConfirm ? `/tests/${test.id}/?confirm=true` : undefined;
     deleteTest(
       {
         resource: 'tests',
         id: test.id,
+        meta: withConfirm ? { query: { confirm: 'true' } } : undefined,
       },
       {
         onSuccess: () => {
@@ -96,9 +126,16 @@ export const TestsShow: React.FC = () => {
         onError: (error: unknown) => {
           console.error('Delete error:', error);
           setIsDeleting(false);
+          setShowDeleteModal(false);
         },
       }
     );
+  };
+
+  const handleConfirmedDelete = () => {
+    if (!test || deleteConfirmText !== test.title) return;
+    setShowDeleteModal(false);
+    _executeDelete(true);
   };
 
   const handleClone = () => {
@@ -209,6 +246,56 @@ export const TestsShow: React.FC = () => {
 
   return (
     <div className='space-y-6'>
+      {/* B.10.1 — Delete confirmation modal (when test has submissions) */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className='flex items-center gap-2 text-destructive'>
+              <AlertTriangle className='h-5 w-5' />
+              Delete Test with Submissions
+            </DialogTitle>
+            <DialogDescription>
+              This test has <strong>{test?.totalSubmissions}</strong> submission
+              {test?.totalSubmissions !== 1 ? 's' : ''}. Deleting it will
+              permanently remove all student answers and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='space-y-3 py-2'>
+            <p className='text-sm text-muted-foreground'>
+              To confirm, type the test title below:
+            </p>
+            <p className='font-mono text-sm font-medium border rounded px-3 py-2 bg-muted'>
+              {test?.title}
+            </p>
+            <div>
+              <Label htmlFor='delete-confirm-input'>Test title</Label>
+              <Input
+                id='delete-confirm-input'
+                ref={deleteInputRef}
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder='Type the test title to confirm'
+                className='mt-1'
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant='destructive'
+              onClick={handleConfirmedDelete}
+              disabled={deleteConfirmText !== test?.title || isDeleting}
+            >
+              {isDeleting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+              Delete permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className='flex items-center justify-between'>
         <h1 className='text-3xl font-bold tracking-tight flex items-center gap-2'>
           {getResourceIcon('tests')}
