@@ -824,3 +824,521 @@ class ResubmissionFlowTestCase(APITestCase):
         sub.save()
         sub.refresh_from_db()
         self.assertIsNone(sub.score)  # returned → None
+
+
+# ---------------------------------------------------------------------------
+# B.12 — Phase B tests
+# ---------------------------------------------------------------------------
+
+class PhaseBConcurrencyTestCase(APITestCase):
+    """B.12.1-3: Optimistic concurrency tests for upsert_answers and grade_submission."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.now = timezone.now()
+
+        self.student = User.objects.create_user(
+            email="b_student@example.com",
+            password="testpassword123",
+            first_name="B",
+            last_name="Student",
+            role="student",
+        )
+        self.lecturer = User.objects.create_user(
+            email="b_lecturer@example.com",
+            password="testpassword123",
+            first_name="B",
+            last_name="Lecturer",
+            role="lecturer",
+        )
+        self.admin = User.objects.create_user(
+            email="b_admin@example.com",
+            password="testpassword123",
+            first_name="B",
+            last_name="Admin",
+            role="admin",
+        )
+        self.course = Course.objects.create(
+            name="B Course",
+            program_type="certificate",
+            module_count=5,
+            description="desc",
+            is_active=True,
+        )
+        self.cohort = Cohort.objects.create(
+            name="B Cohort",
+            program_type="certificate",
+            start_date=self.now.date(),
+            end_date=(self.now + timedelta(days=30)).date(),
+            is_active=True,
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort)
+
+        self.test = Test.objects.create(
+            title="B Test",
+            description="desc",
+            course=self.course,
+            cohort=self.cohort,
+            created_by=self.lecturer,
+            status="published",
+            available_from=self.now - timedelta(hours=1),
+            available_until=self.now + timedelta(hours=2),
+        )
+        self.question = Question.objects.create(
+            test=self.test,
+            question_type="text",
+            title="Q1",
+            order=0,
+            max_points=10,
+        )
+
+    def _make_submission(self):
+        return Submission.objects.create(
+            test=self.test,
+            student=self.student,
+            status="in_progress",
+            attempt_number=1,
+        )
+
+    def test_upsert_with_stale_updated_at_returns_409(self):
+        """Client sends old updated_at, gets 409 with current_submission."""
+        sub = self._make_submission()
+        # Advance updated_at by simulating a save after the client's snapshot
+        stale_ts = (sub.updated_at - timedelta(seconds=10)).isoformat()
+        self.client.force_authenticate(user=self.student)
+        response = self.client.post(
+            f"/api/submissions/{sub.id}/answers/",
+            {
+                "answers": [{"question": str(self.question.id), "text_answer": "new"}],
+                "client_updated_at": stale_ts,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 409)
+        self.assertTrue(response.data.get("conflict"))
+        self.assertIn("current_submission", response.data)
+
+    def test_upsert_without_client_updated_at_succeeds(self):
+        """No client_updated_at = last-write-wins; always succeeds."""
+        sub = self._make_submission()
+        self.client.force_authenticate(user=self.student)
+        response = self.client.post(
+            f"/api/submissions/{sub.id}/answers/",
+            {"answers": [{"question": str(self.question.id), "text_answer": "ok"}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_grade_with_stale_updated_at_returns_409(self):
+        """Grader sends stale updated_at, gets 409."""
+        sub = self._make_submission()
+        sub.status = "submitted"
+        sub.submitted_at = self.now
+        sub.save()
+        Answer.objects.create(submission=sub, question=self.question, text_answer="ans")
+
+        stale_ts = (sub.updated_at - timedelta(seconds=5)).isoformat()
+        self.client.force_authenticate(user=self.lecturer)
+        response = self.client.post(
+            f"/api/submissions/{sub.id}/grade/",
+            {
+                "answers": [{"answer_id": str(sub.answers.first().id), "points_earned": 8}],
+                "client_updated_at": stale_ts,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 409)
+        self.assertTrue(response.data.get("conflict"))
+
+
+class PhaseBFileStorageTestCase(APITestCase):
+    """B.12.4-6: File storage cleanup tests."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.now = timezone.now()
+
+        self.student = User.objects.create_user(
+            email="bs_student@example.com",
+            password="testpassword123",
+            first_name="BS",
+            last_name="Student",
+            role="student",
+        )
+        self.lecturer = User.objects.create_user(
+            email="bs_lecturer@example.com",
+            password="testpassword123",
+            first_name="BS",
+            last_name="Lecturer",
+            role="lecturer",
+        )
+        self.course = Course.objects.create(
+            name="BS Course",
+            program_type="certificate",
+            module_count=5,
+            description="desc",
+            is_active=True,
+        )
+        self.cohort = Cohort.objects.create(
+            name="BS Cohort",
+            program_type="certificate",
+            start_date=self.now.date(),
+            end_date=(self.now + timedelta(days=30)).date(),
+            is_active=True,
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort)
+
+        self.test = Test.objects.create(
+            title="BS Test",
+            description="desc",
+            course=self.course,
+            cohort=self.cohort,
+            created_by=self.lecturer,
+            status="published",
+            available_from=self.now - timedelta(hours=1),
+            available_until=self.now + timedelta(hours=2),
+        )
+        self.file_question = Question.objects.create(
+            test=self.test,
+            question_type="document_upload",
+            title="File Q",
+            order=0,
+            max_points=5,
+        )
+
+    def test_file_deleted_from_storage_on_overwrite(self):
+        """Old file is deleted when a new file is uploaded to the same question."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        sub = Submission.objects.create(
+            test=self.test, student=self.student, status="in_progress", attempt_number=1
+        )
+        answer = Answer.objects.create(submission=sub, question=self.file_question)
+        answer.file_answer.save("old.txt", SimpleUploadedFile("old.txt", b"old content"))
+        answer.save()
+        old_name = answer.file_answer.name
+
+        self.client.force_authenticate(user=self.student)
+        new_file = SimpleUploadedFile("new.txt", b"new content")
+        with patch("django.core.files.storage.FileSystemStorage.delete") as mock_delete:
+            self.client.post(
+                f"/api/submissions/{sub.id}/upload/",
+                {"question": str(self.file_question.id), "file": new_file},
+                format="multipart",
+            )
+            mock_delete.assert_called()
+
+    def test_file_deleted_from_storage_on_submission_delete(self):
+        """All file_answers removed from storage when submission is deleted."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        sub = Submission.objects.create(
+            test=self.test, student=self.student, status="in_progress", attempt_number=1
+        )
+        answer = Answer.objects.create(submission=sub, question=self.file_question)
+        answer.file_answer.save("del.txt", SimpleUploadedFile("del.txt", b"data"))
+        answer.save()
+
+        with patch("django.core.files.storage.FileSystemStorage.delete") as mock_delete:
+            sub.delete()
+            mock_delete.assert_called()
+
+    def test_file_deleted_when_question_type_changes_from_document_upload(self):
+        """Orphaned files cleaned up when question type changes away from document_upload."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        sub = Submission.objects.create(
+            test=self.test, student=self.student, status="in_progress", attempt_number=1
+        )
+        answer = Answer.objects.create(submission=sub, question=self.file_question)
+        answer.file_answer.save("type_change.txt", SimpleUploadedFile("tc.txt", b"data"))
+        answer.save()
+
+        # Update the question type away from document_upload via the serializer
+        from apps.assessments.serializers import TestSerializer
+        data = {
+            "title": self.test.title,
+            "course": self.course.id,
+            "cohort": self.cohort.id,
+            "questions": [
+                {
+                    "id": str(self.file_question.id),
+                    "question_type": "text",  # changed
+                    "title": "File Q",
+                    "order": 0,
+                    "max_points": 5,
+                    "is_required": True,
+                }
+            ],
+        }
+        with patch("django.core.files.storage.FileSystemStorage.delete") as mock_delete:
+            serializer = TestSerializer(
+                self.test, data=data, partial=True, context={"force": True}
+            )
+            if serializer.is_valid():
+                serializer.save()
+            mock_delete.assert_called()
+
+
+class PhaseBPermissionTestCase(APITestCase):
+    """B.12.7-8: Lecturer OR permission tests."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.now = timezone.now()
+
+        self.student = User.objects.create_user(
+            email="bp_student@example.com",
+            password="testpassword123",
+            first_name="BP",
+            last_name="Student",
+            role="student",
+        )
+        self.lecturer_creator = User.objects.create_user(
+            email="bp_lect_creator@example.com",
+            password="testpassword123",
+            first_name="BPCreator",
+            last_name="Lect",
+            role="lecturer",
+        )
+        self.lecturer_course = User.objects.create_user(
+            email="bp_lect_course@example.com",
+            password="testpassword123",
+            first_name="BPCourse",
+            last_name="Lect",
+            role="lecturer",
+        )
+        self.course = Course.objects.create(
+            name="BP Course",
+            program_type="certificate",
+            module_count=5,
+            description="desc",
+            is_active=True,
+            lecturer=self.lecturer_course,
+        )
+        self.cohort = Cohort.objects.create(
+            name="BP Cohort",
+            program_type="certificate",
+            start_date=self.now.date(),
+            end_date=(self.now + timedelta(days=30)).date(),
+            is_active=True,
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort)
+
+        self.test = Test.objects.create(
+            title="BP Test",
+            description="desc",
+            course=self.course,
+            cohort=self.cohort,
+            created_by=self.lecturer_creator,
+            status="published",
+            available_from=self.now - timedelta(hours=1),
+            available_until=self.now + timedelta(hours=2),
+        )
+        question = Question.objects.create(
+            test=self.test, question_type="text", title="Q", order=0, max_points=5
+        )
+        sub = Submission.objects.create(
+            test=self.test, student=self.student, status="submitted",
+            submitted_at=self.now, attempt_number=1
+        )
+        Answer.objects.create(submission=sub, question=question, text_answer="ans")
+
+    def test_lecturer_sees_own_created_submissions(self):
+        """Lecturer who created the test can see its submissions."""
+        self.client.force_authenticate(user=self.lecturer_creator)
+        response = self.client.get("/api/submissions/")
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(response.data["count"], 0)
+
+    def test_lecturer_sees_course_submissions_not_created_by_them(self):
+        """Lecturer assigned to course (but did not create test) sees submissions."""
+        self.client.force_authenticate(user=self.lecturer_course)
+        response = self.client.get("/api/submissions/")
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(response.data["count"], 0)
+
+
+class PhaseBLifecycleTestCase(APITestCase):
+    """B.12.9-11: Test lifecycle guard tests."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.now = timezone.now()
+
+        self.student = User.objects.create_user(
+            email="bl_student@example.com",
+            password="testpassword123",
+            first_name="BL",
+            last_name="Student",
+            role="student",
+        )
+        self.lecturer = User.objects.create_user(
+            email="bl_lecturer@example.com",
+            password="testpassword123",
+            first_name="BL",
+            last_name="Lecturer",
+            role="lecturer",
+        )
+        self.course = Course.objects.create(
+            name="BL Course",
+            program_type="certificate",
+            module_count=5,
+            description="desc",
+            is_active=True,
+        )
+        self.cohort = Cohort.objects.create(
+            name="BL Cohort",
+            program_type="certificate",
+            start_date=self.now.date(),
+            end_date=(self.now + timedelta(days=30)).date(),
+            is_active=True,
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort)
+        self.test = Test.objects.create(
+            title="BL Test",
+            description="desc",
+            course=self.course,
+            cohort=self.cohort,
+            created_by=self.lecturer,
+            status="published",
+            available_from=self.now - timedelta(hours=1),
+            available_until=self.now + timedelta(hours=2),
+        )
+        self.question = Question.objects.create(
+            test=self.test, question_type="text", title="Q", order=0, max_points=5
+        )
+
+    def test_delete_test_with_submissions_requires_confirm(self):
+        """DELETE /tests/{id}/ returns 400 when test has submissions and confirm omitted."""
+        Submission.objects.create(
+            test=self.test, student=self.student, status="submitted",
+            submitted_at=self.now, attempt_number=1
+        )
+        self.client.force_authenticate(user=self.lecturer)
+        response = self.client.delete(f"/api/tests/{self.test.id}/")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("submission_count", response.data)
+
+    def test_delete_test_without_submissions_succeeds_without_confirm(self):
+        """DELETE /tests/{id}/ succeeds without confirm when no submissions."""
+        self.client.force_authenticate(user=self.lecturer)
+        response = self.client.delete(f"/api/tests/{self.test.id}/")
+        self.assertEqual(response.status_code, 204)
+
+    def test_cohort_change_blocked_with_active_submissions(self):
+        """PATCH /tests/{id}/ blocks cohort change when active submissions exist."""
+        Submission.objects.create(
+            test=self.test, student=self.student, status="submitted",
+            submitted_at=self.now, attempt_number=1
+        )
+        new_cohort = Cohort.objects.create(
+            name="New Cohort BL",
+            program_type="certificate",
+            start_date=self.now.date(),
+            end_date=(self.now + timedelta(days=30)).date(),
+            is_active=True,
+        )
+        self.client.force_authenticate(user=self.lecturer)
+        response = self.client.patch(
+            f"/api/tests/{self.test.id}/",
+            {"cohort": new_cohort.id},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+
+class PhaseBNotificationTestCase(APITestCase):
+    """B.12.12: test_updated notification skipped on internal save."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.now = timezone.now()
+
+        self.lecturer = User.objects.create_user(
+            email="bn_lecturer@example.com",
+            password="testpassword123",
+            first_name="BN",
+            last_name="Lecturer",
+            role="lecturer",
+        )
+        self.course = Course.objects.create(
+            name="BN Course",
+            program_type="certificate",
+            module_count=5,
+            description="desc",
+            is_active=True,
+        )
+        self.cohort = Cohort.objects.create(
+            name="BN Cohort",
+            program_type="certificate",
+            start_date=self.now.date(),
+            end_date=(self.now + timedelta(days=30)).date(),
+            is_active=True,
+        )
+        self.test = Test.objects.create(
+            title="BN Test",
+            description="desc",
+            course=self.course,
+            cohort=self.cohort,
+            created_by=self.lecturer,
+            status="published",
+        )
+
+    @patch("apps.assessments.signals.async_task")
+    def test_test_updated_notification_skipped_on_internal_save(self, mock_async):
+        """Saving only total_points (internal) should not fire test_updated."""
+        self.test._questions_updated = True
+        # Simulate internal save with only total_points updated
+        self.test.save(update_fields=["total_points"])
+        # test_updated should not be queued
+        for call_args in mock_async.call_args_list:
+            args = call_args[0]
+            self.assertNotEqual(args[1] if len(args) > 1 else None, "test_updated")
+
+
+class PhaseBValidationTestCase(APITestCase):
+    """B.12.13: max_points minimum value validator."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.now = timezone.now()
+
+        self.lecturer = User.objects.create_user(
+            email="bv_lecturer@example.com",
+            password="testpassword123",
+            first_name="BV",
+            last_name="Lecturer",
+            role="lecturer",
+        )
+        self.course = Course.objects.create(
+            name="BV Course",
+            program_type="certificate",
+            module_count=5,
+            description="desc",
+            is_active=True,
+        )
+        self.cohort = Cohort.objects.create(
+            name="BV Cohort",
+            program_type="certificate",
+            start_date=self.now.date(),
+            end_date=(self.now + timedelta(days=30)).date(),
+            is_active=True,
+        )
+
+    def test_max_points_below_minimum_rejected(self):
+        """Creating a test with max_points=0 should be rejected by the validator."""
+        self.client.force_authenticate(user=self.lecturer)
+        test_data = {
+            "title": "BV Test",
+            "description": "desc",
+            "course": self.course.id,
+            "cohort": self.cohort.id,
+            "questions": [
+                {
+                    "question_type": "text",
+                    "title": "Q",
+                    "order": 0,
+                    "max_points": 0,  # Invalid — below 0.01
+                },
+            ],
+        }
+        response = self.client.post("/api/tests/", test_data, format="json")
+        self.assertIn(response.status_code, [400, 422])
