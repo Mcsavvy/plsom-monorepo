@@ -776,6 +776,22 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # B.1.1 — Optimistic concurrency check
+        client_updated_at_raw = request.data.get("client_updated_at")
+        if client_updated_at_raw:
+            from django.utils.dateparse import parse_datetime
+            client_updated_at = parse_datetime(client_updated_at_raw)
+            if client_updated_at and submission.updated_at > client_updated_at:
+                serializer = self.get_serializer(submission)
+                return Response(
+                    {
+                        "error": "Submission has been updated elsewhere.",
+                        "conflict": True,
+                        "current_submission": serializer.data,
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
         answers_payload = request.data.get("answers", [])
         if not isinstance(answers_payload, list) or len(answers_payload) == 0:
             return Response(
@@ -967,6 +983,10 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         answer.date_answer = None
         answer.selected_options.clear()
 
+        # B.3.1 — Delete old file from storage before overwriting
+        if answer.file_answer:
+            answer.file_answer.delete(save=False)
+
         # Save the file
         answer.file_answer = uploaded_file
         answer.save()
@@ -1121,6 +1141,20 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # B.2.1 — Optimistic concurrency check for grading
+        client_updated_at_raw = request.data.get("client_updated_at")
+        if client_updated_at_raw:
+            from django.utils.dateparse import parse_datetime
+            client_updated_at = parse_datetime(client_updated_at_raw)
+            if client_updated_at and submission.updated_at > client_updated_at:
+                return Response(
+                    {
+                        "error": "Submission was updated since you loaded this page.",
+                        "conflict": True,
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
 
         answers_data = request.data.get("answers", [])
         general_feedback = request.data.get("feedback", "")

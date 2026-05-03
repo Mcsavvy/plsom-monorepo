@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django_q.tasks import async_task
 import logging
 
-from .models import Test, Submission
+from .models import Test, Submission, Answer
 from .tasks import schedule_deadline_reminder, cancel_deadline_reminder
 
 logger = logging.getLogger(__name__)
@@ -154,6 +154,21 @@ def handle_submission_saved(sender, instance, created, **kwargs):
 
     except Exception as e:
         logger.error(f"Error in submission save signal handler: {str(e)}")
+
+
+@receiver(pre_delete, sender=Submission)
+def cleanup_submission_files(sender, instance, **kwargs):
+    """Delete physical files when a submission is deleted."""
+    for answer in instance.answers.all():
+        if answer.file_answer:
+            answer.file_answer.delete(save=False)
+
+
+@receiver(pre_delete, sender=Answer)
+def cleanup_answer_files(sender, instance, **kwargs):
+    """Delete physical file when an answer is deleted."""
+    if instance.file_answer:
+        instance.file_answer.delete(save=False)
 
 
 @receiver(pre_delete, sender=Test)

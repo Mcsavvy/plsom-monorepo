@@ -673,6 +673,20 @@ class TestSerializer(serializers.ModelSerializer):
                 # Update existing question if it exists
                 try:
                     question = test.questions.get(id=question_id)
+
+                    # B.3.4 — Clean up orphaned files if question type changes away from document_upload
+                    new_question_type = question_data.get("question_type")
+                    if (
+                        question.question_type == "document_upload"
+                        and new_question_type is not None
+                        and new_question_type != "document_upload"
+                    ):
+                        for answer in question.answers.all():
+                            if answer.file_answer:
+                                answer.file_answer.delete(save=False)
+                                answer.file_answer = None
+                                answer.save()
+
                     # Only update safe fields
                     safe_fields = [
                         "title",
