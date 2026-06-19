@@ -22,7 +22,6 @@ import {
   FileText,
   Send,
   ArrowLeft,
-  Users,
 } from 'lucide-react';
 import { getResourceIcon } from '@/utils/resourceUtils';
 import { Badge } from '@/components/ui/badge';
@@ -75,8 +74,23 @@ export const ApplicationsShow: React.FC = () => {
   });
   const cohorts = cohortsData?.data || [];
 
+  // Program type selector state, default from application
+  const [selectedProgramType, setSelectedProgramType] = useState<
+    'CERTIFICATE' | 'DIPLOMA'
+  >('CERTIFICATE');
+
+  // Sync default when application loads
+  useEffect(() => {
+    if (application?.program_type) {
+      setSelectedProgramType(
+        application.program_type as 'CERTIFICATE' | 'DIPLOMA'
+      );
+      setSelectedCohort('');
+    }
+  }, [application?.program_type]);
+
   const filteredCohorts = cohorts.filter(
-    c => c.program_type === (application?.program_type || '')
+    c => c.program_type.toLowerCase() === (selectedProgramType || '').toLowerCase()
   );
 
   const { mutate: sendInvite } = useCustomMutation();
@@ -182,6 +196,24 @@ export const ApplicationsShow: React.FC = () => {
             </DialogHeader>
             <div className='space-y-4 py-4'>
               <div className='space-y-2'>
+                <Label>Program Type</Label>
+                <Select
+                  value={selectedProgramType}
+                  onValueChange={(v: 'CERTIFICATE' | 'DIPLOMA') => {
+                    setSelectedProgramType(v);
+                    setSelectedCohort('');
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder='Select program type' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='CERTIFICATE'>Certificate</SelectItem>
+                    <SelectItem value='DIPLOMA'>Diploma</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className='space-y-2'>
                 <Label>Cohort</Label>
                 <Select value={selectedCohort} onValueChange={setSelectedCohort}>
                   <SelectTrigger>
@@ -190,7 +222,7 @@ export const ApplicationsShow: React.FC = () => {
                   <SelectContent>
                     {filteredCohorts.length === 0 ? (
                       <SelectItem value='_' disabled>
-                        No active cohorts for {application.program_type}
+                        No active cohorts for {selectedProgramType}
                       </SelectItem>
                     ) : (
                       filteredCohorts.map(c => (
