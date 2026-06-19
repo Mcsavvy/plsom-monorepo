@@ -90,7 +90,7 @@ export default function EnrollmentForm() {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('https://live.plsom.com/api/submit-application/', {
+      const response = await fetch('https://api.plsom.com/api/submit-application/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
