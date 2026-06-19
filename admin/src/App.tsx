@@ -54,6 +54,7 @@ import {
 import { Onboard } from './pages/onboard';
 import PageNotFound from './pages/404';
 import { AuditLogsList, AuditLogsShow } from './pages/audit-logs';
+import { ApplicationsList, ApplicationsShow } from './pages/applications';
 import { Toaster } from './components/ui/toaster';
 import { API_URL, RESOURCES } from './constants';
 import { auditLogProvider } from './providers/auditLogProvider';
@@ -132,6 +133,8 @@ const EnhancedLogin = withErrorBoundary(Login);
 const EnhancedForgotPassword = withErrorBoundary(ForgotPassword);
 const EnhancedResetPassword = withErrorBoundary(ResetPassword);
 const EnhancedProfile = withErrorBoundary(Profile);
+const EnhancedApplicationsList = withErrorBoundary(ApplicationsList);
+const EnhancedApplicationsShow = withErrorBoundary(ApplicationsShow);
 
 function App() {
   return (
@@ -281,6 +284,14 @@ function App() {
                   <Route
                     path='audit-logs/:id'
                     element={<EnhancedAuditLogsShow />}
+                  />
+                  <Route
+                    path='applications'
+                    element={<EnhancedApplicationsList />}
+                  />
+                  <Route
+                    path='applications/:id'
+                    element={<EnhancedApplicationsShow />}
                   />
                 </Route>
 

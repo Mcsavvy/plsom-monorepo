@@ -144,6 +144,15 @@ export const RESOURCES: ResourceProps[] = [
       icon: React.createElement(History),
     },
   },
+  {
+    name: 'applications',
+    list: '/applications',
+    show: '/applications/:id',
+    meta: {
+      canDelete: true,
+      icon: React.createElement(FileText),
+    },
+  },
 ];
 
 export const transformers: Record<string, (data: any) => any> = {
