@@ -79,6 +79,12 @@ for url in COOLIFY_URLS:
         CSRF_TRUSTED_ORIGINS.append(url)
         CORS_ALLOWED_ORIGINS.append(url)
 
+# Add landing page domain for API access
+CORS_ALLOWED_ORIGINS.append("https://plsom.com")
+CSRF_TRUSTED_ORIGINS.append("https://plsom.com")
+ALLOWED_HOSTS.append("plsom.com")
+
+
 print(CORS_ALLOWED_ORIGINS)
 
 INSTALLED_APPS += ["django_backblaze_b2"]
