@@ -569,17 +569,35 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         if not test.is_available:
             raise ValidationError("This test is not currently available")
 
-        # Check if user has remaining attempts (returned submissions don't count)
-        existing_attempts = Submission.objects.filter(
+        student_submissions = Submission.objects.filter(
             test=test, student=self.request.user
-        ).exclude(status="returned").count()
+        )
+
+        # One open attempt at a time: the student app resumes it instead.
+        if student_submissions.filter(status="in_progress").exists():
+            raise ValidationError(
+                "You already have an attempt in progress for this test"
+            )
+
+        # Check if user has remaining attempts (returned submissions don't count)
+        existing_attempts = student_submissions.exclude(
+            status="returned"
+        ).count()
 
         if existing_attempts >= test.max_attempts:
             raise ValidationError("Maximum attempts exceeded for this test")
 
+        # Number from the highest attempt so far, not the count: returned
+        # attempts are excluded from the count but still hold their number,
+        # so count + 1 can collide with the unique (test, student, attempt).
+        last_attempt = (
+            student_submissions.aggregate(n=models.Max("attempt_number"))["n"]
+            or 0
+        )
+
         serializer.save(
             student=self.request.user,
-            attempt_number=existing_attempts + 1,
+            attempt_number=last_attempt + 1,
             ip_address=self.request.META.get("REMOTE_ADDR"),
             user_agent=self.request.META.get("HTTP_USER_AGENT", ""),
         )
