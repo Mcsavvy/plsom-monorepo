@@ -99,6 +99,23 @@ export const StudentsShow: React.FC = () => {
       )
   );
 
+  // A student can be in only one active cohort per program (enforced by the
+  // API). Map program -> the active cohort they're already in, so the enroll
+  // dialog can explain why those options are unavailable.
+  const activeCohortByProgram = new Map<string, string>(
+    (student?.enrollments ?? [])
+      .filter(enrollment => enrollment.cohort.isActive)
+      .map(enrollment => [
+        enrollment.cohort.programType,
+        enrollment.cohort.name,
+      ])
+  );
+  const blockedBy = (cohort: Cohort) =>
+    cohort.is_active
+      ? activeCohortByProgram.get(cohort.program_type)
+      : undefined;
+  const hasBlockedCohorts = availableCohorts.some(cohort => blockedBy(cohort));
+
   const handleEnroll = useCallback(async () => {
     if (!selectedCohortId || !student) return;
 
@@ -268,16 +285,27 @@ export const StudentsShow: React.FC = () => {
                       <SelectValue placeholder='Select a cohort' />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableCohorts.map(cohort => (
-                        <SelectItem
-                          key={cohort.id}
-                          value={cohort.id.toString()}
-                        >
-                          {cohort.name} ({cohort.program_type})
-                        </SelectItem>
-                      ))}
+                      {availableCohorts.map(cohort => {
+                        const existing = blockedBy(cohort);
+                        return (
+                          <SelectItem
+                            key={cohort.id}
+                            value={cohort.id.toString()}
+                            disabled={Boolean(existing)}
+                          >
+                            {cohort.name} ({cohort.program_type})
+                            {existing && ` · already in ${existing}`}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
+                  {hasBlockedCohorts && (
+                    <p className='text-xs text-muted-foreground'>
+                      A student can be in one active cohort per program. To move
+                      them, unenroll them from their current cohort first.
+                    </p>
+                  )}
                   <div className='flex justify-end gap-2'>
                     <Button
                       variant='outline'
