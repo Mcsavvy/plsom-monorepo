@@ -50,6 +50,7 @@ import { InviteStudentForm } from '../../components/InviteForm';
 import { Student } from '@/types/student';
 import { getResourceIcon } from '@/utils/resourceUtils';
 import { useStudentEnrollment } from '@/hooks/useStudentEnrollment';
+import { AcademicPerformance } from './components/AcademicPerformance';
 
 interface Cohort {
   id: number;
@@ -208,15 +209,15 @@ export const StudentsShow: React.FC = () => {
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
-        <div>
+      <div className='flex flex-wrap items-center justify-between gap-4'>
+        <div className='min-w-0'>
           <h1 className='text-3xl font-bold tracking-tight flex items-center gap-2'>
             {getResourceIcon('students')}
             {student.displayName}
           </h1>
           <p className='text-muted-foreground'>{student.email}</p>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className='flex flex-wrap items-center gap-2'>
           <Link to={`/students/${student.id}/edit`}>
             <Button variant='outline' className='gap-2'>
               <Edit className='h-4 w-4' />
@@ -404,10 +405,10 @@ export const StudentsShow: React.FC = () => {
                 {student.enrollments.map(enrollment => (
                   <div
                     key={enrollment.id}
-                    className='flex items-center justify-between p-4 border rounded-lg'
+                    className='flex flex-wrap items-center justify-between gap-3 p-4 border rounded-lg'
                   >
                     <div className='space-y-2'>
-                      <div className='flex items-center gap-3'>
+                      <div className='flex flex-wrap items-center gap-3'>
                         <h4
                           className='font-medium cursor-pointer hover:text-primary/80 hover:underline'
                           onClick={() => show('enrollments', enrollment.id)}
@@ -435,7 +436,7 @@ export const StudentsShow: React.FC = () => {
                           </Badge>
                         </div>
                       </div>
-                      <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+                      <div className='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
                         <div className='flex items-center gap-1'>
                           <Calendar className='h-3 w-3' />
                           Enrolled:{' '}
@@ -490,6 +491,8 @@ export const StudentsShow: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AcademicPerformance studentId={student.id} />
 
       {student.enrollments.length > 0 && (
         <Card>
