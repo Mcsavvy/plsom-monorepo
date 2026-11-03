@@ -262,7 +262,17 @@ class TestSerializer(serializers.ModelSerializer):
         validated_data.pop("available_until_timezone", None)
 
         # B.6.2 — Block course/cohort changes when test has active (non-draft) submissions
-        if "course" in validated_data or "cohort" in validated_data:
+        # Only an actual change counts: edit forms resend the current
+        # course/cohort with every save, which must not trip the guard.
+        course_changed = (
+            "course" in validated_data
+            and validated_data["course"] != instance.course
+        )
+        cohort_changed = (
+            "cohort" in validated_data
+            and validated_data["cohort"] != instance.cohort
+        )
+        if course_changed or cohort_changed:
             has_active_submissions = instance.submissions.filter(
                 status__in=["submitted", "graded", "returned"]
             ).exists()
