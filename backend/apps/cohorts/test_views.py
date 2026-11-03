@@ -183,7 +183,7 @@ class CohortViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_cohort_overlapping_dates(self):
-        """Test creating cohort with overlapping dates fails."""
+        """Cohorts of one program may now overlap (run concurrently)."""
         self.client.force_authenticate(user=self.admin)
 
         data = {
@@ -196,8 +196,7 @@ class CohortViewSetTestCase(APITestCase):
 
         response = self.client.post("/api/cohorts/", data)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("overlap", str(response.data))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_cohort_duplicate_name_same_program(self):
         """Test creating cohort with duplicate name in same program fails."""
