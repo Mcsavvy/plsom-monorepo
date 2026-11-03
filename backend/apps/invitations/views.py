@@ -25,7 +25,7 @@ from utils.permissions import IsAdmin
     tags=["Invitations"],
 )
 class InvitationViewSet(viewsets.ModelViewSet):
-    queryset = Invitation.objects.all()
+    queryset = Invitation.objects.select_related("cohort")
     serializer_class = InvitationSerializer
     permission_classes = [IsAdmin]
     search_fields = ["email", "role", "program_type", "cohort__name"]

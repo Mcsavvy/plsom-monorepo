@@ -12,6 +12,15 @@ User = get_user_model()
 
 
 class InvitationSerializer(serializers.ModelSerializer):
+    # Several cohorts of a program can be active at once, so an id alone is
+    # not enough for admins to tell them apart.
+    cohort_name = serializers.CharField(
+        source="cohort.name", read_only=True, default=None
+    )
+    cohort_program_type = serializers.CharField(
+        source="cohort.program_type", read_only=True, default=None
+    )
+
     class Meta:
         model = Invitation
         fields = [
@@ -19,6 +28,8 @@ class InvitationSerializer(serializers.ModelSerializer):
             "email",
             "role",
             "cohort",
+            "cohort_name",
+            "cohort_program_type",
             "expires_at",
             "used_at",
             "created_by",
