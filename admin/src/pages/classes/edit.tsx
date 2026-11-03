@@ -161,7 +161,23 @@ export const ClassesEdit: React.FC = () => {
   const classItem = classData;
   const courses = useMemo(() => coursesData?.data || [], [coursesData]);
   const lecturers = useMemo(() => lecturersData?.data || [], [lecturersData]);
-  const cohorts = useMemo(() => cohortsData?.data || [], [cohortsData]);
+  // Only active cohorts are offered, but keep the class's own cohort in the
+  // list if it has since been deactivated, so the field doesn't show blank.
+  const cohorts = useMemo(() => {
+    const active = cohortsData?.data || [];
+    const current = classItem?.cohort;
+    if (!current || active.some(c => c.id === current.id)) return active;
+    const inactive: Cohort = {
+      id: current.id,
+      name: `${current.name} (inactive)`,
+      program_type: current.programType,
+      is_active: false,
+      start_date: current.startDate,
+      end_date: current.endDate,
+      enrolled_students_count: current.enrolledStudentsCount,
+    };
+    return [inactive, ...active];
+  }, [cohortsData, classItem]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -338,8 +354,9 @@ export const ClassesEdit: React.FC = () => {
                         </div>
                       ) : (
                         <Select
+                          // Radix sends '' before options load; parseInt('') is NaN.
                           onValueChange={value =>
-                            field.onChange(parseInt(value))
+                            value && field.onChange(parseInt(value))
                           }
                           value={field.value?.toString()}
                         >
@@ -400,8 +417,9 @@ export const ClassesEdit: React.FC = () => {
                         </div>
                       ) : (
                         <Select
+                          // Radix sends '' before options load; parseInt('') is NaN.
                           onValueChange={value =>
-                            field.onChange(parseInt(value))
+                            value && field.onChange(parseInt(value))
                           }
                           value={field.value?.toString()}
                         >
