@@ -250,17 +250,11 @@ class EnrollmentSerializer(serializers.ModelSerializer):
                     "Cannot enroll in a cohort that has already ended."
                 )
 
-            # Student should not be enrolled in multiple active cohorts of same program type
-            existing_enrollment = Enrollment.objects.filter(
-                student=student,
-                cohort__program_type=cohort.program_type,
-                cohort__is_active=True,
-            ).exclude(cohort=cohort)
-
-            if existing_enrollment.exists():
-                existing_cohort = existing_enrollment.first().cohort
+            # One active cohort per program per student (rule lives on the model).
+            conflict = Enrollment.conflicting_active_enrollment(student, cohort)
+            if conflict:
                 raise serializers.ValidationError(
-                    f"Student is already enrolled in active cohort '{existing_cohort.name}' for {cohort.program_type} program."
+                    Enrollment.conflict_message(conflict.cohort)
                 )
 
         return attrs

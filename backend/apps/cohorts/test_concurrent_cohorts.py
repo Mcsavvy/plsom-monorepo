@@ -13,7 +13,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from apps.cohorts.models import Cohort
+from apps.cohorts.models import Cohort, Enrollment
 
 User = get_user_model()
 
@@ -134,3 +134,97 @@ class ConcurrentCohortsTestCase(APITestCase):
         self.assertEqual(
             {c["name"] for c in response.data}, {"2026 Morning", "2026 Evening"}
         )
+
+
+class OneActiveCohortPerProgramPerStudentTestCase(APITestCase):
+    """
+    Cohorts of a program can run side by side, but a student belongs to at
+    most one active cohort per program, whichever path enrolls them.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.today = timezone.now().date()
+        self.admin = User.objects.create_user(
+            email="admin@example.com", password="pw", role="admin"
+        )
+        self.student = User.objects.create_user(
+            email="ama@example.com",
+            password="pw",
+            first_name="Ama",
+            last_name="Mensah",
+            role="student",
+        )
+        self.client.force_authenticate(self.admin)
+
+        def cohort(name, program="certificate", active=True):
+            return Cohort.objects.create(
+                name=name,
+                program_type=program,
+                is_active=active,
+                start_date=self.today,
+                end_date=self.today + timedelta(days=180),
+            )
+
+        self.morning = cohort("Morning")
+        self.evening = cohort("Evening")
+        self.later = cohort("Later", active=False)
+        self.diploma = cohort("Diploma", program="diploma")
+        Enrollment.objects.create(student=self.student, cohort=self.morning)
+
+    def enroll(self, cohort):
+        return self.client.post(
+            f"/api/students/{self.student.id}/enroll/", {"cohort_id": cohort.id}
+        )
+
+    def test_admin_enroll_into_second_active_cohort_rejected(self):
+        response = self.enroll(self.evening)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Morning", str(response.data))
+        self.assertFalse(
+            Enrollment.objects.filter(
+                student=self.student, cohort=self.evening
+            ).exists()
+        )
+
+    def test_other_program_and_inactive_cohorts_allowed(self):
+        self.assertEqual(self.enroll(self.diploma).status_code, 200)
+        self.assertEqual(self.enroll(self.later).status_code, 200)
+
+    def test_move_between_cohorts_by_unenrolling_first(self):
+        response = self.client.post(
+            f"/api/students/{self.student.id}/unenroll/",
+            {"cohort_id": self.morning.id},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.enroll(self.evening).status_code, 200)
+
+    def test_model_enforces_rule_for_every_path(self):
+        from rest_framework.exceptions import ValidationError
+
+        with self.assertRaises(ValidationError):
+            Enrollment.objects.create(student=self.student, cohort=self.evening)
+
+    def test_activating_cohort_that_would_clash_is_rejected(self):
+        Enrollment.objects.create(student=self.student, cohort=self.later)
+        response = self.client.patch(
+            f"/api/cohorts/{self.later.id}/", {"is_active": True}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Ama Mensah", str(response.data))
+        self.assertIn("Morning", str(response.data))
+        self.later.refresh_from_db()
+        self.assertFalse(self.later.is_active)
+
+    def test_activating_cohort_without_clash_is_allowed(self):
+        response = self.client.patch(
+            f"/api/cohorts/{self.later.id}/", {"is_active": True}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+
+    def test_existing_enrollments_stay_savable(self):
+        """Rows from before the rule (or bulk updates) must not break saves."""
+        clash = Enrollment.objects.create(student=self.student, cohort=self.later)
+        Cohort.objects.filter(pk=self.later.pk).update(is_active=True)
+        clash.refresh_from_db()
+        clash.save()  # no ValidationError

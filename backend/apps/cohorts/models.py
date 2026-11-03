@@ -68,6 +68,33 @@ class Cohort(models.Model):
                 {"end_date": "End date must be after start date."}
             )
 
+        # Activating must not put a student in two active cohorts of one
+        # program (they may have joined this cohort while it was inactive).
+        if self.is_active and self.pk:
+            was_active = (
+                Cohort.objects.filter(pk=self.pk)
+                .values_list("is_active", flat=True)
+                .first()
+            )
+            if not was_active:
+                clashes = list(self.activation_conflicts()[:3])
+                if clashes:
+                    names = ", ".join(
+                        f"{e.student.get_full_name().strip() or e.student.email}"
+                        f" (in '{e.cohort.name}')"
+                        for e in clashes
+                    )
+                    raise ValidationError(
+                        {
+                            "is_active": (
+                                "Cannot activate: these students are already "
+                                f"in another active {self.program_type} "
+                                f"cohort: {names}. Unenroll them from one "
+                                "cohort first."
+                            )
+                        }
+                    )
+
         # Cannot activate ended cohort
         if self.is_active and self.is_ended:
             raise ValidationError(
@@ -80,6 +107,19 @@ class Cohort(models.Model):
         """Override save to ensure business rules"""
         self.clean()
         super().save(*args, **kwargs)
+
+    def activation_conflicts(self):
+        """Enrollments elsewhere that would clash if this cohort went active."""
+        return (
+            Enrollment.objects.filter(
+                student__enrollments__cohort=self,
+                cohort__program_type=self.program_type,
+                cohort__is_active=True,
+            )
+            .exclude(cohort=self)
+            .select_related("student", "cohort")
+            .order_by("student__first_name", "student__last_name")
+        )
 
     def can_be_deleted(self):
         """Check if cohort can be safely deleted"""
@@ -145,9 +185,52 @@ class Enrollment(models.Model):
     def __str__(self):
         return f"{self.student.email} - {self.cohort.name}"
 
+    @classmethod
+    def conflicting_active_enrollment(cls, student, cohort):
+        """
+        The enrollment that stops ``student`` joining active ``cohort``.
+
+        Several cohorts of one program can run at the same time, but a
+        student belongs to at most one *active* cohort per program, so they
+        never get two sets of classes, tests and reminders. Joining an
+        inactive cohort is never blocked (see ``Cohort`` activation, which
+        re-checks this rule).
+        """
+        if not cohort.is_active:
+            return None
+        return (
+            cls.objects.filter(
+                student=student,
+                cohort__program_type=cohort.program_type,
+                cohort__is_active=True,
+            )
+            .exclude(cohort=cohort)
+            .select_related("cohort")
+            .first()
+        )
+
+    @staticmethod
+    def conflict_message(existing_cohort):
+        return (
+            f"Student is already enrolled in active cohort "
+            f"'{existing_cohort.name}' for {existing_cohort.program_type} "
+            f"program. Unenroll them from it first."
+        )
+
     def clean(self):
         """Model-level validation"""
         super().clean()
+        # Every enrollment path (admin enroll button, invitation acceptance,
+        # serializers) saves through here, so the rule lives in one place.
+        # Only new enrollments are checked: existing rows must stay savable.
+        if self._state.adding:
+            conflict = Enrollment.conflicting_active_enrollment(
+                self.student, self.cohort
+            )
+            if conflict:
+                raise ValidationError(
+                    {"cohort_id": Enrollment.conflict_message(conflict.cohort)}
+                )
         # End date by default is the cohort's end date
         if not self.end_date:
             self.end_date = self.cohort.end_date
