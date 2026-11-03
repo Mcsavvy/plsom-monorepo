@@ -51,25 +51,25 @@ class InvitationSerializer(serializers.ModelSerializer):
 
         # Only check for existing invitations during creation, not updates
         if self.instance is None:  # Creating a new instance
-            if Invitation.objects.filter(email=normalized_email).exists():
+            if Invitation.objects.filter(email__iexact=normalized_email).exists():
                 raise serializers.ValidationError(
                     {"email": "User already invited."}
                 )
-            if User.objects.filter(email=normalized_email).exists():
+            if User.objects.filter(email__iexact=normalized_email).exists():
                 raise serializers.ValidationError(
                     {"email": "User already exists."}
                 )
         else:  # Updating existing instance
             # Check if email conflicts with other invitations (excluding current one)
             if (
-                Invitation.objects.filter(email=normalized_email)
+                Invitation.objects.filter(email__iexact=normalized_email)
                 .exclude(pk=self.instance.pk)
                 .exists()
             ):
                 raise serializers.ValidationError(
                     {"email": "User already invited."}
                 )
-            if User.objects.filter(email=normalized_email).exists():
+            if User.objects.filter(email__iexact=normalized_email).exists():
                 raise serializers.ValidationError(
                     {"email": "User already exists."}
                 )
@@ -142,7 +142,7 @@ class OnboardingSerializer(serializers.Serializer):
 
         # Check if user already exists (normalize email for comparison)
         normalized_email = User.objects.normalize_email(invitation.email)
-        if User.objects.filter(email=normalized_email).exists():
+        if User.objects.filter(email__iexact=normalized_email).exists():
             raise serializers.ValidationError(
                 "User with this email already exists."
             )

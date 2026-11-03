@@ -5,6 +5,32 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 class UserManager(BaseUserManager):
     model: "User"
 
+    @classmethod
+    def normalize_email(cls, email):
+        """
+        Lowercase the whole address, not just the domain.
+
+        Django's default only lowercases the domain, which lets
+        ``Jane@x.com`` and ``jane@x.com`` become two separate accounts.
+        Every call site (sign-up, login, password reset, invitations) goes
+        through this method, so they all agree on one canonical form.
+        """
+        email = super().normalize_email(email or "")
+        return email.strip().lower()
+
+    def get_by_natural_key(self, username):
+        """
+        Case-insensitive login lookup.
+
+        Rows created before full lowercasing may still hold mixed-case
+        emails; login input is now lowercased, so match them with iexact.
+        An exact match wins if legacy data holds two case variants.
+        """
+        try:
+            return self.get(**{self.model.USERNAME_FIELD: username})
+        except self.model.DoesNotExist:
+            return self.get(**{f"{self.model.USERNAME_FIELD}__iexact": username})
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("Users must have an email address")
