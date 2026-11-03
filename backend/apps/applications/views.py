@@ -110,6 +110,24 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         except Cohort.DoesNotExist:
             raise ValidationError({"cohort": "Cohort not found."})
 
+        # With several cohorts of a program running at once the picker lists
+        # more options, so guard against choosing one the applicant can't join.
+        # Applications store CERTIFICATE/DIPLOMA, cohorts certificate/diploma.
+        if cohort.program_type.lower() != application.program_type.lower():
+            raise ValidationError(
+                {
+                    "cohort": (
+                        f"Cohort '{cohort.name}' is a {cohort.program_type} "
+                        f"cohort, but this application is for "
+                        f"{application.program_type.lower()}."
+                    )
+                }
+            )
+        if not cohort.is_active:
+            raise ValidationError(
+                {"cohort": f"Cohort '{cohort.name}' is not active."}
+            )
+
         # Guard: already invited
         if Invitation.objects.filter(email__iexact=application.email).exists():
             raise ValidationError(
