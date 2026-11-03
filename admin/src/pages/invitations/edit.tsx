@@ -295,8 +295,11 @@ export const InvitationsEdit: React.FC = () => {
                   <FormItem>
                     <FormLabel>Role</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
+                      // Radix fires onValueChange('') when the form resets a
+                      // mounted Select, which wiped the loaded role. No
+                      // option is empty, so ignore it.
+                      onValueChange={value => value && field.onChange(value)}
+                      value={field.value ?? ''}
                       disabled={invitation.is_used}
                     >
                       <FormControl>
@@ -328,11 +331,12 @@ export const InvitationsEdit: React.FC = () => {
                         <FormLabel>Program Type</FormLabel>
                         <Select
                           onValueChange={value => {
+                            if (!value) return; // see role select above
                             field.onChange(value);
                             // The chosen cohort belongs to one program.
                             form.setValue('cohort', undefined);
                           }}
-                          value={field.value}
+                          value={field.value ?? ''}
                           disabled={invitation.is_used}
                         >
                           <FormControl>
@@ -363,7 +367,7 @@ export const InvitationsEdit: React.FC = () => {
                         <FormLabel>Cohort</FormLabel>
                         <Select
                           onValueChange={value =>
-                            field.onChange(parseInt(value, 10))
+                            value && field.onChange(parseInt(value, 10))
                           }
                           value={field.value ? String(field.value) : ''}
                           disabled={invitation.is_used || !selectedProgram}
