@@ -646,8 +646,10 @@ class BreakingChangeSerializerTestCase(APITestCase):
             attempt_number=2,
             submitted_at=self.now,
         )
+        # The serializer imports the notifier inside the method, so patch it
+        # on its home module, which is where that import resolves.
         with patch(
-            "apps.assessments.serializers.send_submission_returned_notification"
+            "apps.assessments.tasks.send_submission_returned_notification"
         ) as mock_notify:
             self._serialize_update(
                 [{"id": str(self.question.id), "question_type": "essay", "title": "Q1", "max_points": 10}],
