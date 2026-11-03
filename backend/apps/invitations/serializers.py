@@ -80,7 +80,12 @@ class InvitationSerializer(serializers.ModelSerializer):
                     {"cohort": "This field is required for students."}
                 )
             # the cohort must not be ending soon
-            if cohort.end_date < (timezone.now() + timedelta(days=30)).date():
+            # A cohort with no end date is open-ended, never "ending soon".
+            if (
+                cohort.end_date
+                and cohort.end_date
+                < (timezone.now() + timedelta(days=30)).date()
+            ):
                 raise serializers.ValidationError(
                     {
                         "cohort": "The cohort is ending soon. Please select a different cohort."
