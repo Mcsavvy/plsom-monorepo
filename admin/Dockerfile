@@ -2,13 +2,20 @@
 # Multi-stage build for optimized production image
 
 # Stage 1: Dependencies
+# Pin pnpm to the version that wrote pnpm-lock.yaml. An unpinned install
+# pulls the newest major, which fails --frozen-lockfile with
+# ERR_PNPM_IGNORED_BUILDS because it ignores the build-script allowlist in
+# pnpm-workspace.yaml. Bump this together with the lockfile.
+ARG PNPM_VERSION=10.28.0
+
 FROM node:18-alpine AS deps
+ARG PNPM_VERSION
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@${PNPM_VERSION}
 
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -18,10 +25,11 @@ RUN pnpm install --frozen-lockfile
 
 # Stage 2: Build
 FROM node:18-alpine AS builder
+ARG PNPM_VERSION
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@${PNPM_VERSION}
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules

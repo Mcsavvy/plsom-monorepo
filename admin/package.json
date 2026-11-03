@@ -93,5 +93,6 @@
   },
   "refine": {
     "projectId": "kGMTVU-QpOWh6-o4w4v9"
-  }
+  },
+  "packageManager": "pnpm@10.28.0"
 }
