@@ -25,7 +25,7 @@ class Command(BaseCommand):
         normalized_email = User.objects.normalize_email(email)
 
         user = User.objects.filter(
-            email=normalized_email, is_superuser=True
+            email__iexact=normalized_email, is_superuser=True
         ).first()
 
         if user:

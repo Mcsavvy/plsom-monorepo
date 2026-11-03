@@ -296,3 +296,59 @@ class AuthenticationViewsTestCase(APITestCase):
         response = self.client.post("/api/auth/change-password/", change_data)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class EmailCaseInsensitivityTestCase(APITestCase):
+    """
+    Regression: emails used to keep the case of their local part, so
+    ``Jane@x.com`` and ``jane@x.com`` could become two accounts and login
+    depended on typing the exact case used at sign-up.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def _legacy_user(self, email):
+        """Insert a row the way pre-fix code stored it (case preserved)."""
+        user = User(email=email, first_name="L", last_name="U", role="student")
+        user.set_password("testpassword123")
+        user.save()
+        return user
+
+    def test_new_user_login_with_any_case(self):
+        User.objects.create_user(email="Jane.Doe@Example.com", password="pw12345678")
+        for typed in ("jane.doe@example.com", "JANE.DOE@EXAMPLE.COM"):
+            response = self.client.post(
+                "/api/auth/login/", {"email": typed, "password": "pw12345678"}
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK, typed)
+
+    def test_legacy_mixed_case_user_can_still_log_in(self):
+        self._legacy_user("Legacy.User@example.com")
+        for typed in ("Legacy.User@example.com", "legacy.user@example.com"):
+            response = self.client.post(
+                "/api/auth/login/",
+                {"email": typed, "password": "testpassword123"},
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK, typed)
+
+    def test_legacy_duplicate_case_variants_prefer_exact_match(self):
+        exact = self._legacy_user("Dup@example.com")
+        self._legacy_user("dup@example.com")
+        self.assertEqual(User.objects.get_by_natural_key("Dup@example.com"), exact)
+
+    def test_wrong_password_still_rejected(self):
+        User.objects.create_user(email="a@example.com", password="pw12345678")
+        response = self.client.post(
+            "/api/auth/login/", {"email": "A@EXAMPLE.COM", "password": "nope"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @patch("apps.authentication.serializers.async_task")
+    def test_forgot_password_finds_legacy_mixed_case_user(self, mock_async_task):
+        self._legacy_user("Old.Case@example.com")
+        response = self.client.post(
+            "/api/auth/forgot-password/", {"email": "old.case@example.com"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_async_task.assert_called_once()

@@ -80,6 +80,18 @@ class UserModelTestCase(TestCase):
 
         self.assertEqual(user.email, "test@example.com")
 
+    def test_case_variant_email_cannot_create_second_account(self):
+        """Regression: Jane@x.com and jane@x.com must be one account."""
+        User.objects.create_user(email="Jane@Example.com", password="pw")
+        with self.assertRaises(IntegrityError):
+            User.objects.create_user(email="jane@example.com", password="pw")
+
+    def test_normalize_email_strips_whitespace(self):
+        self.assertEqual(
+            User.objects.normalize_email("  Mixed.Case@Example.COM "),
+            "mixed.case@example.com",
+        )
+
     def test_unique_email_constraint(self):
         """Test that email must be unique."""
         User.objects.create_user(**self.user_data)

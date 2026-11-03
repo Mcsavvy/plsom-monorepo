@@ -27,8 +27,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if "email" in attrs:
             attrs["email"] = User.objects.normalize_email(attrs["email"])
 
-        print(attrs)
-
         data = super().validate(attrs)
         user = self.user
         data["role"] = user.role
@@ -72,7 +70,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
         normalized_email = User.objects.normalize_email(value)
 
         try:
-            user = User.objects.get(email=normalized_email)
+            user = User.objects.get_by_natural_key(normalized_email)
             if not user.is_active:
                 raise serializers.ValidationError("User account is not active.")
         except User.DoesNotExist:
@@ -83,7 +81,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
     def save(self):
         email = self.validated_data["email"]
-        user = User.objects.get(email=email)
+        user = User.objects.get_by_natural_key(email)
 
         # Generate password reset token
         token = default_token_generator.make_token(user)

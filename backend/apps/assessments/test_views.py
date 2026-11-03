@@ -608,6 +608,15 @@ class ResubmissionFlowTestCase(APITestCase):
         response = self.client.post("/api/submissions/", {"test": self.test.id})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_new_attempt_after_returned_gets_next_number(self):
+        """Regression: count excluded returned attempts, so the new attempt
+        reused number 1 and hit the unique constraint (500)."""
+        self._make_returned_submission()
+        self.client.force_authenticate(user=self.student)
+        response = self.client.post("/api/submissions/", {"test": self.test.id})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["attempt_number"], 2)
+
     def test_empty_submission_rejected(self):
         """400 when no answers and required questions exist."""
         sub = Submission.objects.create(

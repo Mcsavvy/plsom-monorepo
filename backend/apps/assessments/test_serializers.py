@@ -494,6 +494,39 @@ class BreakingChangeSerializerTestCase(APITestCase):
         serializer.is_valid(raise_exception=True)
         return serializer.save(created_by=self.lecturer)
 
+    def test_resending_unchanged_course_and_cohort_is_allowed(self):
+        """Regression: edit forms resend course/cohort; unchanged must pass."""
+        self._make_submitted_submission()
+        serializer = TestSerializer(
+            self.test,
+            data={"title": "Renamed", "course": self.course.id, "cohort": self.cohort.id},
+            context={"request": None, "force": False},
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        updated = serializer.save()
+        self.assertEqual(updated.title, "Renamed")
+
+    def test_changing_cohort_with_submissions_still_blocked(self):
+        """The guard still stops a real cohort move without force."""
+        self._make_submitted_submission()
+        other = Cohort.objects.create(
+            name="Other Cohort",
+            program_type="certificate",
+            start_date=self.now.date(),
+            end_date=(self.now + timedelta(days=30)).date(),
+        )
+        serializer = TestSerializer(
+            self.test,
+            data={"cohort": other.id},
+            context={"request": None, "force": False},
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        with self.assertRaises(DRFValidationError) as ctx:
+            serializer.save()
+        self.assertIn("Cannot change course or cohort", str(ctx.exception))
+
     def test_breaking_change_rejected_without_force(self):
         """400 with breaking_change: True when force=False and submissions exist."""
         self._make_submitted_submission()
@@ -613,8 +646,10 @@ class BreakingChangeSerializerTestCase(APITestCase):
             attempt_number=2,
             submitted_at=self.now,
         )
+        # The serializer imports the notifier inside the method, so patch it
+        # on its home module, which is where that import resolves.
         with patch(
-            "apps.assessments.serializers.send_submission_returned_notification"
+            "apps.assessments.tasks.send_submission_returned_notification"
         ) as mock_notify:
             self._serialize_update(
                 [{"id": str(self.question.id), "question_type": "essay", "title": "Q1", "max_points": 10}],

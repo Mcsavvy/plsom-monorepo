@@ -18,6 +18,7 @@ from apps.users.serializers import (
 from utils.permissions import IsAdmin, IsLecturerOrAdmin, only_authenticated
 from rest_framework.permissions import BasePermission
 from apps.cohorts.models import Cohort, Enrollment
+from apps.users.academic_summary import build_academic_summary
 
 
 @only_authenticated
@@ -146,6 +147,8 @@ class StudentViewSet(
             permission_classes = [IsAdmin]
         elif self.action == "unenroll":
             permission_classes = [IsAdmin]
+        elif self.action == "academic_summary":
+            permission_classes = [IsLecturerOrAdmin]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -214,6 +217,22 @@ class StudentViewSet(
 
         enrollment.delete()
         return Response(self.get_serializer(student).data)
+
+
+    @extend_schema(
+        summary="Student academic summary",
+        description=(
+            "Grades, assessment status, attendance and per-course roll-ups "
+            "for one student. Admins see everything; lecturers see only "
+            "their own tests and classes."
+        ),
+        request=None,
+        responses={200: dict},
+    )
+    @action(detail=True, methods=["get"], url_path="academic-summary")
+    def academic_summary(self, request, pk=None):
+        student = self.get_object()
+        return Response(build_academic_summary(student, request.user))
 
 
 @extend_schema(tags=["Staff"])
