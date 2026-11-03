@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
 
@@ -150,21 +149,8 @@ class CohortSerializer(serializers.ModelSerializer):
                 }
             )
 
-        # Validate active cohort business rule
-        if is_active:
-            existing_active = Cohort.objects.filter(
-                program_type=program_type, is_active=True
-            )
-            if instance:
-                existing_active = existing_active.exclude(id=instance.id)
-
-            if existing_active.exists():
-                active_cohort = existing_active.first()
-                raise serializers.ValidationError(
-                    {
-                        "is_active": f'Cannot activate this cohort. "{active_cohort.name}" is already active for {program_type} program.'
-                    }
-                )
+        # Several cohorts of the same program may be active at once, so there
+        # is deliberately no "only one active cohort per program" check here.
 
         return attrs
 
@@ -190,25 +176,11 @@ class CohortSerializer(serializers.ModelSerializer):
             pass
 
     def create(self, validated_data):
-        program_type = validated_data.get("program_type")
-        is_active = validated_data.get("is_active", False)
-
-        if is_active:
-            # Ensure only one cohort is active per program type
-            with transaction.atomic():
-                # Deactivate all other cohorts for this program type
-                Cohort.objects.filter(
-                    program_type=program_type, is_active=True
-                ).update(is_active=False)
-
-                # Create the new cohort
-                cohort = Cohort.objects.create(**validated_data)
-                return cohort
-        else:
-            return Cohort.objects.create(**validated_data)
+        # Activating a cohort no longer deactivates other cohorts of the
+        # same program: they can run side by side.
+        return Cohort.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        program_type = validated_data.get("program_type", instance.program_type)
         is_active = validated_data.get("is_active", instance.is_active)
 
         # If deactivating, validate it's safe to do so
@@ -218,13 +190,6 @@ class CohortSerializer(serializers.ModelSerializer):
             except serializers.ValidationError as e:
                 # Re-raise with proper field mapping
                 raise e
-
-        if is_active and not instance.is_active:
-            # If activating this cohort, deactivate all others for this program type
-            with transaction.atomic():
-                Cohort.objects.filter(
-                    program_type=program_type, is_active=True
-                ).exclude(id=instance.id).update(is_active=False)
 
         return super().update(instance, validated_data)
 
@@ -285,17 +250,11 @@ class EnrollmentSerializer(serializers.ModelSerializer):
                     "Cannot enroll in a cohort that has already ended."
                 )
 
-            # Student should not be enrolled in multiple active cohorts of same program type
-            existing_enrollment = Enrollment.objects.filter(
-                student=student,
-                cohort__program_type=cohort.program_type,
-                cohort__is_active=True,
-            ).exclude(cohort=cohort)
-
-            if existing_enrollment.exists():
-                existing_cohort = existing_enrollment.first().cohort
+            # One active cohort per program per student (rule lives on the model).
+            conflict = Enrollment.conflicting_active_enrollment(student, cohort)
+            if conflict:
                 raise serializers.ValidationError(
-                    f"Student is already enrolled in active cohort '{existing_cohort.name}' for {cohort.program_type} program."
+                    Enrollment.conflict_message(conflict.cohort)
                 )
 
         return attrs

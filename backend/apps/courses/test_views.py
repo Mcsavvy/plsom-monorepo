@@ -354,7 +354,7 @@ class CourseMyCoursesPerformanceTestCase(APITestCase):
                 program_type="certificate" if i % 2 == 0 else "diploma",
                 start_date=timezone.now().date(),
                 end_date=(timezone.now() + timedelta(days=30)).date(),
-                is_active=True,
+                is_active=i < 2,
             )
             self.cohorts.append(cohort)
 
@@ -418,7 +418,7 @@ class CourseMyCoursesPerformanceTestCase(APITestCase):
                 program_type="certificate",
                 start_date=timezone.now().date(),
                 end_date=(timezone.now() + timedelta(days=30)).date(),
-                is_active=True,
+                is_active=False,
             )
 
             Enrollment.objects.create(student=self.student, cohort=cohort)

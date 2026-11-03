@@ -31,8 +31,10 @@ interface Invitation {
   id: number;
   email: string;
   role: string;
-  program_type: string | null;
   cohort: number | null;
+  // The API derives both from the cohort; invitations store no program.
+  cohort_name: string | null;
+  cohort_program_type: string | null;
   token: string;
   expires_at: string;
   used_at: string | null;
@@ -227,13 +229,15 @@ export const InvitationsShow: React.FC = () => {
               </div>
             </div>
 
-            {invitation.program_type && (
+            {invitation.cohort_program_type && (
               <div>
                 <label className='text-sm font-medium text-muted-foreground'>
                   Program Type
                 </label>
                 <div className='mt-1'>
-                  <Badge variant='outline'>{invitation.program_type}</Badge>
+                  <Badge variant='outline'>
+                    {invitation.cohort_program_type}
+                  </Badge>
                 </div>
               </div>
             )}
@@ -244,7 +248,9 @@ export const InvitationsShow: React.FC = () => {
                   Cohort
                 </label>
                 <div className='mt-1'>
-                  <Badge variant='outline'>Cohort {invitation.cohort}</Badge>
+                  <Badge variant='outline'>
+                    {invitation.cohort_name ?? `Cohort ${invitation.cohort}`}
+                  </Badge>
                 </div>
               </div>
             )}

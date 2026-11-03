@@ -175,7 +175,16 @@ export const TestsEdit: React.FC = () => {
 
   const test = testData;
   const courses = coursesData?.data || [];
-  const cohorts = cohortsData?.data || [];
+  // Only active cohorts are offered, but keep the test's own cohort in the
+  // list if it has since been deactivated, so the field doesn't show blank.
+  const activeCohorts = cohortsData?.data || [];
+  const cohorts =
+    test && !activeCohorts.some(c => c.id === test.cohort)
+      ? [
+          { id: test.cohort, name: test.cohortName, program_type: 'inactive' },
+          ...activeCohorts,
+        ]
+      : activeCohorts;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -737,8 +746,9 @@ export const TestsEdit: React.FC = () => {
                         <FormItem>
                           <FormLabel>Course</FormLabel>
                           <Select
+                            // Radix sends '' before options load; parseInt('') is NaN.
                             onValueChange={value =>
-                              field.onChange(parseInt(value))
+                              value && field.onChange(parseInt(value))
                             }
                             value={field.value?.toString()}
                           >
@@ -770,8 +780,9 @@ export const TestsEdit: React.FC = () => {
                         <FormItem>
                           <FormLabel>Cohort</FormLabel>
                           <Select
+                            // Radix sends '' before options load; parseInt('') is NaN.
                             onValueChange={value =>
-                              field.onChange(parseInt(value))
+                              value && field.onChange(parseInt(value))
                             }
                             value={field.value?.toString()}
                           >

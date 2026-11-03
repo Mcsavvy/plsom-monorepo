@@ -65,27 +65,8 @@ class CohortViewSet(viewsets.ModelViewSet):
         if not self.request.user.role == "admin":
             raise PermissionDenied("Only admin can create cohorts")
 
-        # Additional validation for cohort creation
-        validated_data = serializer.validated_data
-
-        # Check for overlapping cohorts of the same program type
-        program_type = validated_data.get("program_type")
-        start_date = validated_data.get("start_date")
-        end_date = validated_data.get("end_date")
-
-        if start_date and end_date:
-            overlapping_cohorts = Cohort.objects.filter(
-                program_type=program_type,
-                start_date__lte=end_date,
-                end_date__gte=start_date,
-            )
-            if overlapping_cohorts.exists():
-                overlapping_cohort = overlapping_cohorts.first()
-                raise ValidationError(
-                    f"Cohort dates overlap with existing cohort '{overlapping_cohort.name}' "
-                    f"({overlapping_cohort.start_date} to {overlapping_cohort.end_date})"
-                )
-
+        # Cohorts of the same program may overlap in time: several can run
+        # at once, so there is no date-overlap check.
         serializer.save()
 
     def perform_update(self, serializer):
@@ -93,29 +74,8 @@ class CohortViewSet(viewsets.ModelViewSet):
         if not self.request.user.role == "admin":
             raise PermissionDenied("Only admin can update cohorts")
 
-        instance = self.get_object()
-        validated_data = serializer.validated_data
-
-        # Additional validation for cohort updates
-        program_type = validated_data.get("program_type", instance.program_type)
-        start_date = validated_data.get("start_date", instance.start_date)
-        end_date = validated_data.get("end_date", instance.end_date)
-
-        # Check for overlapping cohorts when updating dates
-        if start_date and end_date:
-            overlapping_cohorts = Cohort.objects.filter(
-                program_type=program_type,
-                start_date__lte=end_date,
-                end_date__gte=start_date,
-            ).exclude(id=instance.id)
-
-            if overlapping_cohorts.exists():
-                overlapping_cohort = overlapping_cohorts.first()
-                raise ValidationError(
-                    f"Updated dates would overlap with existing cohort '{overlapping_cohort.name}' "
-                    f"({overlapping_cohort.start_date} to {overlapping_cohort.end_date})"
-                )
-
+        # Cohorts of the same program may overlap in time: several can run
+        # at once, so there is no date-overlap check.
         serializer.save()
 
     def perform_destroy(self, instance):

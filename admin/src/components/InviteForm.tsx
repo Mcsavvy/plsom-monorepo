@@ -209,6 +209,8 @@ export const InviteStudentForm: React.FC<InviteStudentFormProps> = ({
   const { result: cohortsData } = useList<Cohort>({
     resource: 'cohorts',
     filters: [{ field: 'is_active', operator: 'eq', value: true }],
+    // Several cohorts per program can be active; never cut the list at a page.
+    pagination: { mode: 'off' },
   });
 
   const cohorts = cohortsData?.data || [];
