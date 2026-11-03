@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUpdate, useOne, useNavigation } from '@refinedev/core';
+import { useUpdate, useOne, useList, useNavigation } from '@refinedev/core';
 import { useParams } from 'react-router';
 import { Loader2 } from 'lucide-react';
 
@@ -74,12 +74,46 @@ interface Invitation {
   id: number;
   email: string;
   role: string;
-  program_type: string | null;
   cohort: number | null;
+  cohort_name: string | null;
+  cohort_program_type: string | null;
   expires_at: string;
   is_used: boolean;
   is_expired: boolean;
 }
+
+interface CohortOption {
+  id: number;
+  name: string;
+  program_type: 'certificate' | 'diploma';
+}
+
+/**
+ * Active cohorts of the chosen program, plus the invitation's current
+ * cohort even if it has since been deactivated, so the field never shows
+ * blank for a saved value.
+ */
+const cohortOptionsFor = (
+  active: CohortOption[],
+  invitation: Invitation | undefined,
+  program: string | undefined
+): { id: number; label: string }[] => {
+  if (!program) return [];
+  const options = active
+    .filter(c => c.program_type === program)
+    .map(c => ({ id: c.id, label: c.name }));
+  if (
+    invitation?.cohort &&
+    invitation.cohort_program_type === program &&
+    !options.some(o => o.id === invitation.cohort)
+  ) {
+    options.unshift({
+      id: invitation.cohort,
+      label: `${invitation.cohort_name ?? `Cohort ${invitation.cohort}`} (inactive)`,
+    });
+  }
+  return options;
+};
 
 export const InvitationsEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -109,6 +143,19 @@ export const InvitationsEdit: React.FC = () => {
   });
 
   const selectedRole = form.watch('role');
+  const selectedProgram = form.watch('program_type');
+
+  // Several cohorts of a program can be active at once, so pick by name.
+  const { result: cohortsData } = useList<CohortOption>({
+    resource: 'cohorts',
+    filters: [{ field: 'is_active', operator: 'eq', value: true }],
+    pagination: { mode: 'off' },
+  });
+  const cohortOptions = cohortOptionsFor(
+    cohortsData?.data ?? [],
+    invitationData,
+    selectedProgram
+  );
 
   // Update form when data loads
   useEffect(() => {
@@ -117,7 +164,7 @@ export const InvitationsEdit: React.FC = () => {
       form.reset({
         email: invitation.email,
         role: invitation.role as 'admin' | 'lecturer' | 'student',
-        program_type: invitation.program_type as
+        program_type: (invitation.cohort_program_type ?? undefined) as
           | 'certificate'
           | 'diploma'
           | undefined,
@@ -280,7 +327,11 @@ export const InvitationsEdit: React.FC = () => {
                       <FormItem>
                         <FormLabel>Program Type</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
+                          onValueChange={value => {
+                            field.onChange(value);
+                            // The chosen cohort belongs to one program.
+                            form.setValue('cohort', undefined);
+                          }}
                           value={field.value}
                           disabled={invitation.is_used}
                         >
@@ -309,24 +360,40 @@ export const InvitationsEdit: React.FC = () => {
                     name='cohort'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cohort Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='1'
-                            type='number'
-                            min='1'
-                            disabled={invitation.is_used}
-                            {...field}
-                            onChange={e => {
-                              const value = e.target.value;
-                              field.onChange(
-                                value ? parseInt(value, 10) : undefined
-                              );
-                            }}
-                          />
-                        </FormControl>
+                        <FormLabel>Cohort</FormLabel>
+                        <Select
+                          onValueChange={value =>
+                            field.onChange(parseInt(value, 10))
+                          }
+                          value={field.value ? String(field.value) : ''}
+                          disabled={invitation.is_used || !selectedProgram}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  selectedProgram
+                                    ? 'Select a cohort'
+                                    : 'Select a program type first'
+                                }
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {cohortOptions.map(option => (
+                              <SelectItem
+                                key={option.id}
+                                value={String(option.id)}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormDescription>
-                          The cohort number for the student
+                          {selectedProgram && cohortOptions.length === 0
+                            ? `No active ${selectedProgram} cohorts`
+                            : 'The cohort the student will join'}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

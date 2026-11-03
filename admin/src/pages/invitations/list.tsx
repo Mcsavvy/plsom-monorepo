@@ -62,8 +62,10 @@ interface Invitation {
   id: number;
   email: string;
   role: string;
-  program_type: string | null;
   cohort: number | null;
+  // The API derives both from the cohort; invitations store no program.
+  cohort_name: string | null;
+  cohort_program_type: string | null;
   token: string;
   expires_at: string;
   used_at: string | null;
@@ -210,10 +212,12 @@ export const InvitationsList: React.FC = () => {
         },
       },
       {
-        accessorKey: 'program_type',
+        accessorKey: 'cohort_program_type',
         header: 'Program Type',
         cell: ({ row }) => {
-          const programType = row.getValue('program_type') as string | null;
+          const programType = row.getValue('cohort_program_type') as
+            | string
+            | null;
           return programType ? (
             <Badge variant='outline'>{programType}</Badge>
           ) : (
@@ -225,9 +229,9 @@ export const InvitationsList: React.FC = () => {
         accessorKey: 'cohort',
         header: 'Cohort',
         cell: ({ row }) => {
-          const cohort = row.getValue('cohort') as number | null;
-          return cohort ? (
-            <Badge variant='outline'>Cohort {cohort}</Badge>
+          const name = row.original.cohort_name;
+          return name ? (
+            <Badge variant='outline'>{name}</Badge>
           ) : (
             <span className='text-muted-foreground'>—</span>
           );
